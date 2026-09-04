@@ -1,0 +1,7 @@
+node_modules/
+dist/
+.codex/
+.vite/
+.dsh-vision-router/
+.DS_Store
+*.log

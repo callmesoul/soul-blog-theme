@@ -1,0 +1,525 @@
+// =====================================================================
+// Mock 数据：站点导航目录 + 文章列表（本地演示用，无后端依赖）
+// 后续接入真实接口时，只需保持字段结构不变替换本文件即可
+// =====================================================================
+
+/** 全局静态图标（导航、卡片元信息、评论互动） */
+export const ICONS = {
+  home: '/images/extracted/home/iconfont-shouye@2x.png',
+  eye: '/images/extracted/home/iconfont-icon01@2x.png',      // 浏览
+  comment: '/images/extracted/home/iconfont-icon27@2x.png',   // 评论
+  calendar: '/images/extracted/home/iconfont-03(1)@2x.png',   // 日期
+  zan: '/images/extracted/article/iconfont-zan@2x.png',       // 点赞
+  avatarA: '/images/extracted/article/4@2x.png',
+  avatarB: '/images/extracted/article/20160126052324@2x.png'
+}
+
+/** 文章目录（左侧导航 = “首页” + 以下目录） */
+export const CATEGORIES = [
+  {
+    id: 'frontend',
+    name: '前端开发',
+    en: 'Front-end Development',
+    icon: '/images/extracted/home/iconfont-daima2@2x.png',
+    w: 21,
+    h: 21
+  },
+  {
+    id: 'duxcms',
+    name: 'DUXCMS',
+    en: 'Content Cms',
+    icon: '/images/extracted/home/iconfont-gongnengyejiarukaiyuanxiangmu@2x.png',
+    w: 21,
+    h: 20
+  },
+  {
+    id: 'diary',
+    name: '博客更新日记',
+    en: 'Update Blog Diary',
+    icon: '/images/extracted/home/图形@2x.png',
+    w: 21,
+    h: 20
+  }
+]
+
+/** 封面图（home 目录下的图层素材） */
+const COVER = {
+  c21: '/images/extracted/home/图层_21@2x.png',
+  c20: '/images/extracted/home/图层_20@2x.png',
+  c18: '/images/extracted/home/图层_18@2x.png',
+  c14: '/images/extracted/home/图层_14@2x.png',
+  c11: '/images/extracted/home/图层_11@2x.png',
+  c13: '/images/extracted/home/图层_13@2x.png',
+  c15: '/images/extracted/home/图层_15@2x.png',
+  c5: '/images/extracted/home/图层_5@2x.png',
+  c6: '/images/extracted/home/图层_6@2x.png',
+  wall: '/images/extracted/article/wallhaven-16731@2x.png'
+}
+
+/**
+ * 文章列表（按时间倒序排列，即首页“全部文章”的展示顺序）
+ * 字段说明：
+ *   id          文章唯一标识（首页阅读器 #cat=xxx&art=yyy）
+ *   cat         所属目录 id（对应 CATEGORIES）
+ *   cover       列表卡片封面
+ *   summary     卡片摘要
+ *   paragraphs  详情页正文段落
+ *   comments    评论区预置内容
+ */
+export const ARTICLES = [
+  // ---------- 博客更新日记 ----------
+  {
+    id: 'all-night-debug',
+    cat: 'diary',
+    title: '记一次通宵修 Bug 的经历',
+    cover: COVER.wall,
+    summary: '线上系统半夜告警，一路从日志追到根源，最后发现是配置缺失。记录这次通宵排障的过程，也聊聊“熬夜写代码”这件事的得与失。',
+    date: '2016/02/14',
+    views: 334,
+    commentCount: 26,
+    paragraphs: [
+      '凌晨一点，手机响起刺耳的告警声。后台任务大面积失败，页面缓慢到几乎打不开。我睡眼惺忪地爬起来，打开笔记本，一场没有硝烟的排查就此开始。',
+      '先看错误日志，发现大量接口超时。顺着调用链一层层往下追，缓存、数据库、队列……前半小时几乎把能怀疑的对象都怀疑了一遍，却一无所获。',
+      '直到翻出最近一次发布记录，才意识到当天下午上线的某个配置项，在测试环境与生产环境之间并没有同步。缺失的配置导致循环重试，直接把下游打挂了。',
+      '修复只花了一分钟，但定位花了整整五个小时。天亮时按下发布按钮，系统恢复如初。',
+      '回头想想，那次通宵最大的收获不是修好了 Bug，而是养成了“先看变更记录，再动手排查”的习惯。代码不会说谎，配置也是代码，少看一行都可能是灾难。'
+    ],
+    comments: [
+      { name: 'Zaika', avatar: ICONS.avatarA, text: '经历过凌晨的告警，才知道稳定的系统有多珍贵。', time: '2016/02/14 09:12', likes: 45 },
+      { name: 'CallMeSoul', avatar: ICONS.avatarB, text: '同感！我现在每次发版前都会核对一遍配置差异。', time: '2016/02/14 10:30', likes: 12 }
+    ]
+  },
+
+  {
+    id: 'mechanical-keyboard',
+    cat: 'diary',
+    title: '换了机械键盘，写代码的姿势都优雅了',
+    cover: COVER.c6,
+    summary: '青轴、茶轴还是红轴？入坑第一把机械键盘的真实体验分享，包括键位习惯的适应期，以及它到底有没有让我写得更快。',
+    date: '2016/01/20',
+    views: 187,
+    commentCount: 33,
+    paragraphs: [
+      '一直听说程序员标配三件套：机械键盘、人体工学椅、多显示器。趁年终奖到手，终于入坑了人生第一把机械键盘。',
+      '选轴体是最纠结的一步。青轴的段落感清脆，红轴直上直下，茶轴则是两者之间的折中。试了一圈，最后选了茶轴，既有反馈又不至于吵到全办公室。',
+      '刚开始的适应期确实难熬：键位更高、回弹更强，手指需要重新找准肌肉记忆，前几天打字速度甚至比薄膜键盘还慢。',
+      '但一周之后，那种“手指落下去，声音弹上来”的确认感真的很上瘾。尤其是长文写作和敲代码的时候，节奏感会让人更专注。',
+      '至于它有没有让我写得更快？诚实地说，没有。但它让我更愿意坐下来写东西——这大概就是它最大的价值吧。'
+    ],
+    comments: [
+      { name: 'CallMeSoul', avatar: ICONS.avatarB, text: '我也是茶轴，用了三年还是很喜欢。', time: '2016/01/20 21:08', likes: 8 },
+      { name: 'Zaika', avatar: ICONS.avatarA, text: '办公室还是用静音红轴吧，青轴会被同事拉黑的。', time: '2016/01/21 10:02', likes: 27 }
+    ]
+  },
+
+  {
+    id: 'year-end-summary',
+    cat: 'diary',
+    title: '2015 年终总结与 2016 的小目标',
+    cover: COVER.c5,
+    summary: '整理今年做过的项目、踩过的坑和读过的书，顺便立几个来年 Flag。写给未来的自己，也写给同样在路上的你。',
+    date: '2015/12/31',
+    views: 256,
+    commentCount: 19,
+    paragraphs: [
+      '2015 年马上要过去了。照例写一篇年终总结，算是给这一年一个交代。',
+      '今年最大的变化，是从纯粹的“切图仔”逐渐理解什么是工程化：代码组织、构建流程、性能监控，这些东西第一次成为我日常工作的一部分。',
+      '踩过的坑也不少：一个上线前才发现的口子让我连续加了两天班；一套没有注释的老代码，让我理解了“重构”二字的分量。',
+      '读了大概十五本书，技术书占七成。最大的感触是：输入输出闭环很重要——读完一本书，写一篇笔记，比读十本书更有用。',
+      '2016 年的小目标：把博客坚持更新下去；参与一个开源项目；每周至少写一篇技术笔记。Flag 立在这里，明年的今天来验收。'
+    ],
+    comments: [
+      { name: 'Zaika', avatar: ICONS.avatarA, text: 'Flag 立住了！明年记得回来打卡。', time: '2016/01/01 00:05', likes: 56 }
+    ]
+  },
+
+  {
+    id: 'night-mode',
+    cat: 'diary',
+    title: '为博客加上夜间模式，深夜阅读友好多了',
+    cover: COVER.c21,
+    summary: '白天高亮、晚上刺眼，给全站加一套夜间配色。聊聊 CSS 变量抽色、偏好记忆与选色上的取舍，改完后深夜刷博客舒服多了。',
+    date: '2016/02/02',
+    views: 142,
+    commentCount: 9,
+    paragraphs: [
+      '博客上线一段时间后，收到最多的留言居然是：晚上看博客太刺眼了。于是给全站加夜间模式这件事，正式提上了日程。',
+      '实现上选择了 CSS 自定义属性：把所有颜色抽成变量，切换时只需更新 :root 上的一组值，几乎全部样式都会跟着变，改动量非常小。',
+      '同时用 localStorage 记住用户偏好，下次访问直接生效。选色上刻意压低饱和度与明度差，深夜阅读不刺眼，是我改完后最大的满足感。'
+    ],
+    comments: [
+      { name: 'Zaika', avatar: ICONS.avatarA, text: '夜间模式好评，晚上刷博客眼睛舒服多了。', time: '2016/02/03 22:15', likes: 21 }
+    ]
+  },
+
+  {
+    id: 'spring-festival-2016',
+    cat: 'diary',
+    title: '2016 春节，我读完了三本书',
+    cover: COVER.c5,
+    summary: '假期不赶进度，安安静静读完了三本闲书。记录一点读书随想，也算给“慢生活”留个交代。',
+    date: '2016/02/20',
+    views: 203,
+    commentCount: 16,
+    paragraphs: [
+      '往年的春节总在赶进度：赶文章、赶代码、赶各种没做完的事。今年决定换个活法，只带了三本书回家。',
+      '第一本是讲写作的，教会我“先写完，再写好”；第二本是工具书，读完就动手给博客加了几个小功能；第三本纯粹是小说，读到一半舍不得往下翻。',
+      '假期结束回头数了数：代码没写几行，但脑子清醒了不少。有些成长不发生在键盘上，而发生在合上书的那一刻。'
+    ]
+  },
+
+  {
+    id: 'backup-drill',
+    cat: 'diary',
+    title: '没有备份就没有博客：一次数据丢失的教训',
+    cover: COVER.c13,
+    summary: '误操作导致整站数据险些清空，幸好有一份“过期备份”。记录这次心跳加速的经历，以及我后来搭起的备份与恢复流程。',
+    date: '2016/02/26',
+    views: 178,
+    commentCount: 12,
+    paragraphs: [
+      '那是一个普通的工作日傍晚，我在后台整理栏目，手一抖删错了一组分类，连带该分类下几十篇文章一起消失。那一瞬间后背全是汗。',
+      '立刻翻备份，才发现最近一份完整的备份停在两周前——中间新增的十几篇文章全没了。好在旧文章都在，损失还能接受，但这足以让我认真对待备份这件事。',
+      '现在我的流程是：数据库每日凌晨自动备份、文件每周打包一次，两份都保留最近三十天，并每月做一次恢复演练。备份没有技术含量，贵在坚持。'
+    ]
+  },
+
+  {
+    id: 'open-source-pr',
+    cat: 'diary',
+    title: '第一次给开源项目提交 PR 的完整流程',
+    cover: COVER.wall,
+    summary: '从提 issue 到收到 maintainer 回复，再到 PR 被合并。记录我第一次参与开源贡献的完整流程与踩过的流程坑。',
+    date: '2016/03/12',
+    views: 241,
+    commentCount: 22,
+    paragraphs: [
+      '第一次给别人的开源项目提 PR，心情比写自己的代码还紧张。起因是我在用的一个前端库有个小 Bug，翻了源码后发现只差两行修复。',
+      '流程比想象中严谨：先 fork、clone、开分支，修完后写清 commit message 与 PR 描述，附上复现步骤和修复前后的对比。maintainer 回复很快，提了几条风格建议。',
+      '来回改了两轮之后，PR 被合并了。看到自己的名字出现在贡献者列表里的那一刻，觉得这大概是程序员最有成就感的瞬间之一。'
+    ]
+  },
+
+  // ---------- 前端开发 ----------
+  {
+    id: 'css3-selectors',
+    cat: 'frontend',
+    title: 'CSS3 那些鲜为人知的进阶选择器',
+    cover: COVER.c14,
+    summary: '除了 :hover 和 :nth-child，CSS3 还提供了大量提升开发效率的选择器。本文用实际案例梳理一遍，学会后可以删掉一半的 JS。',
+    date: '2015/12/27',
+    views: 421,
+    commentCount: 44,
+    paragraphs: [
+      '日常写页面的时候，我们习惯用类名把每个元素都标好，再用 JS 去增删类名控制状态。其实很多逻辑 CSS 自己就能完成。',
+      '比如 :not() 可以排除特定项：给列表最后一项去掉边框，以前要单独写 class，现在一行 `.list li:not(:last-child)` 就搞定。',
+      '属性选择器也很强大：`[type="text"]`、`a[href^="https"]` 可以精确地命中链接并加个小图标，代码比 JS 遍历优雅得多。',
+      ':empty、:checked + 相邻兄弟选择器组合起来，甚至可以实现纯 CSS 的下拉菜单和开关组件，交互不依赖任何脚本。',
+      '学习建议：把 MDN 的选择器页面通读一遍，然后有意识地在项目里替换“能用 CSS 就不用 JS”的写法，一个月后你会回来感谢自己。'
+    ],
+    comments: [
+      { name: 'Zaika', avatar: ICONS.avatarA, text: ':not 真的太好用了，收藏了！', time: '2015/12/27 20:11', likes: 31 },
+      { name: 'CallMeSoul', avatar: ICONS.avatarB, text: '纯 CSS 开关那个思路很棒，感谢分享。', time: '2015/12/28 09:40', likes: 9 }
+    ]
+  },
+
+  {
+    id: 'vite-multipage',
+    cat: 'frontend',
+    title: '用 Vite 搭建多页静态博客的实践',
+    cover: COVER.c11,
+    summary: '不依赖任何框架，用 Vite + 原生 ES Module 组织一个多页站点：开发热更新、资源引用、构建与部署，一条龙踩坑记录。',
+    date: '2015/12/26',
+    views: 198,
+    commentCount: 15,
+    paragraphs: [
+      '这篇博客站就是用它搭建的。选择 Vite 的原因很简单：启动快、配置少、对原生 ES Module 友好，非常适合“轻框架”路线的多页站点。',
+      '目录组织上，每个页面一个 HTML 入口，公共逻辑抽到 src/js，样式集中到一个 CSS。页面之间通过 <a> 正常跳转，业务数据交给前端模块管理。',
+      '踩得最深的坑是静态资源的路径：开发时一切正常，build 之后图片全挂。解决方式是统一使用绝对路径 /images/…，并把资源放进 public 目录。',
+      '另一个心得是善用 devDependencies 保持依赖干净，构建产物要控制在合理体积，首屏不需要的模块坚决不 import。',
+      '如果你也在做类似的静态站点，希望这份记录能帮你少走弯路。'
+    ],
+    comments: [
+      { name: 'CallMeSoul', avatar: ICONS.avatarB, text: '资源路径那个坑我也踩过，血的教训。', time: '2015/12/26 22:30', likes: 14 }
+    ]
+  },
+
+  {
+    id: 'frontend-performance',
+    cat: 'frontend',
+    title: '图片懒加载与资源拆分的前端性能实践',
+    cover: COVER.c13,
+    summary: '首页几十张图把首屏拖到 5 秒？本文给出图片懒加载、按需渲染与构建拆分的完整优化思路，实测把加载时间砍掉一半。',
+    date: '2016/01/08',
+    views: 367,
+    commentCount: 58,
+    paragraphs: [
+      '性能优化的收益，往往不是某一个点，而是一连串小改进叠加的结果。这篇文章以图片为主的博客首页为例，分享我的优化清单。',
+      '第一步是图片懒加载：可视区域外的图片先不请求，滚动到附近再加载。这样首屏只加载真正需要的那几张。',
+      '第二步是统一图片尺寸与格式：卡片图固定宽高比，避免布局抖动；同时把大图按展示尺寸输出，压缩体积。',
+      '第三步是构建层面的代码拆分：播放器、评论区这些非首屏模块异步加载，让首屏 JS 尽量小。',
+      '优化后同一个页面从 5.1s 降到 2.4s 首屏完成，体感提升非常明显。性能优化没有银弹，但把每个环节都做到位，效果自然看得见。'
+    ],
+    comments: [
+      { name: 'Zaika', avatar: ICONS.avatarA, text: '布局抖动那个点太真实了，必须给图片预留宽高。', time: '2016/01/08 19:23', likes: 22 },
+      { name: 'CallMeSoul', avatar: ICONS.avatarB, text: '下次改版就把这个清单用上。', time: '2016/01/09 11:17', likes: 6 }
+    ]
+  },
+
+  {
+    id: 'es-module-organization',
+    cat: 'frontend',
+    title: '用 ES Module 组织前端代码的正确姿势',
+    cover: COVER.c15,
+    summary: 'export、import、动态 import……ES Module 给前端工程化带来了新的组织方式。聊聊模块划分的边界与团队协作的约定。',
+    date: '2015/12/29',
+    views: 145,
+    commentCount: 12,
+    paragraphs: [
+      '当项目从“一个文件几百行”长到“几十个文件互相引用”时，模块划分就成了工程问题。ES Module 的静态分析特性，让我们在写代码时就能发现引用错误。',
+      '我的划分原则很简单：按“职责”不按“页面”切分。把数据、工具函数、组件逻辑分别归类，页面层只做组装。',
+      '动态 import 是性能的好朋友：弹窗、编辑器这类用到的功能模块，放在真正需要时再加载，能显著减小首屏体积。',
+      '给团队定几条约定很重要：循环引用坚决禁止、公共逻辑只放一处、导入路径清晰可读。约定比工具更能避免混乱。',
+      '模块化不是目的，可维护才是。好的划分让新人三天上手，坏的组织让老手也寸步难行。'
+    ],
+    comments: [
+      { name: 'Zaika', avatar: ICONS.avatarA, text: '循环引用真的毒，遇到过调试一下午。', time: '2015/12/29 17:45', likes: 18 }
+    ]
+  },
+
+  {
+    id: 'flexbox-layout',
+    cat: 'frontend',
+    title: 'Flexbox 布局精讲：从一维到二维的思维切换',
+    cover: COVER.c18,
+    summary: '主轴、交叉轴、flex 伸缩规则……用一组可视化例子讲透 Flexbox 的行为模型，并给出日常布局的推荐写法。',
+    date: '2016/02/05',
+    views: 356,
+    commentCount: 41,
+    paragraphs: [
+      'Flexbox 上手容易，真正用对它却需要理解它的“一维”本质：无论 row 还是 column，它只负责一个方向的排布，另一个方向交给对齐属性。',
+      '最容易踩坑的是 flex 缩写的三个值：flex-grow 决定放大的份额，flex-shrink 决定缩小的份额，flex-basis 决定初始尺寸。`flex: 1` 并不等于 `flex: auto`，很多人栽在这里。',
+      '建议先把主轴上的三种经典布局练熟：导航栏（space-between）、等分卡片（flex: 1）、居中容器（margin: auto 或 justify/align）。练熟一维，再看 Grid 解决二维就水到渠成了。'
+    ],
+    comments: [
+      { name: 'CallMeSoul', avatar: ICONS.avatarB, text: 'flex 缩写那个坑太真实了，以前经常混淆。', time: '2016/02/05 21:10', likes: 13 }
+    ]
+  },
+
+  {
+    id: 'backdrop-filter',
+    cat: 'frontend',
+    title: 'backdrop-filter：一行 CSS 实现毛玻璃效果',
+    cover: COVER.c11,
+    summary: '背景虚化、磨砂质感、面板通透感……backdrop-filter 让这些效果不再需要复杂的遮罩方案。附浏览器兼容性处理。',
+    date: '2016/02/15',
+    views: 289,
+    commentCount: 35,
+    paragraphs: [
+      'backdrop-filter 允许你对元素背后的区域做模糊、提亮等处理，效果类似 iOS 的毛玻璃，一行 CSS 就能让侧边栏、播放条拥有通透的高级感。',
+      '使用时要注意三点：一是要给元素留出半透明背景，完全透明看不出模糊；二是配合 -webkit- 前缀照顾老版 WebKit 内核；三是模糊半径不宜过大，16px 左右观感比较自然。',
+      '本站的左侧导航与底部播放栏就用了这个属性：背景图贯穿界面，导航像浮在画面上的一层玻璃，比之前纯黑底精致了不少。'
+    ],
+    comments: [
+      { name: 'Zaika', avatar: ICONS.avatarA, text: '这个博客的毛玻璃效果就是实践案例吧，很好看。', time: '2016/02/16 09:30', likes: 29 }
+    ]
+  },
+
+  {
+    id: 'http-cache',
+    cat: 'frontend',
+    title: 'HTTP 缓存策略一次讲透',
+    cover: COVER.c14,
+    summary: '强缓存、协商缓存、CDN 缓存……用一张决策图理清 HTTP 缓存的层级与优先级，让重复访问不再白白浪费带宽。',
+    date: '2016/02/28',
+    views: 412,
+    commentCount: 46,
+    paragraphs: [
+      'HTTP 缓存是“性价比”最高的前端优化之一，却常常被忽略。它分为强缓存（直接读本地）与协商缓存（问服务器后再决定），两者有明确的优先级关系。',
+      '强缓存靠 Expires 与 Cache-Control 控制，Cache-Control 的 max-age 更现代也更精确；协商缓存靠 Last-Modified 与 ETag 配对，ETag 在内容变化的场景下更可靠。',
+      '静态资源适合“文件名加指纹 + 长 max-age + 强缓存”，HTML 则建议短缓存并走协商。把这套组合拳打对，二次访问的加载时间能肉眼可见地下降。'
+    ],
+    comments: [
+      { name: 'CallMeSoul', avatar: ICONS.avatarB, text: '收藏了，下次配置 nginx 缓存直接照抄思路。', time: '2016/02/28 20:02', likes: 17 }
+    ]
+  },
+
+  {
+    id: 'mobile-h5-pitfalls',
+    cat: 'frontend',
+    title: '移动端 H5 开发踩坑清单',
+    cover: COVER.c6,
+    summary: '1px 边框、点击延迟、软键盘顶起布局、iOS 橡皮筋……整理我在移动端 H5 项目里遇到过的坑与对应的解法。',
+    date: '2016/03/08',
+    views: 387,
+    commentCount: 53,
+    paragraphs: [
+      '移动端 H5 的坑大多来自“浏览器差异”与“视口理解”。第一类必踩是 1px 边框：高分屏下物理像素大于逻辑像素，普通 border 会显得又粗又糊，需要配合媒体查询或 transform 缩放。',
+      '第二类是交互差异：iOS 点击有约 300ms 延迟（需 viewport 或 touch-action 解决）、橡皮筋回弹会让 fixed 元素乱跑、软键盘弹起可能把 fixed 底部按钮顶到屏幕中间。',
+      '第三类是安全区：iPhone X 及以后的机型有刘海与底部横条，内容要用 env(safe-area-inset-*) 预留边距。建议项目一启动就写一份“移动端基线样式”，能挡掉八成以上的坑。'
+    ],
+    comments: [
+      { name: 'Zaika', avatar: ICONS.avatarA, text: '1px 边框那条写得很细，全部经历过。', time: '2016/03/08 22:41', likes: 31 }
+    ]
+  },
+
+  // ---------- DUXCMS ----------
+  {
+    id: 'duxcms-enterprise-site',
+    cat: 'duxcms',
+    title: '用 DUXCMS 三步搭建一个企业官网',
+    cover: COVER.c18,
+    summary: '从模板选择、栏目规划到内容录入，用 DUXCMS 完成一个企业官网的全过程，附导航层级与后台配置的实用建议。',
+    date: '2016/01/15',
+    views: 289,
+    commentCount: 37,
+    paragraphs: [
+      '接到一个朋友的企业站需求：要快、要好看、还要能自己维护。权衡之后选了 DUXCMS——部署简单，后台对非技术人员友好。',
+      '第一步是搭栏目结构。产品中心、新闻资讯、关于我们、联系我们，四类基础栏目先定好，层级控制在三层以内，避免内容管理越来越乱。',
+      '第二步是选模板与改样式。DUXCMS 模板机制清晰，通过调整样式表与部分模板标签，很快就做出了与品牌色调一致的页面。',
+      '第三步是内容录入与基础设置。友情提示：SEO 标题、关键字、静态化这些在项目初期就配好，比上线后再补省事得多。',
+      '整个站点从零到上线用了不到一周，朋友很满意。CMS 的价值就在于：把重复劳动交给系统，把精力留给真正重要的内容。'
+    ],
+    comments: [
+      { name: 'CallMeSoul', avatar: ICONS.avatarB, text: '模板机制确实好用，改起来不费劲。', time: '2016/01/15 16:20', likes: 11 },
+      { name: 'Zaika', avatar: ICONS.avatarA, text: '栏目层级建议很实用，很多人一上来就建一堆栏目。', time: '2016/01/16 09:50', likes: 25 }
+    ]
+  },
+
+  {
+    id: 'duxcms-custom-model',
+    cat: 'duxcms',
+    title: 'DUXCMS 如何快速创建自定义内容模型',
+    cover: COVER.c20,
+    summary: '默认的“文章/图片/下载”不够用？DUXCMS 支持自定义内容模型。一步步演示如何扩展字段并绑定到前台模板。',
+    date: '2015/12/28',
+    views: 173,
+    commentCount: 21,
+    paragraphs: [
+      '网站做到一半，客户提出要一个“案例展示”模块：每个案例要有多图、跳转链接、客户名称等额外字段。默认模型显然不够。',
+      'DUXCMS 的自定义内容模型正是解决这类需求的：在后台创建新模型，按需添加文本、单选、图片、多图等字段，马上就得到一套完整的内容管理入口。',
+      '前台展示也简单：模板里通过字段标签直接输出，配合循环标签即可遍历该模型的全部数据，无需写任何后端代码。',
+      '这里有几个经验：字段命名尽量语义化；必填项提前想清楚，避免后期补数据；图片类字段尽量统一尺寸，方便前台排版。',
+      '自定义模型让 DUXCMS 几乎可以承载所有“列表 + 详情”形态的内容，灵活度远超预期。'
+    ],
+    comments: [
+      { name: 'Zaika', avatar: ICONS.avatarA, text: '学到了，案例模块正需要这个。', time: '2015/12/28 14:33', likes: 16 }
+    ]
+  },
+
+  {
+    id: 'duxcms-kaibo',
+    cat: 'duxcms',
+    title: '开博啦！开博啦！踏上大神的第一步',
+    cover: COVER.c21,
+    summary: '本博客主要用 DUXCMS 搭建，用于记录博主的点点滴滴，无论是生活上的还是技术上的。博客刚建好，还不完善请见谅。',
+    date: '2015/12/25',
+    views: 56,
+    commentCount: 33,
+    paragraphs: [
+      '本博客主要用 DUXCMS 搭建，用于记录博主的点点滴滴，无论是生活上的还是技术上的。博客刚建好，还不完善，请见谅。后面会慢慢完善与扩展，敬请期待。',
+      '开博啦！开博啦！踏上大神的第一步。从今天开始，我将在这里记录我的技术成长之路，分享前端开发的经验和心得，以及生活中的各种有趣的事情。',
+      '作为一个前端开发者，我会分享 HTML、CSS、JavaScript 以及各种前端框架的使用经验；同时也会记录一些后端技术的学习过程，比如 DUXCMS 的内容管理系统。',
+      '博客会持续更新，更多精彩内容敬请期待。也欢迎大家在评论区留言交流，一起学习，一起进步！'
+    ],
+    comments: [
+      { name: 'Zaika', avatar: ICONS.avatarA, text: '一起来超神！', time: '2015/12/25 12:00', likes: 356 },
+      { name: 'CallMeSoul', avatar: ICONS.avatarB, text: '非常期待，沙发是我的！', time: '2015/12/25 12:30', likes: 88 }
+    ]
+  },
+
+  {
+    id: 'duxcms-seo',
+    cat: 'duxcms',
+    title: 'DUXCMS 站点的 SEO 配置心得',
+    cover: COVER.c5,
+    summary: '标题、关键字、描述、静态化与 sitemap……把 DUXCMS 的 SEO 相关配置一次配齐，让搜索引擎更友好地收录站点。',
+    date: '2016/01/25',
+    views: 226,
+    commentCount: 18,
+    paragraphs: [
+      'CMS 做出来的站点，SEO 好不好看配置。DUXCMS 在后台提供了完整的 SEO 相关设置，关键是要在内容上线前就把它配好，而不是事后补救。',
+      '我的做法是：全站标题采用“文章名 - 栏目名 - 站点名”的层级结构；每个栏目与文章单独填写关键字与描述；同时开启 URL 静态化，让链接简短可读。',
+      '最后别忘了定期生成并提交 sitemap。配完之后观察站长的收录曲线，两三周内能明显看到抓取量的变化，投入产出比相当高。'
+    ],
+    comments: [
+      { name: 'Zaika', avatar: ICONS.avatarA, text: '静态化那步很关键，以前总被收录怪链接困扰。', time: '2016/01/26 10:11', likes: 14 }
+    ]
+  },
+
+  {
+    id: 'duxcms-template-tags',
+    cat: 'duxcms',
+    title: 'DUXCMS 模板标签大全与实战示例',
+    cover: COVER.c20,
+    summary: '栏目循环、文章列表、分页、字段输出……把最常用的 DUXCMS 模板标签整理成一份带示例的速查手册。',
+    date: '2016/02/08',
+    views: 318,
+    commentCount: 27,
+    paragraphs: [
+      '上手 DUXCMS 模板，最重要的是熟悉它的标签体系：几乎所有动态内容都靠模板标签输出，理解了标签就等于理解了模板的骨架。',
+      '最常用的几类：栏目循环用于导航与子栏目；文章列表循环配合分页标签实现“首页列表 + 详情页”的完整形态；字段标签负责输出标题、时间、阅读量等单条数据。',
+      '建议把标签文档打印出来对照着写，先用现成模板改结构，再逐步替换为自定义栏目与模型。不出两天就能独立完成一套模板的开发。'
+    ],
+    comments: [
+      { name: 'CallMeSoul', avatar: ICONS.avatarB, text: '速查手册太方便了，写模板时不用来回翻文档。', time: '2016/02/08 23:19', likes: 9 }
+    ]
+  },
+
+  {
+    id: 'duxcms-plugin-guide',
+    cat: 'duxcms',
+    title: '从零编写一个 DUXCMS 插件',
+    cover: COVER.c15,
+    summary: '后台菜单、数据库表、前台标签……以“文章归档”为例，走一遍 DUXCMS 插件从声明到安装的全过程。',
+    date: '2016/02/23',
+    views: 164,
+    commentCount: 20,
+    paragraphs: [
+      '当现有功能不够用时，DUXCMS 的插件机制给了我们扩展的空间。插件的核心是一份声明文件加若干模块文件，结构比想象中简单。',
+      '以一个“文章归档”插件为例：先写好声明文件注册插件名与版本；再实现后台管理菜单与对应的数据库表；最后注册一个前台模板标签，供页面直接调用。',
+      '开发插件时建议把业务逻辑与展示模板分开，方便日后复用与升级。整个流程走通之后，我对 DUXCMS 二开的信心大增。'
+    ],
+    comments: [
+      { name: 'Zaika', avatar: ICONS.avatarA, text: '跟着写了一个小插件，通了！感谢教程。', time: '2016/02/24 15:26', likes: 25 }
+    ]
+  },
+
+  {
+    id: 'duxcms-error-guide',
+    cat: 'duxcms',
+    title: 'DUXCMS 常见报错与排查思路整理',
+    cover: COVER.c21,
+    summary: '白屏、500、数据库连接失败、模板标签不生效……把 DUXCMS 使用中高频遇到的报错与排查顺序整理成清单。',
+    date: '2016/03/02',
+    views: 292,
+    commentCount: 31,
+    paragraphs: [
+      '用 DUXCMS 这一年，攒下了一份“报错处理清单”。最高频的问题是安装后白屏，九成是环境问题：PHP 版本过低或缺少扩展，先看错误日志就能定位。',
+      '其次是 500 错误：多为文件权限或伪静态配置问题。Linux 下记得给 runtime 与上传目录可写权限，Apache 与 Nginx 的伪静态规则并不通用。',
+      '第三类奇葩但常见：模板改了不生效。这通常是模板缓存没清理，后台清除缓存后即可。排查顺序记住“日志 → 权限 → 缓存”，能解决绝大多数问题。'
+    ],
+    comments: [
+      { name: 'CallMeSoul', avatar: ICONS.avatarB, text: '模板缓存那条救了我一命，改了半天不生效。', time: '2016/03/03 09:45', likes: 19 }
+    ]
+  },
+
+  {
+    id: 'duxcms-theme-tweak',
+    cat: 'duxcms',
+    title: '改 DUXCMS 模板主题的一些小心得',
+    cover: COVER.c13,
+    summary: '从整体配色到局部组件的定制化改造记录，聊聊怎么在不动核心文件的前提下，把一套模板改成自己的风格。',
+    date: '2016/03/18',
+    views: 155,
+    commentCount: 13,
+    paragraphs: [
+      '模板二开的原则是“尽量不碰核心文件”，否则升级时改动会被覆盖。我的做法是把所有定制样式单独放到一个 CSS 文件里引入，主题层只做覆盖。',
+      '改造顺序建议：先定色板（主色、背景、文字三级灰阶），再统一字体与间距节奏，最后才是局部组件的精修。从整体到局部，返工率最低。',
+      '本站就是用这种方式改出来的：底色深一点、主色换成品牌橙红、卡片与导航做磨砂玻璃效果。改动全部集中在样式层，随时可以换回原样。'
+    ],
+    comments: [
+      { name: 'Zaika', avatar: ICONS.avatarA, text: '“不碰核心文件”原则受教了，之前升级老被覆盖。', time: '2016/03/19 11:08', likes: 22 }
+    ]
+  }
+]
