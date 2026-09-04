@@ -5,3 +5,5 @@ dist/
 .dsh-vision-router/
 .DS_Store
 *.log
+.codebuddy/
+vite.kanban-worktrees/
