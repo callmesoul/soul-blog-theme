@@ -7,3 +7,4 @@ dist/
 *.log
 .codebuddy/
 vite.kanban-worktrees/
+.claude/
