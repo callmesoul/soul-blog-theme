@@ -22,8 +22,9 @@ onMounted(async () => {
 </template>
 
 <style>
-*, *::before, *::after { box-sizing: border-box; }
-html, body { width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden; background: #080808; color: #fff; }
+	*, *::before, *::after { box-sizing: border-box; }
+	html, body { width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden; background: #080808; color: #fff; scrollbar-width: thin; scrollbar-color: #444 transparent; }
+	#app { display: flex; flex-direction: column; flex: 1; min-height: 0; }
 body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
     "Helvetica Neue", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei",
@@ -35,7 +36,8 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 ::selection { background: rgba(235, 79, 56, 0.3); }
-::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: #444; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #555; }
 </style>

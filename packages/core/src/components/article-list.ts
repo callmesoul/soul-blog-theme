@@ -34,6 +34,7 @@ class ArticleList extends WcBase {
     this._articles = val
     this._resetList()
     this._renderPage()
+    this._loadMore()
   }
   set icons (val: Record<string, string>) {
     this._icons = val
@@ -172,7 +173,22 @@ class ArticleList extends WcBase {
         .article-area {
           flex: 1;
           overflow-y: auto;
+          scrollbar-width: thin;
+          scrollbar-color: #444 transparent;
           padding: 54px 59px 48px;
+        }
+        .article-area::-webkit-scrollbar {
+          width: 6px;
+        }
+        .article-area::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        .article-area::-webkit-scrollbar-thumb {
+          background: #444;
+          border-radius: 3px;
+        }
+        .article-area::-webkit-scrollbar-thumb:hover {
+          background: #555;
         }
         @media (max-width: 700px) {
           .article-area { padding: 54px 20px 48px; }
@@ -295,6 +311,8 @@ class ArticleList extends WcBase {
     this._setupCardClick()
     this._resetList()
     this._renderPage()
+    // 初始内容可能未撑满可视区，触发首次滚动加载
+    this._loadMore()
   }
 
   private _setupIntersectionObserver (): void {

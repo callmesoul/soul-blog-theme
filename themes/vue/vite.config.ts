@@ -2,6 +2,9 @@ import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import tailwindcss from '@tailwindcss/vite'
 import { fileURLToPath, URL } from 'node:url'
+import { resolve, dirname } from 'node:path'
+
+const __dirname = dirname(fileURLToPath(import.meta.url))
 
 export default defineConfig({
   plugins: [
@@ -19,6 +22,7 @@ export default defineConfig({
     }),
     tailwindcss(),
   ],
+  publicDir: resolve(__dirname, '../../assets'),
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url))

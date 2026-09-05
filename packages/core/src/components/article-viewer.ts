@@ -36,6 +36,7 @@ class ArticleViewer extends WcBase {
   private _viewerGen = 0
   private _swapBusy = false
   private _swapPendingId: string | null = null
+  private _cardEl: HTMLElement | null = null
 
   set article (val: Article | null) {
     this._article = val
@@ -127,6 +128,20 @@ class ArticleViewer extends WcBase {
         }
         :host(.is-open) {
           display: flex;
+        }
+        :host *::-webkit-scrollbar {
+          width: 6px;
+          height: 6px;
+        }
+        :host *::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        :host *::-webkit-scrollbar-thumb {
+          background: #444;
+          border-radius: 3px;
+        }
+        :host *::-webkit-scrollbar-thumb:hover {
+          background: #555;
         }
         .viewer-backdrop {
           position: absolute;
@@ -227,6 +242,8 @@ class ArticleViewer extends WcBase {
         .viewer-main {
           flex: 1;
           overflow-y: auto;
+          scrollbar-width: thin;
+          scrollbar-color: #444 transparent;
           padding: 32px 40px 40px;
         }
         .viewer-main.viewer-swap-out {
@@ -516,6 +533,8 @@ class ArticleViewer extends WcBase {
           width: 280px;
           flex-shrink: 0;
           overflow-y: auto;
+          scrollbar-width: thin;
+          scrollbar-color: #444 transparent;
           padding: 32px 24px 40px;
           border-left: 1px solid #2a2a2a;
         }
@@ -643,12 +662,12 @@ class ArticleViewer extends WcBase {
 
   private _setupBackdrop (): void {
     const backdrop = this.$('[data-part="backdrop"]')
-    backdrop?.addEventListener('click', () => this._close())
+    backdrop?.addEventListener('click', () => this.closeWithFlip())
   }
 
   private _setupCloseButton (): void {
     const close = this.$('[data-part="close-btn"]')
-    close?.addEventListener('click', () => this._close())
+    close?.addEventListener('click', () => this.closeWithFlip())
   }
 
   private _setupKeyboard (): void {
@@ -656,7 +675,7 @@ class ArticleViewer extends WcBase {
       if (!this.classList.contains('is-open')) return
       const tag = (e.target && (e.target as HTMLElement).tagName) || ''
       if (tag === 'INPUT' || tag === 'TEXTAREA') return
-      if (e.key === 'Escape') this._close()
+      if (e.key === 'Escape') this.closeWithFlip()
     })
   }
 
@@ -719,22 +738,22 @@ class ArticleViewer extends WcBase {
       }
 
       // 发表评论
-      const submit = target.closest('#comment-form button[type="submit"]')
-      if (submit) {
-        e.preventDefault()
-        const form = target.closest('#comment-form') as HTMLElement | null
-        if (!form) return
-        const ta = form.querySelector('textarea') as HTMLTextAreaElement | null
-        const text = (ta?.value || '').trim()
-        if (!text) { ta?.focus(); return }
-        const list = form.parentElement?.querySelector('.comment-list') as HTMLElement | null
-        const emptyHint = list?.querySelector('.comment-empty')
-        if (emptyHint) emptyHint.remove()
-        if (list) list.appendChild(this._createCommentEl(text, '我'))
-        if (ta) ta.value = ''
-        this._syncCommentCount()
-        return
-      }
+	      const submit = target.closest('[data-part="comment-form"] button[type="submit"]')
+	      if (submit) {
+	        e.preventDefault()
+	        const form = target.closest('[data-part="comment-form"]') as HTMLElement | null
+	        if (!form) return
+	        const ta = form.querySelector('textarea') as HTMLTextAreaElement | null
+	        const text = (ta?.value || '').trim()
+	        if (!text) { ta?.focus(); return }
+	        const list = form.parentElement?.querySelector('.comment-list') as HTMLElement | null
+	        const emptyHint = list?.querySelector('.comment-empty')
+	        if (emptyHint) emptyHint.remove()
+	        if (list) list.appendChild(this._createCommentEl(text, '我'))
+	        if (ta) ta.value = ''
+	        this._syncCommentCount()
+	        return
+	      }
 
       // 推荐原地切换
       const rec = target.closest('.recommend-item') as HTMLElement | null
@@ -749,17 +768,17 @@ class ArticleViewer extends WcBase {
     })
 
     // 评论输入联动
-    viewer.addEventListener('input', (e: Event) => {
-      const ta = e.target as HTMLTextAreaElement
-      if (ta.matches('#comment-form textarea') || ta.matches('[data-part="comment-input"]')) {
-        const submit = this.shadow.querySelector('#comment-form button[type="submit"]') as HTMLButtonElement | null
-        const hasText = !!ta.value.trim()
-        if (submit) {
-          submit.disabled = !hasText
-          submit.classList.toggle('is-active', hasText)
-        }
-      }
-    })
+	    viewer.addEventListener('input', (e: Event) => {
+	      const ta = e.target as HTMLTextAreaElement
+	      if (ta.matches('[data-part="comment-form"] textarea') || ta.matches('[data-part="comment-input"]')) {
+	        const submit = this.shadow.querySelector('[data-part="comment-form"] button[type="submit"]') as HTMLButtonElement | null
+	        const hasText = !!ta.value.trim()
+	        if (submit) {
+	          submit.disabled = !hasText
+	          submit.classList.toggle('is-active', hasText)
+	        }
+	      }
+	    })
   }
 
   private _setupEmoji (): void {
@@ -899,6 +918,7 @@ class ArticleViewer extends WcBase {
 
   /** 外部调用，触发 FLIP 展开动画 */
   openWithFlip (cardEl: HTMLElement | null, siteName: string): void {
+    this._cardEl = cardEl
     this._viewerGen++
     this.classList.add('is-open')
     this.hidden = false
@@ -1004,21 +1024,145 @@ class ArticleViewer extends WcBase {
 
   closeWithFlip (): void {
     const gen = ++this._viewerGen
-    const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
-    const cardId = this._article?.id
+    this._swapPendingId = null
+    const artId = this._article?.id
 
-    if (reduceMotion || !this._article) {
+    const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+    const card = this._cardEl
+    const cardVp = this._rectOf(card)
+
+    const finish = () => {
+      if (gen !== this._viewerGen) return
       this._close()
+      const panel = this.$('[data-part="panel"]') as HTMLElement | null
+      if (panel) {
+        panel.style.transition = ''
+        panel.style.transform = ''
+        panel.style.transformOrigin = ''
+        panel.style.opacity = ''
+        panel.classList.remove('is-anim')
+      }
+      const body = this.$('[data-part="body"]') as HTMLElement | null
+      if (body) {
+        body.classList.add('viewer-mask')
+        body.classList.remove('viewer-in')
+      }
+      const backdrop = this.$('[data-part="backdrop"]') as HTMLElement | null
+      if (backdrop) backdrop.classList.remove('viewer-in')
+      this._ghostReset()
+      if (card && card.focus) card.focus({ preventScroll: true })
+    }
+
+    if (reduceMotion || !artId || !this._inViewportRect(cardVp)) {
+      const backdrop = this.$('[data-part="backdrop"]') as HTMLElement | null
+      if (backdrop) backdrop.classList.remove('viewer-in')
+      finish()
       return
     }
 
+    // 1) 内容淡出
     const body = this.$('[data-part="body"]') as HTMLElement | null
-    if (body) body.classList.add('viewer-mask')
+    if (body) {
+      body.classList.add('viewer-mask')
+      body.classList.remove('viewer-in')
+    }
 
+    // 2) 延迟后面板反向收拢
     setTimeout(() => {
       if (gen !== this._viewerGen) return
-      this._close()
-    }, 200)
+      const vBase = this.getBoundingClientRect()
+      const cardLocal = this._toLocalRect(cardVp, vBase)
+      const coverEl = this.shadow.querySelector('[data-part="cover"]') as HTMLElement | null
+      const coverLocal = coverEl ? this._toLocalRect(this._rectOf(coverEl), vBase) : null
+      if (!cardLocal) { finish(); return }
+
+      const P = { left: 0, top: 0, width: vBase.width, height: vBase.height }
+      const panel = this.$('[data-part="panel"]') as HTMLElement | null
+      if (panel) {
+        panel.classList.add('is-anim')
+        panel.style.transformOrigin = 'top left'
+        // 面板先收拢到卡片矩形，到达后（FLIP_CLOSE_MS 后）自身淡出，
+        // 避免不透明面板停在卡片上方、finish 突隐造成"暗块→卡片"截断闪
+        panel.style.transition =
+          `transform ${FLIP_CLOSE_MS}ms cubic-bezier(0.45, 0, 0.55, 1), opacity 110ms ease ${FLIP_CLOSE_MS}ms`
+        panel.style.transform = `translate(${cardLocal.left}px, ${cardLocal.top}px) scale(${cardLocal.width / P.width}, ${cardLocal.height / P.height})`
+        panel.style.opacity = '0'
+      }
+
+      // 封面克隆从正文封面缩回卡片缩略图，收拢动画更有"归位感"
+      const thumbVp = card ? this._rectOf(card.querySelector('.card-thumb') as HTMLElement) : null
+      const thumbLocal = this._toLocalRect(thumbVp, vBase) || cardLocal
+      const ghost = this.$('[data-part="ghost"]') as HTMLImageElement | null
+      if (coverLocal && coverEl && ghost && (coverEl as HTMLImageElement).src) {
+        this._ghostShow()
+        ghost.style.left = '0'
+        ghost.style.top = '0'
+        ghost.style.transformOrigin = 'top left'
+        ghost.style.width = coverLocal.width + 'px'
+        ghost.style.height = coverLocal.height + 'px'
+        ghost.src = (coverEl as HTMLImageElement).src
+        const fromTf = `translate(${coverLocal.left}px, ${coverLocal.top}px) scale(1, 1)`
+        const toTf = `translate(${thumbLocal.left}px, ${thumbLocal.top}px) scale(${thumbLocal.width / coverLocal.width}, ${thumbLocal.height / coverLocal.height})`
+        ghost.style.transform = fromTf
+        // 克隆以 fill:'both' 保持收拢末帧，交由 finish 的 _ghostReset 统一取消，
+        // 避免中途 cancel 使封面弹回原位、造成"详情快速缩放"的闪烁
+        const flyBack = ghost.animate(
+          [{ transform: fromTf }, { transform: toTf }],
+          { duration: FLIP_CLOSE_MS, easing: 'cubic-bezier(0.45, 0, 0.55, 1)', fill: 'both' }
+        )
+        // 收拢完成时把克隆 inline 态落到"缩略图位置/尺寸"，与真实卡片缩略图逐像素对齐，
+        // 停驻窗口内取消动画也不回弹，finish 隐藏时无缝交接
+        setTimeout(() => {
+          if (gen !== this._viewerGen) return
+          if (flyBack && flyBack.cancel) flyBack.cancel()
+          ghost.style.width = thumbLocal.width + 'px'
+          ghost.style.height = thumbLocal.height + 'px'
+          ghost.style.transform = `translate(${thumbLocal.left}px, ${thumbLocal.top}px)`
+        }, FLIP_CLOSE_MS)
+      }
+
+      const backdrop = this.$('[data-part="backdrop"]') as HTMLElement | null
+      if (backdrop) backdrop.classList.remove('viewer-in')
+
+      setTimeout(finish, FLIP_CLOSE_MS + 110)
+    }, 130)
+  }
+
+  private _rectOf (el: HTMLElement | null): { left: number; top: number; width: number; height: number } | null {
+    if (!el || !el.getBoundingClientRect) return null
+    const r = el.getBoundingClientRect()
+    return r.width > 0 && r.height > 0 ? { left: r.left, top: r.top, width: r.width, height: r.height } : null
+  }
+
+  private _toLocalRect (r: { left: number; top: number; width: number; height: number } | null, base: { left: number; top: number }): { left: number; top: number; width: number; height: number } | null {
+    if (!r) return null
+    return { left: r.left - base.left, top: r.top - base.top, width: r.width, height: r.height }
+  }
+
+  private _inViewportRect (r: { left: number; top: number; width: number; height: number } | null): boolean {
+    if (!r) return false
+    const right = r.left + r.width
+    const bottom = r.top + r.height
+    return right > 0 && r.left < window.innerWidth &&
+      bottom > 0 && r.top < window.innerHeight
+  }
+
+  private _ghostShow (): void {
+    const ghost = this.$('[data-part="ghost"]') as HTMLElement | null
+    if (ghost) ghost.style.display = 'block'
+  }
+
+  private _ghostReset (): void {
+    const ghost = this.$('[data-part="ghost"]') as HTMLElement | null
+    if (ghost) {
+      ghost.style.display = 'none'
+      ghost.style.transform = ''
+      ghost.style.width = ''
+      ghost.style.height = ''
+      ghost.style.left = ''
+      ghost.style.top = ''
+    }
+    if (ghost && ghost.getAnimations) ghost.getAnimations().forEach(a => a.cancel())
   }
 }
 

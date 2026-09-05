@@ -37,3 +37,5 @@
   --brand-rgb: 235, 79, 56;
   --brand-cta-rgb: 238, 91, 68;
 }
+
+#root { display: flex; flex-direction: column; flex: 1; min-height: 0; }

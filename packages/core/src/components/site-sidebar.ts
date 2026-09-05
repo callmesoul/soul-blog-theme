@@ -107,7 +107,14 @@ class SiteSidebar extends WcBase {
           .sidebar { width: 64px; min-width: 64px; background: rgba(15,14,13,0.85); }
         }
         .logo-area {
-          padding: 20px 0 20px 84px;
+          padding: 20px 0;
+          display: flex;
+          justify-content: center;
+        }
+        .logo-area .logo-img {
+          height: 80px;
+          width: auto;
+          object-fit: contain;
         }
         @media (max-width: 1023px) {
           .logo-area { display: none; }
@@ -136,10 +143,22 @@ class SiteSidebar extends WcBase {
           flex: 1;
           overflow-x: hidden;
           overflow-y: auto;
+          scrollbar-width: thin;
+          scrollbar-color: #444 transparent;
           position: relative;
         }
         .site-nav::-webkit-scrollbar {
           width: 4px;
+        }
+        .site-nav::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        .site-nav::-webkit-scrollbar-thumb {
+          background: #444;
+          border-radius: 3px;
+        }
+        .site-nav::-webkit-scrollbar-thumb:hover {
+          background: #555;
         }
         .nav-item {
           position: relative;
@@ -411,7 +430,7 @@ class SiteSidebar extends WcBase {
       </style>
       <aside class="sidebar">
         <div class="logo-area">
-          <img src="/images/extracted/login/图形@2x.png" alt="CallMeSoul" class="block h-[55px] w-[60px] object-contain">
+          <img src="/images/home/logo_text.png" alt="CallMeSoul" class="logo-img">
         </div>
 
         <nav class="site-nav" aria-label="文章目录">

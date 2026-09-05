@@ -1,6 +1,10 @@
 import { defineConfig } from 'vite'
 import tailwindcss from '@tailwindcss/vite'
 import svgLoader from 'vite-svg-loader'
+import { resolve, dirname } from 'node:path'
+import { fileURLToPath } from 'node:url'
+
+const __dirname = dirname(fileURLToPath(import.meta.url))
 
 export default defineConfig({
   plugins: [
@@ -9,6 +13,7 @@ export default defineConfig({
       defaultImport: 'url'
     }),
   ],
+  publicDir: resolve(__dirname, '../../assets'),
   build: {
     rollupOptions: {
       input: {

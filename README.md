@@ -4,6 +4,14 @@
 
 核心组件库 `@soul-blog/wc` 使用 Shadow DOM 封装，不依赖任何前端框架，各端通过 thin wrapper 按需集成。
 
+## 截图预览
+
+|                  首页                  |                      文章阅读器                      |
+| :----------------------------------: | :---------------------------------------------: |
+|  ![首页](assets/screenshots/home.png)  | ![文章阅读器](assets/screenshots/article-viewer.png) |
+|                **登录页**               |                     **搜索页**                     |
+| ![登录页](assets/screenshots/login.png) |      ![搜索页](assets/screenshots/search.png)      |
+
 ## 项目架构
 
 ```

@@ -24,6 +24,7 @@ export default function HomePage() {
 
   const [currentCat, setCurrentCat] = useState(getHashCat())
   const [currentArtId, setCurrentArtId] = useState<string | null>(getHashArt())
+  const isClosingByUser = useRef(false)
 
   // 同步 hash
   useEffect(() => {
@@ -38,12 +39,20 @@ export default function HomePage() {
   // 监听 currentArtId 变化，打开/关闭阅读器
   useEffect(() => {
     if (currentArtId && viewerRef.current) {
+      isClosingByUser.current = false
       const art = articles.findArticle(currentArtId)
       if (art) {
-        const card = document.querySelector(`.article-card[data-id="${currentArtId}"]`)
+        // 直接设置 article 到 Web Component 上
+        const viewerEl = document.querySelector('article-viewer') as any
+        if (viewerEl) {
+          viewerEl.article = art
+          viewerEl.catNames = articles.catNames
+        }
+        const root = document.querySelector('article-list')?.shadowRoot || document
+        const card = root.querySelector(`.article-card[data-id="${currentArtId}"]`)
         viewerRef.current.openWithFlip(card as HTMLElement, siteConfig.siteName || 'CallMeSoul')
       }
-    } else if (!currentArtId && viewerRef.current) {
+    } else if (!currentArtId && viewerRef.current && !isClosingByUser.current) {
       viewerRef.current.closeWithFlip()
     }
   }, [currentArtId])
@@ -67,6 +76,7 @@ export default function HomePage() {
   }, [currentCat])
 
   const handleViewerClose = useCallback(() => {
+    isClosingByUser.current = true
     window.location.hash = '#cat=' + encodeURIComponent(articles.resolveCat(currentCat))
   }, [currentCat])
 
@@ -83,20 +93,20 @@ export default function HomePage() {
         onNavigate={handleNavigate}
       />
 
-      <div className="flex min-w-0 flex-1 flex-col">
-        <ArticleList
-          articles={articles.articles}
-          icons={articles.icons}
-          activeCat={currentCat}
-          onArticleSelect={handleArticleSelect}
-        />
+      <div className="relative flex min-w-0 flex-1 flex-col overflow-hidden">
+	        <ArticleList
+	          articles={articles.articles}
+	          icons={articles.icons}
+	          activeCat={currentCat}
+	          onArticleSelect={handleArticleSelect}
+	        />
 
-        <ArticleViewer
-          ref={viewerRef}
-          article={currentArticle}
-          articles={articles.articles}
-          icons={articles.icons}
-          onArticleSelect={handleViewerArticleSelect}
+	        <ArticleViewer
+	          ref={viewerRef}
+	          article={currentArticle}
+	          articles={articles.articles}
+	          icons={articles.icons}
+	          onArticleSelect={handleViewerArticleSelect}
           onViewerClose={handleViewerClose}
         />
       </div>

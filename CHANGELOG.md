@@ -4,6 +4,23 @@
 
 格式基于 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.0.0/)，版本号遵循 [语义化版本](https://semver.org/lang/zh-CN/)。
 
+## [1.1.0] - 2026-09-06
+
+### Changed
+
+- 横向文字 logo 替换侧栏原有 logo 图标，支持自定义尺寸
+- 资源文件抽取到根目录 `assets/`，vanilla/vue/react 三个主题共享同一份资源
+- 未使用的图片和设计文件被清理，`assets/images/` 精简至 37 个文件
+
+### Fixed
+
+- 文章阅读器关闭动画：FLIP 收拢动画在 Vue/React 主题中不生效，根因为 Shadow DOM 查询穿透失败
+- Vue/React 主题文章列表滚动加载无效：`_loadMore()` 在初始渲染后未触发，内容未填满时永不加载
+- 评论框无法提交：表单选择器 `#comment-form` 与模板 `data-part` 属性不匹配
+- 跨 Shadow DOM 滚动条样式不一致：为所有 Web Component 添加 `::-webkit-scrollbar` 样式
+- 文章阅读器 Vue/React 主题中弹出为全屏而非面板约束：缺少 `overflow-hidden` 定位上下文
+- 导航栏、社交栏、音乐播放器样式与基准 commit 不一致（多项样式回归）
+
 ## [1.0.0] - 2026-09-05
 
 ### Added
