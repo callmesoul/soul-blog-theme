@@ -1,0 +1,11 @@
+// 组件注册入口：导入此文件即注册所有 Web Components
+export { SiteBackground } from './site-background'
+export { SiteSidebar } from './site-sidebar'
+export type { NavItem } from './site-sidebar'
+export { SearchPanel } from './search-panel'
+export { LoginPanel } from './login-panel'
+export { ArticleList } from './article-list'
+export { SearchResults } from './search-results'
+export { MusicPlayer } from './music-player'
+export type { Track } from './music-player'
+export { ArticleViewer } from './article-viewer'

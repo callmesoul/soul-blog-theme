@@ -1,0 +1,46 @@
+<%
+var cat = page.categories && page.categories.length ? page.categories[0].name : 'uncategorized';
+var siteData = {
+  articles: [],
+  categories: [],
+  icons: {
+    home: '/images/extracted/home/iconfont-shouye@2x.png',
+    eye: '/images/extracted/home/iconfont-icon01@2x.png',
+    comment: '/images/extracted/home/iconfont-icon27@2x.png',
+    calendar: '/images/extracted/home/iconfont-03(1)@2x.png',
+    zan: '/images/extracted/article/iconfont-zan@2x.png',
+    avatarA: '/images/extracted/article/4@2x.png',
+    avatarB: '/images/extracted/article/20160126052324@2x.png'
+  },
+  siteName: config.title || 'CallMeSoul',
+  icp: theme.icp || '',
+  social: theme.social || []
+};
+%>
+<script id="site-data" type="application/json"><%- JSON.stringify(siteData) %></script>
+
+<site-sidebar active-cat="all"></site-sidebar>
+
+<div class="flex min-w-0 flex-1 flex-col">
+  <article-viewer></article-viewer>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  var viewer = document.querySelector('article-viewer');
+  if (viewer) {
+    viewer.article = {
+      id: '<%= page._id || page.slug || page.title %>',
+      cat: '<%= cat %>',
+      title: '<%- page.title %>',
+      cover: '<%= page.cover || page.thumbnail || "/images/extracted/home/图层_21@2x.png" %>',
+      summary: '<%- page.excerpt || page.description || "" %>',
+      date: '<%= page.date ? page.date.format("YYYY/MM/DD") : "" %>',
+      views: <%= page.views || 0 %>,
+      commentCount: 0,
+      paragraphs: [<%- page.content ? JSON.stringify(page.content) : '""' %>]
+    };
+    viewer.openWithFlip(null, '<%= config.title || "CallMeSoul" %>');
+  }
+});
+</script>

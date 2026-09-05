@@ -8,3 +8,7 @@ dist/
 .codebuddy/
 vite.kanban-worktrees/
 .claude/
+.trae/
+
+# Hexo theme build output
+themes/hexo/source/

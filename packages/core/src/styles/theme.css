@@ -1,0 +1,62 @@
+@import "tailwindcss";
+
+/* ============================================================
+   @soul-blog/wc 设计令牌（Tailwind v4 @theme + 品牌 CSS 变量）
+   与 themes/vanilla/src/css/style.css 同源，跨端复用统一观感。
+   ============================================================ */
+@theme {
+  /* 字体：现代无衬线（Latin → PingFang/微软雅黑 等 CJK 回退） */
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei",
+    "Noto Sans SC", Arial, sans-serif;
+
+  /* —— 背景/面板色 —— */
+  --color-base: #080808;      /* 页面底色 / 背景层 */
+  --color-card: #0f0e0d;      /* 侧栏 / 卡片 / 播放列表面板 */
+  --color-panel: #141210;     /* 音量面板 */
+  --color-deep: #0a0a0a;      /* 播放列表头部 */
+  --color-soft: #1d1d1d;      /* 播放列表面板按钮胶囊 */
+  --color-field: #252828;     /* 评论回复框 / 输入框 / 封面占位 */
+  --color-row: #292623;       /* 注册按钮底 */
+  --color-rowhover: #322e2a;  /* 注册按钮 hover */
+
+  /* —— 分隔线 —— */
+  --color-sep: #333333;       /* 列表分隔/社交栏顶线 */
+  --color-line: #2a2a2a;      /* 常规边框 */
+  --color-line-soft: #1a1a1a; /* 播放列表条目底线 */
+  --color-line2: #3c3936;     /* 渐变分隔线 / 边框 */
+  --color-btnline: #363230;
+  --color-inline: #2d2927;    /* 登录输入行底线 */
+
+  /* —— 文字 —— */
+  --color-ink: #ffffff;
+  --color-body: #f2f2f2;      /* 主文字/正文标题等 */
+  --color-sub: #b3b3b3;
+  --color-mute: #9e9d99;      /* 次级/弱化文字 */
+  --color-dim: #6b6b6b;       /* 三级文字/时间等 */
+  --color-faint: #615e5d;
+  --color-ghost: #777672;     /* 空状态文案 */
+  --color-ash: #a6a6a6;       /* 输入框文字 */
+  --color-reading: #a8a5a0;   /* 正文阅读色 */
+  --color-cat: #c9c6c2;       /* 阅读器栏目名 */
+  --color-crumb-sep: #5d5a59;
+}
+
+/* 品牌色变量：站点头像/主题色可在 site-config 中按页面动态覆盖 */
+:root {
+  --brand-primary: #eb4f38;
+  --brand-cta: #ee5b44;
+  --brand-rgb: 235, 79, 56;
+  --brand-cta-rgb: 238, 91, 68;
+}
+
+/* Shadow DOM 全局默认：继承字体/字号/行高/字距/颜色，确保与文档一致 */
+:host {
+  font-family: var(--font-sans, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei",
+    "Noto Sans SC", Arial, sans-serif);
+  font-size: 14px;
+  line-height: 1.6;
+  letter-spacing: 0.01em;
+  color: var(--color-body, #f2f2f2);
+}

@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="<%= config.language || 'zh-CN' %>" class="h-full overflow-hidden">
+<head>
+  <%- partial('_partial/head') %>
+</head>
+<body class="relative flex h-full min-h-screen flex-col overflow-hidden bg-[#080808] font-sans text-[14px] leading-[1.6] tracking-[0.01em] text-white antialiased">
+  <site-background image="/images/extracted/home/081a7f1fa54d497bc3afcaa85c41528c@2x.png"></site-background>
+
+  <div class="relative z-10 flex min-h-0 flex-1 overflow-hidden">
+    <%- body %>
+  </div>
+
+  <music-player></music-player>
+  <search-panel></search-panel>
+
+  <%- partial('_partial/scripts') %>
+</body>
+</html>

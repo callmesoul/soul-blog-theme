@@ -1,0 +1,34 @@
+# @soul-blog/hexo — Hexo 主题配置
+# 使用时请将本主题目录放入 Hexo 站点的 themes/ 目录，并在站点 _config.yml 中设置 theme: hexo
+
+# 主题色
+theme_color: '#EB4F38'
+
+# 导航栏分类（对应 Hexo 站点的 categories，为空则自动生成）
+categories:
+  - frontend
+  - duxcms
+  - diary
+
+# 页脚社交链接（与 @soul-blog/wc 的 SocialItem 结构一致）
+social:
+  - name: 微信
+    icon: /images/social/qr-weixin.svg
+    type: qr
+  - name: QQ
+    icon: /images/social/qr-qq.svg
+    type: qr
+  - name: GitHub
+    icon: /images/social/github.svg
+    url: https://github.com/
+    mono: true
+
+# 页脚备案文案
+icp: '@CallMeSoul 粤ICP备15053557'
+
+# Logo 配置
+logo:
+  src: /images/extracted/login/图形@2x.png
+  width: 60
+  height: 55
+  alt: CallMeSoul
