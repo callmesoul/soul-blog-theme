@@ -339,22 +339,36 @@ class ArticleViewer extends WcBase {
           justify-content: space-between;
           align-items: center;
         }
-        .comment-form-actions button[type="button"] {
+        .comment-form-actions button[data-act="emoji"] {
+          width: 30px;
+          height: 30px;
           display: flex;
           align-items: center;
-          padding: 4px 8px;
-          background: none;
-          border: none;
+          justify-content: center;
+          background: transparent;
+          border: 1px solid #3C3936;
+          border-radius: 4px;
           cursor: pointer;
-          opacity: 0.5;
-          transition: opacity 0.2s;
+          transition: border-color 0.2s ease, background 0.2s ease;
         }
-        .comment-form-actions button[type="button"]:hover {
+        .comment-form-actions button[data-act="emoji"]:hover {
+          border-color: var(--brand-primary);
+          background: rgba(var(--brand-rgb), 0.08);
+        }
+        .comment-form-actions button[data-act="emoji"] img {
+          width: 17px;
+          height: 17px;
+          object-fit: contain;
+          filter: brightness(0) invert(0.62);
           opacity: 1;
+          transition: filter 0.2s ease, transform 0.2s ease;
         }
-        .comment-form-actions button[type="button"] img {
-          width: 20px;
-          height: 20px;
+        .comment-form-actions button[data-act="emoji"]:hover img {
+          filter: brightness(0) invert(1);
+          transform: scale(1.1);
+        }
+        .comment-form-actions button[data-act="emoji"]:active {
+          transform: scale(0.94);
         }
         .comment-form-actions button[type="submit"] {
           padding: 6px 20px;
@@ -425,17 +439,27 @@ class ArticleViewer extends WcBase {
           display: flex;
           align-items: center;
           gap: 3px;
+          color: #9e9d99;
         }
         .comment-action:hover {
-          color: #f2f2f2;
+          color: var(--brand-primary, #eb4f38);
         }
         .comment-action img {
           width: 14px;
           height: 14px;
-          opacity: 0.5;
+          object-fit: contain;
+          filter: brightness(0) invert(0.62);
+          opacity: 1;
+          transition: filter 0.2s ease;
+        }
+        .comment-action:hover img {
+          filter: brightness(0) invert(1);
         }
         .comment-action.liked {
           color: #eb4f38;
+        }
+        .comment-action.liked img {
+          filter: brightness(0) invert(1) drop-shadow(0 0 4px rgba(var(--brand-rgb), 0.65));
         }
         .comment-empty {
           text-align: center;
