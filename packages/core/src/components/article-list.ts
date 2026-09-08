@@ -172,6 +172,8 @@ class ArticleList extends WcBase {
         }
         .article-area {
           flex: 1;
+          display: flex;
+          flex-direction: column;
           overflow-y: auto;
           scrollbar-width: thin;
           scrollbar-color: #444 transparent;
@@ -197,10 +199,12 @@ class ArticleList extends WcBase {
           .article-area { padding: 54px 14px 48px; }
         }
         .article-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-          gap: 16px;
-        }
+	          flex: 1;
+	          display: grid;
+	          grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+	          gap: 16px;
+	          align-content: start;
+	        }
         .article-card {
           display: flex;
           flex-direction: column;
@@ -279,14 +283,75 @@ class ArticleList extends WcBase {
         }
         .grid-empty {
           text-align: center;
-          padding: 48px 20px;
+          padding: 80px 20px;
           color: #6b6b6b;
           font-size: 14px;
+          animation: fadeInUp 0.5s ease both;
+          grid-column: 1 / -1;
+          margin: auto;
+        }
+        .empty-icon {
+          width: 90px;
+          height: 90px;
+          margin: 0 auto 24px;
+          border-radius: 50%;
+          background: rgba(255, 255, 255, 0.05);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .empty-icon svg {
+          width: 45px;
+          height: 45px;
+          color: #6b6b6b;
+        }
+        .empty-title {
+          font-size: 18px;
+          color: #9e9d99;
+          margin-bottom: 8px;
+          font-weight: 500;
+        }
+        .empty-desc {
+          font-size: 14px;
+          color: #6b6b6b;
+          margin-bottom: 24px;
+        }
+        .empty-btn {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          padding: 10px 20px;
+          border: 1px solid #2a2a2a;
+          border-radius: 8px;
+          background: rgba(235, 79, 56, 0.08);
+          color: #eb4f38;
+          font-size: 14px;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+        .empty-btn:hover {
+          background: rgba(235, 79, 56, 0.15);
+          border-color: #eb4f38;
+          transform: translateY(-1px);
+        }
+        .empty-btn:active {
+          transform: translateY(0);
+        }
+        @keyframes fadeInUp {
+          from {
+            opacity: 0;
+            transform: translateY(10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
         }
       </style>
       <div class="list-header">
         <span class="home-icon"></span>
-        <a href="index.html" class="home-link">首页</a>
+        <a href="./" class="home-link">首页</a>
         <span class="crumb-sep">&gt;</span>
         <span class="crumb-current" data-part="crumb">${escapeHtml(this._catName)}${this._totalCount ? ' · 共 ' + this._totalCount + ' 篇' : ''}</span>
         <div class="header-divider"></div>
@@ -339,7 +404,13 @@ class ArticleList extends WcBase {
 
     grid.addEventListener('click', (e: Event) => {
       if (e.defaultPrevented) return
-      const card = (e.target as HTMLElement).closest('.article-card') as HTMLElement | null
+      const target = e.target as HTMLElement
+      // 空状态"看看其他分类"按钮
+      if (target.closest('[data-act="empty-browse"]')) {
+        this.emit('article-select', { id: '', cat: 'all' })
+        return
+      }
+      const card = target.closest('.article-card') as HTMLElement | null
       if (!card) return
       const id = (card.dataset as Record<string, string>).id
       if (id) {
@@ -369,7 +440,12 @@ class ArticleList extends WcBase {
     const sorted = filtered.sort((a, b) => b.date.localeCompare(a.date))
 
     if (!sorted.length) {
-      grid.innerHTML = '<div class="grid-empty">该目录下暂时没有文章，去其他目录逛逛吧～</div>'
+      grid.innerHTML = '<div class="grid-empty">' +
+        '<div class="empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div>' +
+        '<div class="empty-title">空空如也</div>' +
+        '<div class="empty-desc">该分类下还没有文章，去其他目录逛逛吧～</div>' +
+        '<button class="empty-btn" type="button" data-act="empty-browse">看看其他分类 &rarr;</button>' +
+        '</div>'
       if (status) status.dataset.state = 'hidden'
       return
     }

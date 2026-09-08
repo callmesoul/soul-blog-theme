@@ -3,10 +3,14 @@
 var cats = [];
 if (site.categories && site.categories.length) {
   site.categories.forEach(function(c) {
+    var name = typeof c === 'string' ? c : (c.name || '');
+    var slug = typeof c === 'string' ? c.toLowerCase().replace(/\s+/g, '-') : (c.slug || name.toLowerCase().replace(/\s+/g, '-'));
+    // 确保 slug 是小写（与文章 cat 处理保持一致）
+    slug = slug.toLowerCase();
     cats.push({
-      id: c.name.toLowerCase().replace(/\s+/g, '-'),
-      name: c.name,
-      en: c.slug || c.name,
+      id: slug,
+      name: name,
+      en: slug,
       icon: '/images/extracted/home/iconfont-daima2@2x.png',
       w: 21,
       h: 21
@@ -20,7 +24,30 @@ if (site.posts && site.posts.length) {
   site.posts.forEach(function(p) {
     arts.push({
       id: p._id || p.slug || p.title,
-      cat: p.categories && p.categories.length ? p.categories[0].name.toLowerCase().replace(/\s+/g, '-') : 'uncategorized',
+      cat: (function(){
+        var catFromPath = null;
+        // Try 1: from p.source (contains path like '_posts/diary/xxx.md')
+        if (p.source && typeof p.source === 'string') {
+          var parts = p.source.split('/');
+          if (parts.length >= 2 && parts[0] === '_posts' && parts[1]) {
+            catFromPath = parts[1];
+          }
+        }
+        // Try 2: from categories array (original way)
+        var c0 = p.categories && p.categories.length ? p.categories[0] : null;
+        var catFromCategories = null;
+        if (c0) {
+          if (typeof c0 === 'string') {
+            catFromCategories = c0;
+          } else {
+            catFromCategories = c0.slug || c0.name || null;
+          }
+        }
+        // Use path-based first (more reliable for directory-organized posts)
+        var name = catFromPath || catFromCategories || 'uncategorized';
+        var slug = name.toLowerCase().replace(/\s+/g, '-');
+        return slug.toLowerCase();
+      })(),
       title: p.title,
       cover: p.cover || p.thumbnail || '/images/extracted/home/图层_21@2x.png',
       summary: p.excerpt || p.description || p.content ? p.content.substring(0, 120) : '',
@@ -46,14 +73,14 @@ var siteData = {
   },
   siteName: config.title || 'CallMeSoul',
   icp: theme.icp || '',
-  social: theme.social || []
+  social: (theme.social || []).map(s => ({ ...s, href: s.href || s.url || '' }))
 };
 %>
 <script id="site-data" type="application/json"><%- JSON.stringify(siteData) %></script>
 
 <site-sidebar active-cat="all"></site-sidebar>
 
-<div class="flex min-w-0 flex-1 flex-col">
+<div class="relative flex min-w-0 flex-1 flex-col">
   <article-list active-cat="all"></article-list>
   <article-viewer></article-viewer>
 </div>

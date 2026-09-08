@@ -4,7 +4,25 @@
 
 核心组件库 `@soul-blog/wc` 使用 Shadow DOM 封装，不依赖任何前端框架，各端通过 thin wrapper 按需集成。
 
-## 截图预览
+## ✨ 特性
+
+- 🎨 **跨框架一致体验** — 一套核心组件同时支持 Vanilla/Vue/React/Hexo
+
+- 🔍 **全文模糊搜索** — 支持标题、目录、正文关键词模糊搜索，支持键盘导航
+
+- 🎬 **FLIP 翻转动画** — 从文章卡片到详情页无缝过渡动画
+
+- 🎵 **底部音乐播放器** — 支持播放列表、音量记忆、跨页状态保持
+
+- 🌌 **动态背景** — 粒子/星尘动效，视觉层次感丰富
+
+- 📱 **响应式布局** — 适配桌面、平板、移动设备
+
+- 🔐 **登录页** — 带密码验证的私有文章入口
+
+- ⚡ **性能优化** — 组件懒加载、图片懒加载、搜索防抖
+
+## 📸 截图预览
 
 |                  首页                  |                      文章阅读器                      |
 | :----------------------------------: | :---------------------------------------------: |
@@ -12,7 +30,7 @@
 |                **登录页**               |                     **搜索页**                     |
 | ![登录页](assets/screenshots/login.png) |      ![搜索页](assets/screenshots/search.png)      |
 
-## 项目架构
+## 🗂 项目架构
 
 ```
 soul-blog-theme/
@@ -107,15 +125,27 @@ pnpm --filter @soul-blog/hexo build
 
 ### 本地开发
 
+各主题默认端口：
+
+| 主题       | 端口   | 命令                                     |
+| -------- | ---- | -------------------------------------- |
+| Vanilla  | 5173 | `pnpm --filter @soul-blog/vanilla dev` |
+| Vue 3    | 5174 | `pnpm --filter @soul-blog/vue dev`     |
+| React 19 | 5175 | `pnpm --filter @soul-blog/react dev`   |
+| Hexo     | 4000 | 见下方 Hexo 集成工作流                         |
+
 ```bash
 # 构建核心库（watch 模式）
 pnpm --filter @soul-blog/wc dev
 
-# 原生 JS 主题开发
+# 原生 JS 主题
 pnpm --filter @soul-blog/vanilla dev
 
-# Vue 3 主题开发
+# Vue 3 主题
 pnpm --filter @soul-blog/vue dev
+
+# React 19 主题
+pnpm --filter @soul-blog/react dev
 ```
 
 ## 站点配置
@@ -209,15 +239,83 @@ pnpm --filter @soul-blog/vue typecheck
 pnpm --filter @soul-blog/react build
 ```
 
-### Hexo 主题集成
+### Hexo 主题集成开发工作流
 
-1. 将 `themes/hexo/` 目录放入 Hexo 站点的 `themes/` 目录
+修改核心组件后需要重新构建主题并同步到测试站点：
+
+```bash
+# 1. 构建 core
+cd /path/to/soul-blog-theme/packages/core
+pnpm build
+
+# 2. 构建 hexo 主题
+cd /path/to/soul-blog-theme/themes/hexo
+pnpm build
+
+# 3. 同步到测试站点，重新生成
+rm -rf /tmp/hexo-test/themes/hexo/
+cp -r /path/to/soul-blog-theme/themes/hexo /tmp/hexo-test/themes/
+cd /tmp/hexo-test
+hexo clean
+hexo generate
+
+# 4. 重启服务
+fuser -k 4000/tcp 2>/dev/null
+sleep 2
+hexo server -p 4000
+```
+
+然后浏览器硬刷新 `http://localhost:4000/`。
+
+### 生产部署 Hexo
+
+1. 将 `themes/hexo/` 目录复制到你的 Hexo 站点 `themes/` 目录
 2. 在站点 `_config.yml` 中设置 `theme: hexo`
 3. 运行 `hexo generate` 生成静态页面
+4. 部署到你的服务器
 
 ### 添加新组件
 
 1. 在 `packages/core/src/components/` 中创建 Web Component（继承 `WcBase`）
 2. 在 `packages/core/src/components/index.ts` 中注册
 3. 在各端主题中创建对应的 thin wrapper 组件
+4. 重新构建 core 和各端主题
 
+## ⌨️ 键盘快捷键
+
+| 快捷键                    | 功能          |
+| ---------------------- | ----------- |
+| `Ctrl/Cmd + Shift + F` | 打开搜索弹出层     |
+| `↑ / ↓`                | 选择搜索结果      |
+| `Enter`                | 打开当前结果      |
+| `Esc`                  | 关闭搜索 / 返回列表 |
+
+## 🎨 主题定制
+
+主题颜色在 `packages/core/src/styles/theme.css` 中定义：
+
+```css
+:root {
+  --sb-primary: #EB4F38;   /* 主题主色 */
+  --sb-cta: #EE5B44;        /* 按钮强调色 */
+  --sb-bg: #0c0b0a;         /* 背景色 */
+  --sb-card: #0f0e0d;       /* 卡片背景 */
+  --sb-text: #ffffff;       /* 正文颜色 */
+  --sb-meta: #9e9d99;       /* 元信息颜色 */
+  --sb-border: #2a2a2a;     /* 边框颜色 */
+}
+```
+
+修改后重新构建即可生效。
+
+## ☕ 打赏
+
+如果这个项目对你有用，可以请我喝杯奶茶 🧋
+
+<div align="center">
+  <img src="assets/images/payment.png" alt="打赏二维码" width="200">
+</div>
+
+## 📝 许可
+
+MIT

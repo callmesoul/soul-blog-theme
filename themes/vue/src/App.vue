@@ -1,12 +1,25 @@
 <script setup lang="ts">
 import { onMounted } from 'vue'
 import { useSiteConfigStore } from './stores/site-config'
+import { useArticleStore } from './stores/articles'
+import { useRouter } from 'vue-router'
 
 const siteConfig = useSiteConfigStore()
+const articles = useArticleStore()
+const router = useRouter()
 
 onMounted(async () => {
   await siteConfig.load()
   siteConfig.apply()
+
+  const searchPanel = document.querySelector('search-panel')
+  if (searchPanel) {
+    searchPanel.articles = articles.articles
+    searchPanel.addEventListener('search-select', (e: any) => {
+      const { id, cat } = e.detail
+      router.push({ query: { cat: cat || 'all', art: id } })
+    })
+  }
 })
 </script>
 

@@ -56,6 +56,7 @@ function buildArticleHash (artId, catId) {
 const sidebar = document.querySelector('site-sidebar')
 const articleList = document.querySelector('article-list')
 const viewer = document.querySelector('article-viewer')
+const searchPanel = document.querySelector('search-panel')
 const searchResults = document.querySelector('search-results')
 
 if (sidebar) {
@@ -72,9 +73,15 @@ if (articleList) {
   articleList.articles = ARTICLES
   articleList.icons = ICONS
   articleList.addEventListener('article-select', e => {
-    const art = findArticle(e.detail.id)
-    if (art) {
-      location.hash = buildArticleHash(art.id, resolveCat(getHashCat()))
+    const { id, cat } = e.detail
+    if (cat) {
+      // 空状态"看看其他分类"按钮
+      location.hash = '#cat=' + encodeURIComponent(cat)
+    } else {
+      const art = findArticle(id)
+      if (art) {
+        location.hash = buildArticleHash(art.id, resolveCat(getHashCat()))
+      }
     }
   })
 }
@@ -91,6 +98,14 @@ if (viewer) {
     if (getHashArt()) {
       location.hash = '#cat=' + encodeURIComponent(resolveCat(getHashCat()))
     }
+  })
+}
+
+if (searchPanel) {
+  searchPanel.articles = ARTICLES
+  searchPanel.addEventListener('search-select', e => {
+    const { id, cat } = e.detail
+    location.hash = buildArticleHash(id, cat || resolveCat(getHashCat()))
   })
 }
 
@@ -119,7 +134,8 @@ function applyRoute () {
   if (art && viewer) {
     viewer.article = art
     if (!viewer.classList.contains('is-open')) {
-      const card = document.querySelector(`.article-card[data-id="${art.id}"]`)
+      const root = articleList?.shadowRoot || document
+      const card = root.querySelector(`.article-card[data-id="${art.id}"]`)
       viewer.openWithFlip(card, siteName)
     }
     document.title = art.title + ' - ' + siteName

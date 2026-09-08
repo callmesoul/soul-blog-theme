@@ -200,7 +200,7 @@ class SearchResults extends WcBase {
             </svg>
             <input class="results-input" type="search" data-part="search-input" placeholder="搜索文章、目录、正文关键词…" autocomplete="off" spellcheck="false">
           </form>
-          <a class="results-back" href="index.html">返回首页</a>
+          <a class="results-back" href="./">返回首页</a>
         </header>
         <div class="results-meta"><span class="results-count" data-part="count"></span></div>
         <div class="results-area">
@@ -263,7 +263,7 @@ class SearchResults extends WcBase {
       const art = r.article
       const icons = { eye: '', comment: '', calendar: '' }
       return `
-        <a class="article-card" href="index.html#cat=${encodeURIComponent(art.cat)}&art=${encodeURIComponent(art.id)}" data-id="${escapeHtml(art.id)}" data-cat="${escapeHtml(art.cat)}">
+        <a class="article-card" href="./#cat=${encodeURIComponent(art.cat)}&art=${encodeURIComponent(art.id)}" data-id="${escapeHtml(art.id)}" data-cat="${escapeHtml(art.cat)}">
           <img class="card-thumb" src="${escapeHtml(art.cover)}" alt="" loading="lazy">
           <div class="card-body">
             <h3 class="card-title">${escapeHtml(art.title)}</h3>

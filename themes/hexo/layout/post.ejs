@@ -1,5 +1,9 @@
 <%
-var cat = page.categories && page.categories.length ? page.categories[0].name : 'uncategorized';
+var cat = 'uncategorized';
+if (page.categories && page.categories.length) {
+  try { var c0 = page.categories[0]; } catch(e) { var c0 = null; }
+  cat = c0 ? (typeof c0 === 'string' ? c0 : (c0.slug || c0.name || 'uncategorized')) : 'uncategorized';
+}
 var siteData = {
   articles: [],
   categories: [],

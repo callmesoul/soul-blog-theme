@@ -38,7 +38,7 @@ class SiteSidebar extends WcBase {
   /** 导出导航模板供 main.js 过渡期使用 */
   static navigationItemsTemplate (items: NavItem[], activeCat: string): string {
     return items.map(item => `
-      <a class="nav-item${item.cat === activeCat ? ' active' : ''}" href="index.html#cat=${encodeURIComponent(item.cat)}"
+      <a class="nav-item${item.cat === activeCat ? ' active' : ''}" href="./#cat=${encodeURIComponent(item.cat)}"
          data-cat="${escapeHtml(item.cat)}" title="${escapeHtml(item.zh)} · ${escapeHtml(item.en)}">
         <img class="nav-icon" src="${escapeHtml(item.icon)}" alt="" style="width:${Number(item.w)}px;height:${Number(item.h)}px;">
         <div>

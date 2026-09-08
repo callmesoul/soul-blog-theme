@@ -1594,36 +1594,7 @@ textarea:focus::placeholder {
 }
 #comment-form button[type="submit"].is-active:hover { background: #D9462F; }
 
-/* 表情面板 */
-.emoji-panel {
-  position: fixed;
-  background: #0F0E0D;
-  border: 1px solid #2A2A2A;
-  border-radius: 6px;
-  padding: 8px;
-  display: none;
-  grid-template-columns: repeat(6, 1fr);
-  gap: 4px;
-  z-index: 60;
-  box-shadow: 0 12px 32px rgba(0,0,0,0.5);
-  width: 200px;
-}
-.emoji-panel.open { display: grid; }
-.emoji-item {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  cursor: pointer;
-  border-radius: 4px;
-  font-size: 18px;
-  transition: background 0.15s ease, transform 0.15s ease;
-}
-.emoji-item:hover {
-  background: rgba(var(--brand-rgb), 0.18);
-  transform: scale(1.15);
-}
+
 
 /* ===== 进度条（兼容旧 class） ===== */
 .progress-bar {

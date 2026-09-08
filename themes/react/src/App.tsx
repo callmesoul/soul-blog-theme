@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
 import { useSiteConfig } from './stores/site-config'
+import { useArticles } from './stores/articles'
 import HomePage from './pages/HomePage'
 import LoginPage from './pages/LoginPage'
 import SearchPage from './pages/SearchPage'
@@ -8,11 +9,25 @@ import SearchPage from './pages/SearchPage'
 function AppLayout() {
   const location = useLocation()
   const siteConfig = useSiteConfig()
+  const articles = useArticles()
   const isLogin = location.pathname === '/login'
 
   useEffect(() => {
     siteConfig.load().then(() => siteConfig.apply())
   }, [])
+
+  useEffect(() => {
+    const searchPanel = document.querySelector('search-panel')
+    if (searchPanel) {
+      searchPanel.articles = articles.articles
+      const handler = (e: any) => {
+        const { id, cat } = e.detail
+        window.location.hash = articles.buildArticleHash(id, cat || articles.resolveCat('all'))
+      }
+      searchPanel.addEventListener('search-select', handler)
+      return () => searchPanel.removeEventListener('search-select', handler)
+    }
+  }, [articles.articles])
 
   return (
     <>

@@ -63,6 +63,7 @@ class MusicPlayer extends WcBase {
           height: 50px;
           min-height: 50px;
           flex-shrink: 0;
+          margin-top: auto;
           background: rgba(0,0,0,0.42);
           backdrop-filter: blur(16px) saturate(120%);
           -webkit-backdrop-filter: blur(16px) saturate(120%);

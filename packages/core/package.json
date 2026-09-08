@@ -6,7 +6,8 @@
   "sideEffects": [
     "**/*.css",
     "**/components/*.ts",
-    "**/components/index.ts"
+    "**/components/index.ts",
+    "./dist/index.js"
   ],
   "files": [
     "dist"

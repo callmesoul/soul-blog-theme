@@ -13,15 +13,24 @@ categories:
 # 页脚社交链接（与 @soul-blog/wc 的 SocialItem 结构一致）
 social:
   - name: 微信
-    icon: /images/social/qr-weixin.svg
-    type: qr
+    icon: /images/extracted/home/iconfont-weixin@2x.png
+    qr: /images/social/qr-weixin.svg
+    hue: 74
+    width: 22
+    height: 18
   - name: QQ
-    icon: /images/social/qr-qq.svg
-    type: qr
+    icon: /images/extracted/home/iconfont-QQ@2x.png
+    qr: /images/social/qr-qq.svg
+    hue: 178
+    width: 17
+    height: 18
   - name: GitHub
     icon: /images/social/github.svg
     url: https://github.com/
     mono: true
+    hue: 0
+    width: 21
+    height: 18
 
 # 页脚备案文案
 icp: '@CallMeSoul 粤ICP备15053557'

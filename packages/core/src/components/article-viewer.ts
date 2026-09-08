@@ -144,11 +144,11 @@ class ArticleViewer extends WcBase {
           background: #555;
         }
         .viewer-backdrop {
-          position: absolute;
-          inset: 0;
-          background: rgba(0,0,0,0.5);
-          cursor: pointer;
-        }
+	          position: absolute;
+	          inset: 0;
+	          background: rgba(0,0,0,0.5);
+	          cursor: pointer;
+	        }
         .viewer-ghost {
           display: none;
           position: absolute;
@@ -164,7 +164,7 @@ class ArticleViewer extends WcBase {
           flex-direction: column;
           width: 100%;
           height: 100%;
-          background: #0c0b0a;
+          background: rgba(15, 14, 13, 0.96);
           overflow: hidden;
         }
         .viewer-panel.viewer-open {
@@ -537,6 +537,7 @@ class ArticleViewer extends WcBase {
           scrollbar-color: #444 transparent;
           padding: 32px 24px 40px;
           border-left: 1px solid #2a2a2a;
+          min-height: 100%;
         }
         .viewer-aside.viewer-swap-out {
           opacity: 0;
@@ -603,9 +604,9 @@ class ArticleViewer extends WcBase {
       <section class="viewer-panel" data-part="panel">
         <header class="viewer-head">
           <div class="viewer-headline">
-            <a href="index.html" class="viewer-breadcrumb">首页</a>
+            <a href="./" class="viewer-breadcrumb">首页</a>
             <span class="viewer-sep">&gt;</span>
-            <a href="index.html" class="viewer-cat-name" data-part="cat-name"></a>
+            <a href="./" class="viewer-cat-name" data-part="cat-name"></a>
           </div>
           <button type="button" class="viewer-close" data-part="close-btn" aria-label="关闭阅读（Esc）" title="关闭（Esc）">
             <svg width="15" height="15" viewBox="0 0 16 16" fill="none">
@@ -787,6 +788,7 @@ class ArticleViewer extends WcBase {
 
     const emojiPanel = document.createElement('div')
     emojiPanel.className = 'emoji-panel'
+    emojiPanel.style.cssText = 'display:none !important;position:fixed !important;z-index:2000;background:#1d1d1d;border:1px solid #333;border-radius:6px;padding:8px;gap:4px;flex-wrap:wrap;width:192px;'
     emojiPanel.innerHTML = ArticleViewer.emojiItemsTemplate(['😀', '😂', '😉', '😍', '👍', '🎉', '🤔', '😢', '🔥', '✨', '❤️', '🙌'])
     document.body.appendChild(emojiPanel)
 
@@ -891,7 +893,7 @@ class ArticleViewer extends WcBase {
     const catName = this.$('[data-part="cat-name"]') as HTMLAnchorElement | null
     if (catName) {
       catName.textContent = this._catNames[art.cat] || art.cat
-      catName.href = 'index.html#cat=' + encodeURIComponent(art.cat)
+      catName.href = './#cat=' + encodeURIComponent(art.cat)
     }
 
     // 滚动复位
