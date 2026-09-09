@@ -16,6 +16,11 @@ function getHashArt(): string | null {
   return m ? decodeURIComponent(m[1]) : null
 }
 
+function getHashTag(): string {
+  const m = location.hash.match(/[#&]tag=([\w-]+)/)
+  return m ? decodeURIComponent(m[1]) : ''
+}
+
 export default function HomePage() {
   const articles = useArticles()
   const siteConfig = useSiteConfig()
@@ -24,6 +29,7 @@ export default function HomePage() {
 
   const [currentCat, setCurrentCat] = useState(getHashCat())
   const [currentArtId, setCurrentArtId] = useState<string | null>(getHashArt())
+  const [currentTag, setCurrentTag] = useState(getHashTag())
   const isClosingByUser = useRef(false)
 
   // 同步 hash
@@ -31,6 +37,9 @@ export default function HomePage() {
     const onHashChange = () => {
       setCurrentCat(getHashCat())
       setCurrentArtId(getHashArt())
+      const tag = getHashTag()
+      setCurrentTag(tag)
+      articles.setActiveTag(tag)
     }
     window.addEventListener('hashchange', onHashChange)
     return () => window.removeEventListener('hashchange', onHashChange)
@@ -57,8 +66,12 @@ export default function HomePage() {
     }
   }, [currentArtId])
 
-  const handleNavigate = useCallback((cat: string) => {
-    window.location.hash = '#cat=' + encodeURIComponent(cat)
+  const handleNavigate = useCallback((cat: string, tag?: string) => {
+    if (tag) {
+      window.location.hash = '#tag=' + encodeURIComponent(tag)
+    } else {
+      window.location.hash = '#cat=' + encodeURIComponent(cat)
+    }
   }, [])
 
   const handleArticleSelect = useCallback((id: string) => {
@@ -75,6 +88,10 @@ export default function HomePage() {
     setCurrentArtId(getHashArt())
   }, [currentCat])
 
+  const handleTagSelect = useCallback((tag: string) => {
+    window.location.hash = '#tag=' + encodeURIComponent(tag)
+  }, [])
+
   const handleViewerClose = useCallback(() => {
     isClosingByUser.current = true
     window.location.hash = '#cat=' + encodeURIComponent(articles.resolveCat(currentCat))
@@ -86,20 +103,24 @@ export default function HomePage() {
     <>
       <SiteSidebar
         categories={articles.categories}
+        tags={articles.tags}
         social={siteConfig.social}
         siteName={siteConfig.siteName}
         icp={siteConfig.icp}
         activeCat={currentCat}
+        activeTag={currentTag}
         onNavigate={handleNavigate}
       />
 
       <div className="relative flex min-w-0 flex-1 flex-col overflow-hidden">
-	        <ArticleList
-	          articles={articles.articles}
-	          icons={articles.icons}
-	          activeCat={currentCat}
-	          onArticleSelect={handleArticleSelect}
-	        />
+		        <ArticleList
+		          articles={articles.articles}
+		          icons={articles.icons}
+		          activeCat={currentCat}
+		          activeTag={currentTag}
+		          onArticleSelect={handleArticleSelect}
+		          onTagSelect={handleTagSelect}
+		        />
 
 	        <ArticleViewer
 	          ref={viewerRef}

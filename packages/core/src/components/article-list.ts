@@ -8,16 +8,18 @@ import type { Article } from '../types'
  * 属性（JS property）：
  *   articles  — Article[] 完整文章列表（用于分页）
  *   activeCat — 当前活动目录 id
- *   icons     — 图标路径映射 { eye, comment, calendar, home }
+ *   activeTag — 当前活动标签（可选）
+ *   icons     — 图标路径映射 { eye, comment, calendar, home, tag }
  *   catName   — 当前目录名称
  *   totalCount — 列表总数
  *
  * 事件：
  *   article-select — 点击卡片时触发，detail 为 { id: string }
+ *   tag-select     — 点击标签时触发，detail 为 { tag: string }
  */
 class ArticleList extends WcBase {
   static get observedAttributes (): string[] {
-    return ['active-cat']
+    return ['active-cat', 'active-tag']
   }
 
   private _articles: Article[] = []
@@ -29,6 +31,7 @@ class ArticleList extends WcBase {
   private _observer: IntersectionObserver | null = null
   private _catName = '全部文章'
   private _totalCount = 0
+  private _activeTag = ''
 
   set articles (val: Article[]) {
     this._articles = val
@@ -45,15 +48,24 @@ class ArticleList extends WcBase {
   set totalCount (val: number) {
     this._totalCount = val
   }
+  set activeTag (val: string) {
+    this._activeTag = val
+    this.setAttribute('active-tag', val)
+  }
 
   /** 导出卡片模板供 main.js 过渡期使用 */
   static articleCardTemplate (article: Article, { href, icons }: { href: string, icons: Record<string, string> }): string {
+    const tags = (article.tags || []).map(t =>
+      `<span class="card-tag" data-tag="${escapeHtml(t)}">${escapeHtml(t)}</span>`
+    ).join('')
+    const tagIcon = icons.tag || ''
     return `
       <a class="article-card" href="${escapeHtml(href)}" data-id="${escapeHtml(article.id)}" data-cat="${escapeHtml(article.cat)}">
         <img class="card-thumb" src="${escapeHtml(article.cover)}" alt="" loading="lazy">
         <div class="card-body">
           <h3 class="card-title">${escapeHtml(article.title)}</h3>
           <p class="card-desc">${escapeHtml(article.summary)}</p>
+          ${tags ? `<div class="card-tags">${tags}</div>` : ''}
           <div class="card-meta">
             <span class="meta-item"><img class="meta-icon" src="${escapeHtml(icons.eye)}" alt="">${escapeHtml(article.views)}</span>
             <span class="meta-item"><img class="meta-icon" src="${escapeHtml(icons.comment)}" alt="">${escapeHtml(article.commentCount)}</span>
@@ -249,6 +261,29 @@ class ArticleList extends WcBase {
           -webkit-box-orient: vertical;
           overflow: hidden;
         }
+        .card-tags {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 6px;
+          margin-bottom: 10px;
+        }
+        .card-tag {
+          display: inline-block;
+          padding: 2px 8px;
+          font-size: 11px;
+          line-height: 1.5;
+          color: #9e9d99;
+          background: rgba(255,255,255,0.05);
+          border: 1px solid #2a2a2a;
+          border-radius: 3px;
+          cursor: pointer;
+          transition: color 0.2s, border-color 0.2s, background 0.2s;
+        }
+        .card-tag:hover {
+          color: #eb4f38;
+          border-color: #eb4f38;
+          background: rgba(235,79,56,0.08);
+        }
         .card-meta {
           display: flex;
           align-items: center;
@@ -410,6 +445,16 @@ class ArticleList extends WcBase {
         this.emit('article-select', { id: '', cat: 'all' })
         return
       }
+      // 标签点击
+      const tagEl = target.closest('.card-tag') as HTMLElement | null
+      if (tagEl) {
+        e.preventDefault()
+        const tag = (tagEl.dataset as Record<string, string>).tag
+        if (tag) {
+          this.emit('tag-select', { tag })
+        }
+        return
+      }
       const card = target.closest('.article-card') as HTMLElement | null
       if (!card) return
       const id = (card.dataset as Record<string, string>).id
@@ -431,11 +476,15 @@ class ArticleList extends WcBase {
     const status = this.$('[data-part="status"]') as HTMLElement | null
     if (!grid) return
 
-    // 按当前 active-cat 过滤
+    // 按当前 active-cat 和 active-tag 过滤
     const activeCat = this.getAttribute('active-cat') || 'all'
-    const filtered = activeCat === 'all'
+    const activeTag = this.getAttribute('active-tag') || ''
+    let filtered = activeCat === 'all'
       ? this._articles.slice()
       : this._articles.filter(a => a.cat === activeCat)
+    if (activeTag) {
+      filtered = filtered.filter(a => a.tags && a.tags.includes(activeTag))
+    }
     // 按时间倒序
     const sorted = filtered.sort((a, b) => b.date.localeCompare(a.date))
 
@@ -453,12 +502,16 @@ class ArticleList extends WcBase {
     const page = sorted.slice(0, this._pageSize)
     grid.innerHTML = page.map(a => {
       const icons = this._icons
+      const tags = (a.tags || []).map(t =>
+        `<span class="card-tag" data-tag="${escapeHtml(t)}">${escapeHtml(t)}</span>`
+      ).join('')
       return `
         <a class="article-card" href="#" data-id="${escapeHtml(a.id)}" data-cat="${escapeHtml(a.cat)}">
           <img class="card-thumb" src="${escapeHtml(a.cover)}" alt="" loading="lazy">
           <div class="card-body">
             <h3 class="card-title">${escapeHtml(a.title)}</h3>
             <p class="card-desc">${escapeHtml(a.summary)}</p>
+            ${tags ? `<div class="card-tags">${tags}</div>` : ''}
             <div class="card-meta">
               <span class="meta-item"><img class="meta-icon" src="${escapeHtml(icons.eye)}" alt="">${escapeHtml(a.views)}</span>
               <span class="meta-item"><img class="meta-icon" src="${escapeHtml(icons.comment)}" alt="">${escapeHtml(a.commentCount)}</span>
@@ -493,9 +546,13 @@ class ArticleList extends WcBase {
     if (this._loading || this._done) return
 
     const activeCat = this.getAttribute('active-cat') || 'all'
-    const filtered = activeCat === 'all'
+    const activeTag = this.getAttribute('active-tag') || ''
+    let filtered = activeCat === 'all'
       ? this._articles.slice()
       : this._articles.filter(a => a.cat === activeCat)
+    if (activeTag) {
+      filtered = filtered.filter(a => a.tags && a.tags.includes(activeTag))
+    }
     const sorted = filtered.sort((a, b) => b.date.localeCompare(a.date))
     const rest = sorted.slice(this._shown)
     if (!rest.length) {
@@ -519,12 +576,17 @@ class ArticleList extends WcBase {
     setTimeout(() => {
       const more = rest.slice(0, this._pageSize)
       const icons = this._icons
-      const html = more.map(a => `
+      const html = more.map(a => {
+        const tags = (a.tags || []).map(t =>
+          `<span class="card-tag" data-tag="${escapeHtml(t)}">${escapeHtml(t)}</span>`
+        ).join('')
+        return `
         <a class="article-card" href="#" data-id="${escapeHtml(a.id)}" data-cat="${escapeHtml(a.cat)}">
           <img class="card-thumb" src="${escapeHtml(a.cover)}" alt="" loading="lazy">
           <div class="card-body">
             <h3 class="card-title">${escapeHtml(a.title)}</h3>
             <p class="card-desc">${escapeHtml(a.summary)}</p>
+            ${tags ? `<div class="card-tags">${tags}</div>` : ''}
             <div class="card-meta">
               <span class="meta-item"><img class="meta-icon" src="${escapeHtml(icons.eye)}" alt="">${escapeHtml(a.views)}</span>
               <span class="meta-item"><img class="meta-icon" src="${escapeHtml(icons.comment)}" alt="">${escapeHtml(a.commentCount)}</span>
@@ -532,7 +594,7 @@ class ArticleList extends WcBase {
             </div>
           </div>
         </a>
-      `).join('')
+      `}).join('')
       if (grid) grid.insertAdjacentHTML('beforeend', html)
       this._shown += more.length
       this._loading = false

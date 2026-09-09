@@ -5,6 +5,7 @@ import { useArticles } from './stores/articles'
 import HomePage from './pages/HomePage'
 import LoginPage from './pages/LoginPage'
 import SearchPage from './pages/SearchPage'
+import ArchivesPage from './pages/ArchivesPage'
 
 function AppLayout() {
   const location = useLocation()
@@ -17,7 +18,7 @@ function AppLayout() {
   }, [])
 
   useEffect(() => {
-    const searchPanel = document.querySelector('search-panel')
+    const searchPanel = document.querySelector('search-panel') as any
     if (searchPanel) {
       searchPanel.articles = articles.articles
       const handler = (e: any) => {
@@ -38,6 +39,7 @@ function AppLayout() {
           <Route path="/" element={<HomePage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/search" element={<SearchPage />} />
+          <Route path="/archives" element={<ArchivesPage />} />
         </Routes>
       </div>
 

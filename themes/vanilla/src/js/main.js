@@ -30,6 +30,11 @@ function getHashArt () {
   return m ? decodeURIComponent(m[1]) : null
 }
 
+function getHashTag () {
+  const m = location.hash.match(/[#&]tag=([\w-]+)/)
+  return m ? decodeURIComponent(m[1]) : ''
+}
+
 function resolveCat (id) {
   return catById(id) ? id : 'all'
 }
@@ -48,16 +53,57 @@ const articleList = document.querySelector('article-list')
 const viewer = document.querySelector('article-viewer')
 const searchPanel = document.querySelector('search-panel')
 const searchResults = document.querySelector('search-results')
+const archiveList = document.querySelector('archive-list')
+
+/** 当前是否为归档页（归档页内点击分类/标签需跳回首页应用筛选） */
+const isArchivePage = !!archiveList
+const homePage = 'index.html'
+const archivePage = 'archives.html'
+
+// 收集所有标签及计数
+function collectTags () {
+  const map = {}
+  ARTICLES.forEach(a => {
+    if (a.tags) {
+      a.tags.forEach(t => { map[t] = (map[t] || 0) + 1 })
+    }
+  })
+  return Object.keys(map).sort().map(name => ({ name, count: map[name] }))
+}
 
 // 侧栏
 if (sidebar) {
   const config = getSiteConfig()
   sidebar.categories = CATEGORIES
+  sidebar.tags = collectTags()
   sidebar.social = config.social
   sidebar.siteName = siteName()
   sidebar.icp = config.site.icp
+  sidebar.archiveUrl = archivePage
   sidebar.addEventListener('navigate', e => {
-    location.hash = '#cat=' + encodeURIComponent(e.detail.cat)
+    const hash = e.detail.tag
+      ? '#tag=' + encodeURIComponent(e.detail.tag)
+      : '#cat=' + encodeURIComponent(e.detail.cat)
+    if (isArchivePage) {
+      location.href = homePage + hash
+    } else {
+      location.hash = hash
+    }
+  })
+}
+
+// 归档列表
+if (archiveList) {
+  const catNames = {}
+  CATEGORIES.forEach(c => { catNames[c.id] = c.name })
+  archiveList.articles = ARTICLES
+  archiveList.catNames = catNames
+  archiveList.addEventListener('article-select', e => {
+    const { id, cat } = e.detail
+    const art = findArticle(id)
+    if (art) {
+      location.href = homePage + buildArticleHash(art.id, resolveCat(cat))
+    }
   })
 }
 
@@ -65,10 +111,19 @@ if (sidebar) {
 if (articleList) {
   articleList.articles = ARTICLES
   articleList.icons = ICONS
+  if (getHashTag()) {
+    articleList.setAttribute('active-tag', getHashTag())
+  }
   articleList.addEventListener('article-select', e => {
     const art = findArticle(e.detail.id)
     if (art) {
       location.hash = buildArticleHash(art.id, resolveCat(getHashCat()))
+    }
+  })
+  articleList.addEventListener('tag-select', e => {
+    const tag = e.detail.tag
+    if (tag) {
+      location.hash = '#tag=' + encodeURIComponent(tag)
     }
   })
 }
@@ -133,14 +188,25 @@ if (searchResults) {
 function applyRoute () {
   const cat = resolveCat(getHashCat())
   const artId = getHashArt()
+  const tag = getHashTag()
   const art = artId ? findArticle(artId) : null
 
-  // 同步侧栏和列表目录
-  if (sidebar) sidebar.setAttribute('active-cat', cat)
-  if (articleList) {
+  // 同步侧栏和列表目录（归档页为独立页面，保持「归档」高亮即可）
+  if (sidebar && !isArchivePage) {
+    sidebar.setAttribute('active-cat', cat)
+    sidebar.setAttribute('active-tag', tag)
+  }
+  if (articleList && !isArchivePage) {
     const catObj = catById(cat)
-    articleList.catName = catObj ? catObj.name : '全部文章'
+    if (tag) {
+      const tagged = ARTICLES.filter(a => a.tags && a.tags.includes(tag))
+      articleList.catName = '标签 · ' + tag + (tagged.length ? ' · 共 ' + tagged.length + ' 篇' : '')
+      articleList.totalCount = tagged.length
+    } else {
+      articleList.catName = catObj ? catObj.name : '全部文章'
+    }
     articleList.setAttribute('active-cat', cat)
+    articleList.setAttribute('active-tag', tag)
   }
 
   if (art && viewer) {
@@ -177,6 +243,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   applyRoute()
+
+  // 归档页独立路由：高亮「归档」导航项
+  if (isArchivePage && sidebar) {
+    sidebar.setAttribute('active-cat', 'archives')
+  }
 
   // 调试钩子
   if (/[?&]autoplay=1\b/.test(location.search) || /(^|#|&)autoplay=1\b/.test(location.hash)) {

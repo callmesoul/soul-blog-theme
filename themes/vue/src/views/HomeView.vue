@@ -21,9 +21,13 @@ function getQueryCat(): string {
 function getQueryArt(): string | null {
   return (route.query.art as string) || null
 }
+function getQueryTag(): string {
+  return (route.query.tag as string) || ''
+}
 
 const currentCat = ref(getQueryCat())
 const currentArtId = ref<string | null>(getQueryArt())
+const currentTag = ref(getQueryTag())
 
 // 标记：用户主动关闭阅读器，避免 watcher 重复触发 closeWithFlip 取消动画
 let isClosingByUser = false
@@ -32,11 +36,22 @@ let isClosingByUser = false
 function onRouteUpdate() {
   currentCat.value = getQueryCat()
   currentArtId.value = getQueryArt()
+  currentTag.value = getQueryTag()
+  articles.setActiveTag(currentTag.value)
 }
 
 // 导航切换
-function onNavigate(cat: string) {
-  router.push({ query: { cat } })
+function onNavigate(cat: string, tag?: string) {
+  if (tag) {
+    router.push({ query: { tag } })
+  } else {
+    router.push({ query: { cat } })
+  }
+}
+
+// 标签选择（列表标签点击）
+function onTagSelect(tag: string) {
+  router.push({ query: { tag } })
 }
 
 // 文章选择（列表 → 阅读器）
@@ -84,6 +99,11 @@ watch(() => route.query.art, (val) => {
   currentArtId.value = (val as string) || null
 })
 
+watch(() => route.query.tag, (val) => {
+  currentTag.value = (val as string) || ''
+  articles.setActiveTag(currentTag.value)
+})
+
 // 监听 currentArtId 变化，打开/关闭阅读器
 watch(currentArtId, (id) => {
   if (id && viewerRef.value) {
@@ -112,20 +132,24 @@ function _openViewer(id: string) {
 <template>
   <SiteSidebar
     :categories="articles.categories"
+    :tags="articles.tags"
     :social="siteConfig.social"
     :site-name="siteConfig.siteName"
     :icp="siteConfig.icp"
     :active-cat="currentCat"
+    :active-tag="currentTag"
     @navigate="onNavigate"
   />
 
   <div class="relative flex min-w-0 flex-1 flex-col overflow-hidden">
 	    <ArticleList
-	      :articles="articles.articles"
-	      :icons="articles.icons"
-	      :active-cat="currentCat"
-	      @article-select="onArticleSelect"
-	    />
+      :articles="articles.articles"
+      :icons="articles.icons"
+      :active-cat="currentCat"
+      :active-tag="currentTag"
+      @article-select="onArticleSelect"
+      @tag-select="onTagSelect"
+    />
 
 	    <ArticleViewer
 	      ref="viewerRef"

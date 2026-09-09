@@ -270,7 +270,7 @@ class ArticleViewer extends WcBase {
           gap: 16px;
           font-size: 12px;
           color: #6b6b6b;
-          margin-bottom: 24px;
+          margin-bottom: 12px;
         }
         .viewer-meta img {
           width: 14px;
@@ -279,6 +279,29 @@ class ArticleViewer extends WcBase {
           vertical-align: middle;
           margin-right: 4px;
           opacity: 0.5;
+        }
+        .viewer-tags {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px;
+          margin-bottom: 20px;
+        }
+        .viewer-tag {
+          display: inline-block;
+          padding: 3px 10px;
+          font-size: 12px;
+          color: #9e9d99;
+          background: rgba(255,255,255,0.05);
+          border: 1px solid #2a2a2a;
+          border-radius: 4px;
+          cursor: pointer;
+          text-decoration: none;
+          transition: color 0.2s, border-color 0.2s, background 0.2s;
+        }
+        .viewer-tag:hover {
+          color: #eb4f38;
+          border-color: #eb4f38;
+          background: rgba(235,79,56,0.08);
         }
         .viewer-cover {
           width: 100%;
@@ -618,6 +641,7 @@ class ArticleViewer extends WcBase {
           <main class="viewer-main" data-part="main">
             <h1 class="viewer-title" data-part="title"></h1>
             <div class="viewer-meta" data-part="meta"></div>
+            <div class="viewer-tags" data-part="tags"></div>
             <img class="viewer-cover" data-part="cover" alt="文章封面">
             <div class="article-content" data-part="content"></div>
             <div class="viewer-divider"></div>
@@ -756,6 +780,21 @@ class ArticleViewer extends WcBase {
 	        return
 	      }
 
+      // 标签点击
+      const tagEl = target.closest('.viewer-tag') as HTMLElement | null
+      if (tagEl && this.shadow.contains(tagEl)) {
+        const tag = (tagEl.dataset as Record<string, string>).tag
+        if (tag) {
+          e.preventDefault()
+          this.emit('viewer-close')
+          // 延迟一小段时间再触发路由，让关闭动画先执行
+          setTimeout(() => {
+            window.location.hash = '#tag=' + encodeURIComponent(tag)
+          }, 50)
+        }
+        return
+      }
+
       // 推荐原地切换
       const rec = target.closest('.recommend-item') as HTMLElement | null
       if (rec && this.shadow.contains(rec)) {
@@ -855,6 +894,16 @@ class ArticleViewer extends WcBase {
     // 元信息
     const meta = this.$('[data-part="meta"]')
     if (meta) meta.innerHTML = ArticleViewer.viewerMetaTemplate(art, icons)
+
+    // 标签
+    const tagsEl = this.$('[data-part="tags"]') as HTMLElement | null
+    if (tagsEl) {
+      const tags = (art.tags || []).map(t =>
+        `<a class="viewer-tag" href="./#tag=${encodeURIComponent(t)}" data-tag="${escapeHtml(t)}">${escapeHtml(t)}</a>`
+      ).join('')
+      tagsEl.innerHTML = tags
+      tagsEl.style.display = tags ? '' : 'none'
+    }
 
     // 封面
     const cover = this.$('[data-part="cover"]') as HTMLImageElement | null

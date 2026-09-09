@@ -6,10 +6,12 @@ const props = defineProps<{
   articles: Article[]
   icons: Record<string, string>
   activeCat: string
+  activeTag?: string
 }>()
 
 const emit = defineEmits<{
   articleSelect: [id: string]
+  tagSelect: [tag: string]
 }>()
 
 const wcRef = ref<HTMLElement>()
@@ -18,6 +20,7 @@ function setData() {
   const el = wcRef.value
   if (!el) return
   el.setAttribute('active-cat', props.activeCat)
+  if (props.activeTag) el.setAttribute('active-tag', props.activeTag)
   ;(el as any).articles = props.articles
   ;(el as any).icons = props.icons
 }
@@ -26,6 +29,13 @@ onMounted(setData)
 
 watch(() => props.activeCat, (val) => {
   wcRef.value?.setAttribute('active-cat', val)
+})
+
+watch(() => props.activeTag, (val) => {
+  if (wcRef.value) {
+    if (val) wcRef.value.setAttribute('active-tag', val)
+    else wcRef.value.removeAttribute('active-tag')
+  }
 })
 
 watch(() => props.articles, (val) => {
@@ -43,5 +53,6 @@ watch(() => props.icons, (val) => {
     v-bind="{ articles, icons }"
     :active-cat="activeCat"
     @article-select="emit('articleSelect', ($event as any).detail.id)"
+@tag-select="emit('tagSelect', ($event as any).detail.tag)"
   ></article-list>
 </template>

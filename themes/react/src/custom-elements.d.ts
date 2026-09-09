@@ -8,6 +8,7 @@ declare global {
       'site-background': CustomElement<HTMLElement> & { image?: string }
       'site-sidebar': CustomElement<HTMLElement> & { 'active-cat'?: string }
       'article-list': CustomElement<HTMLElement> & { 'active-cat'?: string }
+      'archive-list': CustomElement<HTMLElement>
       'article-viewer': CustomElement<HTMLElement>
       'search-panel': CustomElement<HTMLElement>
       'search-results': CustomElement<HTMLElement>

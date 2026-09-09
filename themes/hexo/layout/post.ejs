@@ -18,7 +18,9 @@ var siteData = {
   },
   siteName: config.title || 'CallMeSoul',
   icp: theme.icp || '',
-  social: theme.social || []
+  social: theme.social || [],
+  archiveUrl: url_for('/' + (config.archive_dir || 'archives') + '/'),
+  homeUrl: url_for('/')
 };
 %>
 <script id="site-data" type="application/json"><%- JSON.stringify(siteData) %></script>

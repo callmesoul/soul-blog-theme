@@ -12,6 +12,12 @@ export interface NavItem {
   h: number
 }
 
+/** 标签项数据结构 */
+export interface TagItem {
+  name: string
+  count: number
+}
+
 /**
  * 首页侧栏组件
  *
@@ -29,7 +35,7 @@ export interface NavItem {
  */
 class SiteSidebar extends WcBase {
   static get observedAttributes (): string[] {
-    return ['active-cat']
+    return ['active-cat', 'active-tag']
   }
 
   /** 导航高亮指示条元素 */
@@ -54,16 +60,38 @@ class SiteSidebar extends WcBase {
     const categories = (this as any)._categories as Category[] | undefined
     const social = (this as any)._social as SocialItem[] | undefined
     const icp = (this as any)._icp as string | undefined
+    const tags = (this as any)._tags as TagItem[] | undefined
 
-    // 导航项：首页 + 各目录
-    const navItems = [
-      { cat: 'all', zh: '首页', en: 'Home', icon: '/images/extracted/home/iconfont-shouye@2x.png', w: 21, h: 21 },
-      ...(categories || []).map(c => ({
-        cat: c.id, zh: c.name, en: c.en, icon: c.icon, w: c.w, h: c.h
-      }))
-    ]
+    // 导航项：首页 +（归档入口）+ 各目录
+    const archiveUrl = (this as any)._archiveUrl as string | undefined
+    const catItems = (categories || []).map(c => ({
+      cat: c.id, zh: c.name, en: c.en, icon: c.icon, w: c.w, h: c.h
+    }))
+    const homeItem = {
+      cat: 'all', zh: '首页', en: 'Home', icon: '/images/extracted/home/iconfont-shouye@2x.png', w: 21, h: 21
+    }
 
-    const navHtml = SiteSidebar.navigationItemsTemplate(navItems, activeCat)
+    // 「归档」原生链接项：href 由宿主注入（SPA 用 hash / 真实路径，Hexo 用 url_for）
+    const archiveHtml = archiveUrl
+      ? `<a class="nav-item${activeCat === 'archives' ? ' active' : ''}" data-cat="archives" href="${escapeHtml(archiveUrl)}" title="归档 · Archives">
+          <img class="nav-icon" src="/images/extracted/home/iconfont-03(1)@2x.png" alt="" style="width:21px;height:21px;">
+          <div>
+            <div class="nav-zh">归档</div>
+            <div class="nav-en">Archives</div>
+          </div>
+        </a>`
+      : ''
+
+    const navHtml = SiteSidebar.navigationItemsTemplate([homeItem], activeCat)
+      + archiveHtml
+      + SiteSidebar.navigationItemsTemplate(catItems, activeCat)
+
+    // 标签列表
+    const tagHtml = (tags || []).map(t => {
+      const activeTag = this.getAttribute('active-tag') || ''
+      const isActive = t.name === activeTag
+      return `<a class="tag-item${isActive ? ' active' : ''}" href="./#tag=${encodeURIComponent(t.name)}" data-tag="${escapeHtml(t.name)}">${escapeHtml(t.name)}<span class="tag-count">${t.count}</span></a>`
+    }).join('')
 
     // 社交栏
     const socialHtml = (social || []).map(s => {
@@ -178,6 +206,64 @@ class SiteSidebar extends WcBase {
         }
         .nav-item.active {
           color: #ffffff;
+        }
+        .tags-section {
+          padding: 16px;
+          border-top: 1px solid #2a2a2a;
+          margin-top: 8px;
+        }
+        .tags-section h3 {
+          font-size: 13px;
+          font-weight: 500;
+          color: #c9c6c2;
+          margin: 0 0 12px;
+          letter-spacing: 0.04em;
+        }
+        .tags-list {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 4px;
+        }
+        .tag-item {
+          display: inline-flex;
+          align-items: center;
+          gap: 3px;
+          padding: 2px 8px;
+          font-size: 12px;
+          color: #9e9d99;
+          background: rgba(255,255,255,0.05);
+          border: 1px solid #2a2a2a;
+          border-radius: 4px;
+          text-decoration: none;
+          transition: color 0.2s, border-color 0.2s, background 0.2s;
+        }
+        .tag-item:hover {
+          color: #ffffff;
+          border-color: #eb4f38;
+          background: rgba(235,79,56,0.08);
+        }
+        .tag-item.active {
+          color: #ffffff;
+          border-color: #eb4f38;
+          background: rgba(235,79,56,0.15);
+        }
+        .tag-count {
+          min-width: 18px;
+          text-align: center;
+          font-size: 10px;
+          color: #5d5a59;
+          background: rgba(0,0,0,0.3);
+          padding: 1px 4px;
+          border-radius: 3px;
+        }
+        .tag-item:hover .tag-count,
+        .tag-item.active .tag-count {
+          color: #9e9d99;
+        }
+        @media (max-width: 1199px) {
+          .tags-section {
+            padding: 16px;
+          }
         }
         .nav-icon {
           width: 21px;
@@ -436,6 +522,7 @@ class SiteSidebar extends WcBase {
         <nav class="site-nav" aria-label="文章目录">
           ${navHtml}
           <span class="nav-highlight" aria-hidden="true"></span>
+          ${tagHtml ? `<div class="tags-section"><h3>标签</h3><div class="tags-list">${tagHtml}</div></div>` : ''}
         </nav>
 
         <div class="footer-area">
@@ -453,10 +540,23 @@ class SiteSidebar extends WcBase {
     // 导航点击事件委托
     const nav = this.$('.site-nav') as HTMLElement | null
     nav?.addEventListener('click', (e: Event) => {
+      // 标签点击
+      const tagItem = (e.target as HTMLElement).closest('.tag-item') as HTMLElement | null
+      if (tagItem) {
+        const tag = (tagItem.dataset as Record<string, string>).tag
+        if (tag) {
+          e.preventDefault()
+          this.emit('navigate', { cat: 'all', tag })
+        }
+        return
+      }
+      // 目录导航点击
       const item = (e.target as HTMLElement).closest('.nav-item') as HTMLElement | null
       if (!item) return
       const cat = (item.dataset as Record<string, string>).cat
       if (cat) {
+        // 「归档」为原生链接，交给宿主路由/页面跳转
+        if (cat === 'archives' && (this as any)._archiveUrl) return
         e.preventDefault()
         this.emit('navigate', { cat })
       }
@@ -469,6 +569,10 @@ class SiteSidebar extends WcBase {
     if (name === 'active-cat') {
       this._syncActiveClass(newValue || 'all')
       this._layoutHighlight()
+    }
+    // active-tag 变化时只更新标签 active 类，不重建整个 DOM
+    if (name === 'active-tag') {
+      this._syncTagActiveClass(newValue || '')
     }
   }
 
@@ -485,6 +589,15 @@ class SiteSidebar extends WcBase {
     (this as any)._icp = val
     this._reRender()
   }
+  set tags (val: TagItem[]) {
+    (this as any)._tags = val
+    this._reRender()
+  }
+  /** 归档页链接：设置后在「首页」与分类之间渲染「归档」导航项 */
+  set archiveUrl (val: string) {
+    (this as any)._archiveUrl = val || ''
+    this._reRender()
+  }
 
   private _reRender (): void {
     // 重建整个 Shadow DOM
@@ -496,6 +609,12 @@ class SiteSidebar extends WcBase {
   private _syncActiveClass (activeCat: string): void {
     this.shadow.querySelectorAll<HTMLElement>('.nav-item').forEach(el => {
       el.classList.toggle('active', (el.dataset as Record<string, string>).cat === activeCat)
+    })
+  }
+
+  private _syncTagActiveClass (activeTag: string): void {
+    this.shadow.querySelectorAll<HTMLElement>('.tag-item').forEach(el => {
+      el.classList.toggle('active', (el.dataset as Record<string, string>).tag === activeTag)
     })
   }
 

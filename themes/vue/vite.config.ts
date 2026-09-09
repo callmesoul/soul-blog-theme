@@ -14,6 +14,7 @@ export default defineConfig({
           // 将 @soul-blog/wc 的所有 Web Components 标记为自定义元素
           isCustomElement: tag => tag.startsWith('site-')
             || tag.startsWith('article-')
+            || tag.startsWith('archive-')
             || tag.startsWith('search-')
             || tag.startsWith('music-')
             || tag.startsWith('login-')

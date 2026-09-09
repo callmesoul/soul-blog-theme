@@ -12,7 +12,7 @@ onMounted(async () => {
   await siteConfig.load()
   siteConfig.apply()
 
-  const searchPanel = document.querySelector('search-panel')
+  const searchPanel = document.querySelector('search-panel') as any
   if (searchPanel) {
     searchPanel.articles = articles.articles
     searchPanel.addEventListener('search-select', (e: any) => {

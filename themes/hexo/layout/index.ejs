@@ -22,6 +22,19 @@ if (site.categories && site.categories.length) {
 var arts = [];
 if (site.posts && site.posts.length) {
   site.posts.forEach(function(p) {
+    // 提取标签
+    var tags = [];
+    if (p.tags && p.tags.length) {
+      p.tags.forEach(function(t) {
+        if (typeof t === 'string') {
+          tags.push(t.toLowerCase());
+        } else if (t && t.name) {
+          var name = t.name.toLowerCase();
+          tags.push(name);
+        }
+      });
+    }
+
     arts.push({
       id: p._id || p.slug || p.title,
       cat: (function(){
@@ -54,6 +67,7 @@ if (site.posts && site.posts.length) {
       date: p.date ? p.date.format('YYYY/MM/DD') : '',
       views: p.views || 0,
       commentCount: 0,
+      tags: tags,
       paragraphs: p.content ? [p.content.substring(0, 200)] : []
     });
   });
@@ -67,13 +81,16 @@ var siteData = {
     eye: '/images/extracted/home/iconfont-icon01@2x.png',
     comment: '/images/extracted/home/iconfont-icon27@2x.png',
     calendar: '/images/extracted/home/iconfont-03(1)@2x.png',
+    tag: '/images/extracted/home/iconfont-biaoqian@2x.png',
     zan: '/images/extracted/article/iconfont-zan@2x.png',
     avatarA: '/images/extracted/article/4@2x.png',
     avatarB: '/images/extracted/article/20160126052324@2x.png'
   },
   siteName: config.title || 'CallMeSoul',
   icp: theme.icp || '',
-  social: (theme.social || []).map(s => ({ ...s, href: s.href || s.url || '' }))
+  social: (theme.social || []).map(s => ({ ...s, href: s.href || s.url || '' })),
+  archiveUrl: url_for('/' + (config.archive_dir || 'archives') + '/'),
+  homeUrl: url_for('/')
 };
 %>
 <script id="site-data" type="application/json"><%- JSON.stringify(siteData) %></script>

@@ -8,6 +8,18 @@ export const useArticleStore = defineStore('articles', () => {
   const categories = ref<Category[]>(CATEGORIES)
   const icons = ref(ICONS)
   const activeCat = ref('all')
+  const activeTag = ref('')
+
+  // 收集所有标签及计数
+  const tags = computed(() => {
+    const map: Record<string, number> = {}
+    articles.value.forEach(a => {
+      if (a.tags) {
+        a.tags.forEach(t => { map[t] = (map[t] || 0) + 1 })
+      }
+    })
+    return Object.keys(map).sort().map(name => ({ name, count: map[name] }))
+  })
 
   function catById(id: string): Category | undefined {
     return categories.value.find(c => c.id === id)
@@ -27,8 +39,13 @@ export const useArticleStore = defineStore('articles', () => {
   }
 
   const filteredArticles = computed(() => {
-    if (activeCat.value === 'all') return articles.value
-    return articles.value.filter(a => a.cat === activeCat.value)
+    let filtered = activeCat.value === 'all'
+      ? articles.value
+      : articles.value.filter(a => a.cat === activeCat.value)
+    if (activeTag.value) {
+      filtered = filtered.filter(a => a.tags && a.tags.includes(activeTag.value))
+    }
+    return filtered
   })
 
   const catNames = computed(() => {
@@ -37,9 +54,13 @@ export const useArticleStore = defineStore('articles', () => {
     return names
   })
 
+  function setActiveTag(tag: string) {
+    activeTag.value = tag
+  }
+
   return {
-    articles, categories, icons, activeCat,
+    articles, categories, icons, activeCat, activeTag, tags,
     catById, findArticle, resolveCat, buildArticleHash,
-    filteredArticles, catNames
+    filteredArticles, catNames, setActiveTag
   }
 })

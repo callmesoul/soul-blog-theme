@@ -24,6 +24,8 @@ const ICONS = data?.icons || {}
 const siteName = data?.siteName || 'CallMeSoul'
 const icp = data?.icp || ''
 const social = data?.social || []
+const archiveUrl = data?.archiveUrl || ''
+const homeUrl = data?.homeUrl || '/'
 
 // =====================================================================
 // 工具函数
@@ -41,6 +43,19 @@ function getHashCat () {
 function getHashArt () {
   const m = location.hash.match(/[#&]art=([\w-]+)/)
   return m ? decodeURIComponent(m[1]) : null
+}
+function getHashTag () {
+  const m = location.hash.match(/[#&]tag=([^&]+)/)
+  return m ? decodeURIComponent(m[1]) : ''
+}
+function collectTags () {
+  const map = {}
+  ARTICLES.forEach(a => {
+    if (a.tags) {
+      a.tags.forEach(t => { map[t] = (map[t] || 0) + 1 })
+    }
+  })
+  return Object.keys(map).sort().map(name => ({ name, count: map[name] }))
 }
 function resolveCat (id) {
   return catById(id) ? id : 'all'
@@ -64,14 +79,29 @@ if (sidebar) {
   sidebar.social = social
   sidebar.siteName = siteName
   sidebar.icp = icp
+  sidebar.tags = data?.tags && data.tags.length ? data.tags : collectTags()
+  sidebar.archiveUrl = archiveUrl
   sidebar.addEventListener('navigate', e => {
-    location.hash = '#cat=' + encodeURIComponent(e.detail.cat)
+    const hash = e.detail.tag
+      ? '#tag=' + encodeURIComponent(e.detail.tag)
+      : '#cat=' + encodeURIComponent(e.detail.cat)
+    if (articleList) {
+      // 首页 SPA 视图：直接切 hash 即可
+      location.hash = hash
+    } else {
+      // 独立页面（归档 / 文章 / 通用页）：回到首页应用筛选
+      location.href = homeUrl + hash
+    }
   })
 }
 
 if (articleList) {
   articleList.articles = ARTICLES
   articleList.icons = ICONS
+  articleList.addEventListener('tag-select', e => {
+    const tag = e.detail.tag
+    location.hash = '#tag=' + encodeURIComponent(tag)
+  })
   articleList.addEventListener('article-select', e => {
     const { id, cat } = e.detail
     if (cat) {
@@ -125,11 +155,18 @@ if (searchResults) {
 // =====================================================================
 function applyRoute () {
   const cat = resolveCat(getHashCat())
+  const tag = getHashTag()
   const artId = getHashArt()
   const art = artId ? findArticle(artId) : null
 
-  if (sidebar) sidebar.setAttribute('active-cat', cat)
-  if (articleList) articleList.setAttribute('active-cat', cat)
+  if (sidebar && articleList) {
+    sidebar.setAttribute('active-cat', cat)
+    sidebar.setAttribute('active-tag', tag)
+  }
+  if (articleList) {
+    articleList.setAttribute('active-cat', cat)
+    articleList.setAttribute('active-tag', tag)
+  }
 
   if (art && viewer) {
     viewer.article = art

@@ -11,7 +11,8 @@ export const ICONS = {
   calendar: '/images/extracted/home/iconfont-03(1)@2x.png',   // 日期
   zan: '/images/extracted/article/iconfont-zan@2x.png',       // 点赞
   avatarA: '/images/extracted/article/4@2x.png',
-  avatarB: '/images/extracted/article/20160126052324@2x.png'
+  avatarB: '/images/extracted/article/20160126052324@2x.png',
+  tag: '/images/extracted/home/iconfont-biaoqian@2x.png'
 }
 
 /** 文章目录（左侧导航 = “首页” + 以下目录） */
@@ -77,6 +78,7 @@ export const ARTICLES = [
     date: '2016/02/14',
     views: 334,
     commentCount: 26,
+    tags: ['debug', 'troubleshooting', 'experience', 'workflow'],
     paragraphs: [
       '凌晨一点，手机响起刺耳的告警声。后台任务大面积失败，页面缓慢到几乎打不开。我睡眼惺忪地爬起来，打开笔记本，一场没有硝烟的排查就此开始。',
       '先看错误日志，发现大量接口超时。顺着调用链一层层往下追，缓存、数据库、队列……前半小时几乎把能怀疑的对象都怀疑了一遍，却一无所获。',
@@ -99,6 +101,7 @@ export const ARTICLES = [
     date: '2016/01/20',
     views: 187,
     commentCount: 33,
+    tags: ['hardware', 'experience', 'tools'],
     paragraphs: [
       '一直听说程序员标配三件套：机械键盘、人体工学椅、多显示器。趁年终奖到手，终于入坑了人生第一把机械键盘。',
       '选轴体是最纠结的一步。青轴的段落感清脆，红轴直上直下，茶轴则是两者之间的折中。试了一圈，最后选了茶轴，既有反馈又不至于吵到全办公室。',
@@ -121,6 +124,7 @@ export const ARTICLES = [
     date: '2015/12/31',
     views: 256,
     commentCount: 19,
+    tags: ['summary', 'yearly', 'goals'],
     paragraphs: [
       '2015 年马上要过去了。照例写一篇年终总结，算是给这一年一个交代。',
       '今年最大的变化，是从纯粹的“切图仔”逐渐理解什么是工程化：代码组织、构建流程、性能监控，这些东西第一次成为我日常工作的一部分。',
@@ -142,6 +146,7 @@ export const ARTICLES = [
     date: '2016/02/02',
     views: 142,
     commentCount: 9,
+    tags: ['css', 'dark-mode', 'ui', 'frontend'],
     paragraphs: [
       '博客上线一段时间后，收到最多的留言居然是：晚上看博客太刺眼了。于是给全站加夜间模式这件事，正式提上了日程。',
       '实现上选择了 CSS 自定义属性：把所有颜色抽成变量，切换时只需更新 :root 上的一组值，几乎全部样式都会跟着变，改动量非常小。',
@@ -161,6 +166,7 @@ export const ARTICLES = [
     date: '2016/02/20',
     views: 203,
     commentCount: 16,
+    tags: ['reading', 'books', 'life'],
     paragraphs: [
       '往年的春节总在赶进度：赶文章、赶代码、赶各种没做完的事。今年决定换个活法，只带了三本书回家。',
       '第一本是讲写作的，教会我“先写完，再写好”；第二本是工具书，读完就动手给博客加了几个小功能；第三本纯粹是小说，读到一半舍不得往下翻。',
@@ -177,6 +183,7 @@ export const ARTICLES = [
     date: '2016/02/26',
     views: 178,
     commentCount: 12,
+    tags: ['backup', 'data', 'best-practices'],
     paragraphs: [
       '那是一个普通的工作日傍晚，我在后台整理栏目，手一抖删错了一组分类，连带该分类下几十篇文章一起消失。那一瞬间后背全是汗。',
       '立刻翻备份，才发现最近一份完整的备份停在两周前——中间新增的十几篇文章全没了。好在旧文章都在，损失还能接受，但这足以让我认真对待备份这件事。',
@@ -193,6 +200,7 @@ export const ARTICLES = [
     date: '2016/03/12',
     views: 241,
     commentCount: 22,
+    tags: ['open-source', 'github', 'contribution'],
     paragraphs: [
       '第一次给别人的开源项目提 PR，心情比写自己的代码还紧张。起因是我在用的一个前端库有个小 Bug，翻了源码后发现只差两行修复。',
       '流程比想象中严谨：先 fork、clone、开分支，修完后写清 commit message 与 PR 描述，附上复现步骤和修复前后的对比。maintainer 回复很快，提了几条风格建议。',
@@ -210,6 +218,7 @@ export const ARTICLES = [
     date: '2015/12/27',
     views: 421,
     commentCount: 44,
+    tags: ['css', 'selectors', 'frontend', 'tips'],
     paragraphs: [
       '日常写页面的时候，我们习惯用类名把每个元素都标好，再用 JS 去增删类名控制状态。其实很多逻辑 CSS 自己就能完成。',
       '比如 :not() 可以排除特定项：给列表最后一项去掉边框，以前要单独写 class，现在一行 `.list li:not(:last-child)` 就搞定。',
@@ -232,6 +241,7 @@ export const ARTICLES = [
     date: '2015/12/26',
     views: 198,
     commentCount: 15,
+    tags: ['vite', 'build', 'static-site', 'frontend'],
     paragraphs: [
       '这篇博客站就是用它搭建的。选择 Vite 的原因很简单：启动快、配置少、对原生 ES Module 友好，非常适合“轻框架”路线的多页站点。',
       '目录组织上，每个页面一个 HTML 入口，公共逻辑抽到 src/js，样式集中到一个 CSS。页面之间通过 <a> 正常跳转，业务数据交给前端模块管理。',
@@ -253,6 +263,7 @@ export const ARTICLES = [
     date: '2016/01/08',
     views: 367,
     commentCount: 58,
+    tags: ['performance', 'optimization', 'images', 'frontend'],
     paragraphs: [
       '性能优化的收益，往往不是某一个点，而是一连串小改进叠加的结果。这篇文章以图片为主的博客首页为例，分享我的优化清单。',
       '第一步是图片懒加载：可视区域外的图片先不请求，滚动到附近再加载。这样首屏只加载真正需要的那几张。',
@@ -275,6 +286,7 @@ export const ARTICLES = [
     date: '2015/12/29',
     views: 145,
     commentCount: 12,
+    tags: ['javascript', 'module', 'engineering', 'frontend'],
     paragraphs: [
       '当项目从“一个文件几百行”长到“几十个文件互相引用”时，模块划分就成了工程问题。ES Module 的静态分析特性，让我们在写代码时就能发现引用错误。',
       '我的划分原则很简单：按“职责”不按“页面”切分。把数据、工具函数、组件逻辑分别归类，页面层只做组装。',
@@ -296,6 +308,7 @@ export const ARTICLES = [
     date: '2016/02/05',
     views: 356,
     commentCount: 41,
+    tags: ['css', 'flexbox', 'layout', 'frontend'],
     paragraphs: [
       'Flexbox 上手容易，真正用对它却需要理解它的“一维”本质：无论 row 还是 column，它只负责一个方向的排布，另一个方向交给对齐属性。',
       '最容易踩坑的是 flex 缩写的三个值：flex-grow 决定放大的份额，flex-shrink 决定缩小的份额，flex-basis 决定初始尺寸。`flex: 1` 并不等于 `flex: auto`，很多人栽在这里。',
@@ -315,6 +328,7 @@ export const ARTICLES = [
     date: '2016/02/15',
     views: 289,
     commentCount: 35,
+    tags: ['css', 'backdrop-filter', 'ui', 'frontend'],
     paragraphs: [
       'backdrop-filter 允许你对元素背后的区域做模糊、提亮等处理，效果类似 iOS 的毛玻璃，一行 CSS 就能让侧边栏、播放条拥有通透的高级感。',
       '使用时要注意三点：一是要给元素留出半透明背景，完全透明看不出模糊；二是配合 -webkit- 前缀照顾老版 WebKit 内核；三是模糊半径不宜过大，16px 左右观感比较自然。',
@@ -334,6 +348,7 @@ export const ARTICLES = [
     date: '2016/02/28',
     views: 412,
     commentCount: 46,
+    tags: ['http', 'cache', 'performance', 'frontend'],
     paragraphs: [
       'HTTP 缓存是“性价比”最高的前端优化之一，却常常被忽略。它分为强缓存（直接读本地）与协商缓存（问服务器后再决定），两者有明确的优先级关系。',
       '强缓存靠 Expires 与 Cache-Control 控制，Cache-Control 的 max-age 更现代也更精确；协商缓存靠 Last-Modified 与 ETag 配对，ETag 在内容变化的场景下更可靠。',
@@ -353,6 +368,7 @@ export const ARTICLES = [
     date: '2016/03/08',
     views: 387,
     commentCount: 53,
+    tags: ['mobile', 'h5', 'css', 'frontend', 'tips'],
     paragraphs: [
       '移动端 H5 的坑大多来自“浏览器差异”与“视口理解”。第一类必踩是 1px 边框：高分屏下物理像素大于逻辑像素，普通 border 会显得又粗又糊，需要配合媒体查询或 transform 缩放。',
       '第二类是交互差异：iOS 点击有约 300ms 延迟（需 viewport 或 touch-action 解决）、橡皮筋回弹会让 fixed 元素乱跑、软键盘弹起可能把 fixed 底部按钮顶到屏幕中间。',
@@ -373,6 +389,7 @@ export const ARTICLES = [
     date: '2016/01/15',
     views: 289,
     commentCount: 37,
+    tags: ['duxcms', 'cms', 'enterprise', 'tutorial'],
     paragraphs: [
       '接到一个朋友的企业站需求：要快、要好看、还要能自己维护。权衡之后选了 DUXCMS——部署简单，后台对非技术人员友好。',
       '第一步是搭栏目结构。产品中心、新闻资讯、关于我们、联系我们，四类基础栏目先定好，层级控制在三层以内，避免内容管理越来越乱。',
@@ -395,6 +412,7 @@ export const ARTICLES = [
     date: '2015/12/28',
     views: 173,
     commentCount: 21,
+    tags: ['duxcms', 'custom-model', 'cms', 'tutorial'],
     paragraphs: [
       '网站做到一半，客户提出要一个“案例展示”模块：每个案例要有多图、跳转链接、客户名称等额外字段。默认模型显然不够。',
       'DUXCMS 的自定义内容模型正是解决这类需求的：在后台创建新模型，按需添加文本、单选、图片、多图等字段，马上就得到一套完整的内容管理入口。',
@@ -416,6 +434,7 @@ export const ARTICLES = [
     date: '2015/12/25',
     views: 56,
     commentCount: 33,
+    tags: ['duxcms', 'cms', 'blog', 'announcement'],
     paragraphs: [
       '本博客主要用 DUXCMS 搭建，用于记录博主的点点滴滴，无论是生活上的还是技术上的。博客刚建好，还不完善，请见谅。后面会慢慢完善与扩展，敬请期待。',
       '开博啦！开博啦！踏上大神的第一步。从今天开始，我将在这里记录我的技术成长之路，分享前端开发的经验和心得，以及生活中的各种有趣的事情。',
@@ -437,6 +456,7 @@ export const ARTICLES = [
     date: '2016/01/25',
     views: 226,
     commentCount: 18,
+    tags: ['duxcms', 'seo', 'cms', 'optimization'],
     paragraphs: [
       'CMS 做出来的站点，SEO 好不好看配置。DUXCMS 在后台提供了完整的 SEO 相关设置，关键是要在内容上线前就把它配好，而不是事后补救。',
       '我的做法是：全站标题采用“文章名 - 栏目名 - 站点名”的层级结构；每个栏目与文章单独填写关键字与描述；同时开启 URL 静态化，让链接简短可读。',
@@ -456,6 +476,7 @@ export const ARTICLES = [
     date: '2016/02/08',
     views: 318,
     commentCount: 27,
+    tags: ['duxcms', 'template', 'tags', 'cms'],
     paragraphs: [
       '上手 DUXCMS 模板，最重要的是熟悉它的标签体系：几乎所有动态内容都靠模板标签输出，理解了标签就等于理解了模板的骨架。',
       '最常用的几类：栏目循环用于导航与子栏目；文章列表循环配合分页标签实现“首页列表 + 详情页”的完整形态；字段标签负责输出标题、时间、阅读量等单条数据。',
@@ -475,6 +496,7 @@ export const ARTICLES = [
     date: '2016/02/23',
     views: 164,
     commentCount: 20,
+    tags: ['duxcms', 'plugin', 'development', 'cms'],
     paragraphs: [
       '当现有功能不够用时，DUXCMS 的插件机制给了我们扩展的空间。插件的核心是一份声明文件加若干模块文件，结构比想象中简单。',
       '以一个“文章归档”插件为例：先写好声明文件注册插件名与版本；再实现后台管理菜单与对应的数据库表；最后注册一个前台模板标签，供页面直接调用。',
@@ -494,6 +516,7 @@ export const ARTICLES = [
     date: '2016/03/02',
     views: 292,
     commentCount: 31,
+    tags: ['duxcms', 'error', 'troubleshooting', 'cms'],
     paragraphs: [
       '用 DUXCMS 这一年，攒下了一份“报错处理清单”。最高频的问题是安装后白屏，九成是环境问题：PHP 版本过低或缺少扩展，先看错误日志就能定位。',
       '其次是 500 错误：多为文件权限或伪静态配置问题。Linux 下记得给 runtime 与上传目录可写权限，Apache 与 Nginx 的伪静态规则并不通用。',
@@ -513,6 +536,7 @@ export const ARTICLES = [
     date: '2016/03/18',
     views: 155,
     commentCount: 13,
+    tags: ['duxcms', 'theme', 'customization', 'cms'],
     paragraphs: [
       '模板二开的原则是“尽量不碰核心文件”，否则升级时改动会被覆盖。我的做法是把所有定制样式单独放到一个 CSS 文件里引入，主题层只做覆盖。',
       '改造顺序建议：先定色板（主色、背景、文字三级灰阶），再统一字体与间距节奏，最后才是局部组件的精修。从整体到局部，返工率最低。',

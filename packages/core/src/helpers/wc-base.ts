@@ -92,9 +92,11 @@ export abstract class WcBase extends HTMLElement {
     this.mounted()
   }
 
-  /** 属性变化时重新渲染（子类可覆盖以实现增量更新） */
+  /** 属性变化时重新渲染（仅对子类在 observedAttributes 中声明的属性生效） */
   attributeChangedCallback (name: string, oldValue: string | null, newValue: string | null): void {
     if (oldValue === newValue) return
+    const observed = (this.constructor as unknown as { observedAttributes?: string[] }).observedAttributes
+    if (observed && observed.indexOf(name) === -1) return
     this.shadow.innerHTML = ``
     this.shadow.innerHTML = this.render()
     this.mounted()

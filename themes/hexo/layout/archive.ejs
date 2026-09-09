@@ -1,0 +1,417 @@
+<%
+// =====================================================================
+// @soul-blog/hexo — 归档页模板（路由 /archives/）
+// 服务端渲染「年 → 月 → 文章」时间线，样式与 packages/core archive-list 保持一致；
+// 渐进展开 + 月份折叠由底部 <script> 驱动（全量 HTML 保留，利于 SEO）。
+// =====================================================================
+
+var archiveDir = config.archive_dir || 'archives'
+var archiveUrl = url_for('/' + archiveDir + '/')
+var homeUrl = url_for('/')
+
+// 取文章列表：
+//  - 本主题生成器注入 soulPosts → 全量归档
+//  - 否则（兼容 hexo-generator-archive 生成的 /archives/YYYY(/MM) 子页）按年份/月份过滤
+var allPosts = (page.soulPosts && page.soulPosts.length)
+  ? page.soulPosts
+  : (function () {
+      var arr = site.posts && site.posts.length ? site.posts.sort('-date').toArray() : []
+      if (page.year || page.month) {
+        var fy = String(page.year || '')
+        var fm = String(page.month || '').padStart(2, '0')
+        arr = arr.filter(function (p) {
+          var s = fmtDate(p.date)
+          var m = /^(\d{4})[-\/](\d{2})/.exec(s)
+          if (!m) return false
+          if (fy && m[1] !== fy) return false
+          if (fm && m[2] !== fm) return false
+          return true
+        })
+      }
+      return arr
+    })()
+
+// 格式化日期 YYYY/MM/DD
+function fmtDate (d) {
+  try {
+    if (d && typeof d.format === 'function') return d.format('YYYY/MM/DD')
+  } catch (e) { /* noop */ }
+  return d ? String(d) : ''
+}
+
+// 文章所属首个分类名（用于行尾 chip；无 front-matter 时回退到 source 路径目录）
+function catNameOf (p) {
+  try {
+    var c = p.categories && p.categories.length ? p.categories[0] : null
+    if (c) return typeof c === 'string' ? c : (c.name || '')
+    if (p.source && typeof p.source === 'string') {
+      var parts = p.source.split('/')
+      if (parts.length >= 2 && parts[0] === '_posts' && parts[1]) return parts[1]
+    }
+  } catch (e) { /* noop */ }
+  return ''
+}
+
+// 按 年 → 月 → 文章 倒序分组
+var yearGroups = []
+var yearMap = {}
+allPosts.forEach(function (p) {
+  var s = fmtDate(p.date)
+  var ym = /^(\d{4})[-\/](\d{2})/.exec(s)
+  if (!ym) return
+  var y = ym[1]
+  var m = ym[2]
+  if (!yearMap[y]) {
+    yearMap[y] = { year: y, months: [], total: 0 }
+    yearGroups.push(yearMap[y])
+  }
+  var g = yearMap[y]
+  var last = g.months.length ? g.months[g.months.length - 1] : null
+  if (!last || last.month !== m) {
+    last = { month: m, posts: [] }
+    g.months.push(last)
+  }
+  last.posts.push(p)
+  g.total++
+})
+
+// —— 侧栏数据（与 index.ejs 结构一致）——
+var cats = []
+if (site.categories && site.categories.length) {
+  site.categories.forEach(function (c) {
+    var name = typeof c === 'string' ? c : (c.name || '')
+    var slug = typeof c === 'string' ? c.toLowerCase().replace(/\s+/g, '-') : (c.slug || name.toLowerCase().replace(/\s+/g, '-'))
+    cats.push({ id: slug.toLowerCase(), name: name, en: slug.toLowerCase(), icon: '/images/extracted/home/iconfont-daima2@2x.png', w: 21, h: 21 })
+  })
+}
+var tagCounts = {}
+allPosts.forEach(function (p) {
+  if (p.tags && p.tags.length) {
+    p.tags.forEach(function (t) {
+      var name = typeof t === 'string' ? t.toLowerCase() : (t && t.name ? t.name.toLowerCase() : '')
+      if (name) tagCounts[name] = (tagCounts[name] || 0) + 1
+    })
+  }
+})
+var tags = Object.keys(tagCounts).sort().map(function (name) { return { name: name, count: tagCounts[name] } })
+
+var siteData = {
+  categories: cats,
+  tags: tags,
+  icons: {
+    home: '/images/extracted/home/iconfont-shouye@2x.png',
+    eye: '/images/extracted/home/iconfont-icon01@2x.png',
+    comment: '/images/extracted/home/iconfont-icon27@2x.png',
+    calendar: '/images/extracted/home/iconfont-03(1)@2x.png',
+    tag: '/images/extracted/home/iconfont-biaoqian@2x.png',
+    zan: '/images/extracted/article/iconfont-zan@2x.png',
+    avatarA: '/images/extracted/article/4@2x.png',
+    avatarB: '/images/extracted/article/20160126052324@2x.png'
+  },
+  siteName: config.title || 'CallMeSoul',
+  icp: theme.icp || '',
+  social: (theme.social || []).map(function (s) { return Object.assign({}, s, { href: s.href || s.url || '' }) }),
+  archiveUrl: archiveUrl,
+  homeUrl: homeUrl
+}
+
+var totalPosts = yearGroups.reduce(function (s, g) { return s + g.total }, 0)
+var totalMons = yearGroups.reduce(function (s, g) { return s + g.months.length }, 0)
+var INITIAL_YEARS = 4
+var LOAD_CHUNK = 2
+%>
+<script id="site-data" type="application/json"><%- JSON.stringify(siteData) %></script>
+
+<site-sidebar active-cat="archives"></site-sidebar>
+
+<div class="relative flex min-w-0 flex-1 flex-col overflow-hidden">
+  <% if (!yearGroups.length) { %>
+    <div class="arch-top">
+      <span class="arch-home-icon"></span>
+      <a href="<%= homeUrl %>" class="arch-home-link">首页</a>
+      <span class="arch-sep">&gt;</span>
+      <span class="arch-crumb">归档 · 暂无文章</span>
+      <div class="arch-divider"></div>
+    </div>
+    <div class="arch-area">
+      <div class="arch-frame">
+        <div class="arch-empty">归档空空如也，快去发布第一篇文章吧～</div>
+      </div>
+    </div>
+  <% } else { %>
+    <div class="arch-top">
+      <span class="arch-home-icon"></span>
+      <a href="<%= homeUrl %>" class="arch-home-link">首页</a>
+      <span class="arch-sep">&gt;</span>
+      <span class="arch-crumb">归档 · 共 <%= totalPosts %> 篇 · <%= yearGroups.length %> 年<small><%= totalMons %> 个月</small></span>
+      <div class="arch-divider"></div>
+    </div>
+
+    <div class="arch-area" data-arch-area>
+      <div class="arch-frame">
+        <!-- 窄屏：年份胶囊 -->
+        <div class="top-chips" data-part="topchips" role="tablist" aria-label="按年份跳转">
+          <% yearGroups.forEach(function (g) { %>
+            <button type="button" class="year-btn" data-year-btn="<%= g.year %>"><%= g.year %><em><%= g.total %></em></button>
+          <% }) %>
+        </div>
+
+        <div class="arch-main">
+          <div class="tl" data-part="tl">
+            <% yearGroups.forEach(function (g, gi) { %>
+              <section class="tl-year<%= gi >= INITIAL_YEARS ? ' is-later' : '' %>" data-year="<%= g.year %>">
+                <header class="tl-year-bar">
+                  <h2 class="tl-year-num"><%= g.year %></h2>
+                  <span class="tl-year-cnt"><%= g.total %> 篇</span>
+                  <span class="tl-year-line"></span>
+                  <span class="tl-year-mons"><%= g.months.length %> 个月</span>
+                </header>
+                <div class="tl-months">
+                  <% g.months.forEach(function (mm) { %>
+                    <section class="tl-mon" data-month="<%= g.year %>-<%= mm.month %>">
+                      <h3 class="tl-mon-h" role="button" tabindex="0" aria-expanded="true" data-act="mon-toggle">
+                        <span class="tl-mon-caret" aria-hidden="true"></span>
+                        <span class="tl-mon-name"><%= g.year %> 年 <%= Number(mm.month) %> 月</span>
+                        <span class="tl-mon-cnt"><%= mm.posts.length %> 篇</span>
+                      </h3>
+                      <div class="tl-mon-body">
+                        <% mm.posts.forEach(function (p) { %>
+                          <a class="tl-post" href="<%= url_for(p.path) %>">
+                            <time class="tl-date"><%= fmtDate(p.date).slice(5) %></time>
+                            <span class="tl-title"><%= p.title %></span>
+                            <% var cn = catNameOf(p); if (cn) { %><span class="tl-cat"><%= cn %></span><% } %>
+                          </a>
+                        <% }) %>
+                      </div>
+                    </section>
+                  <% }) %>
+                </div>
+              </section>
+            <% }) %>
+          </div>
+
+          <!-- 桌面：年份竖排导航 -->
+          <nav class="year-nav" data-part="yearnav" aria-label="按年份跳转">
+            <span class="year-nav-title">年份归档</span>
+            <div class="year-nav-list">
+              <% yearGroups.forEach(function (g) { %>
+                <button type="button" class="year-btn" data-year-btn="<%= g.year %>"><%= g.year %><em><%= g.total %></em></button>
+              <% }) %>
+            </div>
+          </nav>
+        </div>
+
+        <div class="arch-status" data-part="status" data-state="ready"></div>
+      </div>
+    </div>
+  <% } %>
+</div>
+
+<style>
+/* =====================================================================
+   归档页样式 —— 与 packages/core/src/components/archive-list.ts 保持一致
+   ===================================================================== */
+.arch-top { display: flex; align-items: center; padding: 40px 59px 16px; }
+.arch-home-icon { display: inline-block; width: 14px; height: 14px; flex-shrink: 0; background: var(--brand-primary, #eb4f38); -webkit-mask: url('/images/extracted/home/iconfont-shouye@2x.png') center/contain no-repeat; mask: url('/images/extracted/home/iconfont-shouye@2x.png') center/contain no-repeat; }
+.arch-home-link { margin-left: 8px; font-size: 14px; letter-spacing: 0.02em; color: #c9c6c2; text-decoration: none; transition: color 0.2s; }
+.arch-home-link:hover { color: #fff; }
+.arch-sep { margin: 0 8px; font-size: 12px; color: #5d5a59; }
+.arch-crumb { font-size: 14px; font-weight: 500; letter-spacing: 0.02em; color: #fff; white-space: nowrap; }
+.arch-crumb small { margin-left: 8px; font-size: 12px; font-weight: 400; color: #9e9d99; letter-spacing: 0.04em; }
+.arch-divider { margin-left: 24px; height: 1px; min-width: 20px; flex: 1; background: linear-gradient(90deg, #3c3936, transparent); }
+@media (max-width: 700px) { .arch-top { padding: 32px 20px 12px; } }
+@media (max-width: 480px) { .arch-top { padding: 28px 14px 10px; } }
+
+.arch-area { flex: 1; min-height: 0; overflow-y: auto; scrollbar-width: thin; scrollbar-color: #444 transparent; }
+.arch-area::-webkit-scrollbar { width: 6px; }
+.arch-area::-webkit-scrollbar-track { background: transparent; }
+.arch-area::-webkit-scrollbar-thumb { background: #444; border-radius: 3px; }
+.arch-area::-webkit-scrollbar-thumb:hover { background: #555; }
+.arch-frame { margin: 0 auto; padding: 30px 48px 26px; container-type: inline-size; }
+@media (max-width: 700px) { .arch-frame { padding: 20px 20px 18px; } }
+@media (max-width: 480px) { .arch-frame { padding: 16px 14px 14px; } }
+.arch-main { display: flex; gap: 44px; align-items: flex-start; }
+.tl { flex: 1; min-width: 0; }
+.tl-year { margin-bottom: 18px; background: rgba(15, 14, 13, 0.55); border: 1px solid #2a2a2a; border-radius: 6px; overflow: hidden; }
+.tl-year.is-later { display: none; }
+.tl-year-bar { display: flex; align-items: baseline; gap: 10px; padding: 13px 16px 11px; border-bottom: 1px solid #1f1e1d; background: rgba(255,255,255,0.02); }
+.tl-year-num { font-size: 19px; font-weight: 600; line-height: 1; color: var(--brand-primary, #eb4f38); font-variant-numeric: tabular-nums; letter-spacing: 0.02em; }
+.tl-year-cnt { font-size: 12px; color: #9e9d99; white-space: nowrap; }
+.tl-year-line { flex: 1; height: 1px; min-width: 16px; background: linear-gradient(90deg, rgba(255,255,255,0.10), transparent); }
+.tl-year-mons { font-size: 11px; color: #5d5a59; letter-spacing: 0.06em; white-space: nowrap; }
+.tl-mon + .tl-mon { border-top: 1px solid #1c1b1a; }
+.tl-mon-h { display: flex; align-items: center; gap: 8px; margin: 0; padding: 10px 16px; cursor: pointer; user-select: none; font-size: 13px; font-weight: 500; color: #c9c6c2; letter-spacing: 0.04em; -webkit-tap-highlight-color: transparent; transition: background 0.2s ease, color 0.2s ease; }
+.tl-mon-h:hover, .tl-mon-h:focus-visible { background: rgba(255,255,255,0.03); color: #fff; outline: none; }
+.tl-mon-caret { width: 0; height: 0; border-left: 4px solid transparent; border-right: 4px solid transparent; border-top: 5px solid #5d5a59; transition: transform 0.22s ease; flex-shrink: 0; }
+.tl-mon-h[aria-expanded="false"] .tl-mon-caret { transform: rotate(-90deg); }
+.tl-mon-cnt { margin-left: auto; font-size: 11px; font-weight: 400; color: #6b6b6b; white-space: nowrap; }
+.tl-mon-body { padding: 0 8px 8px; }
+.tl-mon-h[aria-expanded="false"] + .tl-mon-body { display: none; }
+.tl-post { display: flex; align-items: baseline; gap: 12px; padding: 7px 8px; border-radius: 4px; color: #d8d6d3; text-decoration: none; transition: background 0.18s ease, color 0.18s ease; -webkit-tap-highlight-color: transparent; }
+.tl-post:hover { background: rgba(235,79,56,0.07); }
+.tl-date { flex-shrink: 0; min-width: 44px; font-size: 12px; color: #777672; font-variant-numeric: tabular-nums; letter-spacing: 0.03em; transition: color 0.18s ease; }
+.tl-title { flex: 1; min-width: 0; font-size: 14px; line-height: 1.55; color: #f2f2f2; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; transition: color 0.18s ease; }
+.tl-post:hover .tl-title { color: var(--brand-primary, #eb4f38); }
+.tl-cat { flex-shrink: 0; max-width: 30%; padding: 1px 7px; font-size: 11px; line-height: 1.6; color: #9e9d99; background: rgba(255,255,255,0.05); border: 1px solid #2a2a2a; border-radius: 3px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tl-post:hover .tl-cat { color: #c9c6c2; border-color: rgba(235,79,56,0.4); }
+@media (max-width: 480px) { .tl-cat { display: none; } }
+.arch-empty { padding: 70px 20px; text-align: center; color: #6b6b6b; font-size: 14px; }
+
+.year-nav { display: none; width: 132px; flex-shrink: 0; }
+.year-nav-title { display: block; padding: 2px 6px 10px; font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: #5d5a59; }
+.year-nav-list { position: sticky; top: 6px; display: flex; flex-direction: column; gap: 4px; max-height: calc(100vh - 220px); overflow-y: auto; scrollbar-width: thin; scrollbar-color: #444 transparent; }
+.year-nav .year-btn { display: flex; align-items: center; gap: 8px; padding: 5px 10px; border: 1px solid transparent; border-radius: 5px; background: transparent; font-family: inherit; font-size: 13px; color: #9e9d99; cursor: pointer; text-align: left; transition: color 0.2s, background 0.2s, border-color 0.2s; }
+.year-btn em { font-style: normal; margin-left: auto; min-width: 18px; padding: 0 4px; font-size: 10px; line-height: 1.7; text-align: center; color: #5d5a59; background: rgba(255,255,255,0.05); border-radius: 3px; }
+.year-nav .year-btn:hover { color: #fff; background: rgba(255,255,255,0.04); }
+.year-nav .year-btn.active { color: var(--brand-primary, #eb4f38); background: rgba(235,79,56,0.10); border-color: rgba(235,79,56,0.35); }
+.year-nav .year-btn.active em { color: #eb4f38; background: rgba(235,79,56,0.12); }
+
+.top-chips { display: none; }
+.top-chips .year-btn { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border: 1px solid #2a2a2a; border-radius: 999px; background: rgba(255,255,255,0.03); font-family: inherit; font-size: 12px; color: #9e9d99; cursor: pointer; white-space: nowrap; transition: color 0.2s, background 0.2s, border-color 0.2s; }
+.top-chips .year-btn em { min-width: 0; padding: 0; background: transparent; font-size: 10px; color: #6b6b6b; }
+.top-chips .year-btn:hover { color: #fff; border-color: #3c3936; }
+.top-chips .year-btn.active { color: #eb4f38; background: rgba(235,79,56,0.12); border-color: rgba(235,79,56,0.45); }
+.top-chips .year-btn.active em { color: #eb4f38; }
+
+@container (min-width: 760px) {
+  .year-nav { display: block; }
+  .top-chips { display: none; }
+}
+@container (max-width: 759px) {
+  .top-chips { display: flex; flex-wrap: nowrap; gap: 8px; margin-bottom: 16px; overflow-x: auto; padding-bottom: 2px; scrollbar-width: none; }
+  .top-chips::-webkit-scrollbar { display: none; }
+  .tl-post { flex-wrap: wrap; row-gap: 2px; }
+}
+@media (min-width: 1400px) {
+  /* 不支持容器查询时的桌面兜底 */
+  .year-nav { display: block; }
+  .top-chips { display: none; }
+}
+
+.arch-status { padding: 14px 0 10px; text-align: center; font-size: 12px; color: #6b6b6b; letter-spacing: 0.04em; }
+.arch-status[data-state="hidden"] { display: none; }
+.arch-status .arch-spinner { display: inline-block; width: 14px; height: 14px; margin-right: 6px; vertical-align: -2px; border: 2px solid rgba(255,255,255,0.12); border-top-color: var(--brand-primary, #eb4f38); border-radius: 50%; animation: arch-rotate 0.7s linear infinite; }
+@keyframes arch-rotate { to { transform: rotate(360deg); } }
+</style>
+
+<script>
+(function () {
+  'use strict'
+  var INITIAL = <%= INITIAL_YEARS %>
+  var CHUNK = <%= LOAD_CHUNK %>
+  var area = document.querySelector('[data-arch-area]')
+  if (!area || area.querySelectorAll('.tl-year').length === 0) return
+
+  var totalPosts = <%= totalPosts %>
+  var years = Array.prototype.slice.call(area.querySelectorAll('.tl-year'))
+  var status = area.querySelector('[data-part="status"]')
+  var revealed = Math.min(INITIAL, years.length)
+  var loading = false
+  var scrollRaf = 0
+  var activeYear = ''
+
+  function syncNav () {
+    var act = activeYear || (years[0] ? years[0].getAttribute('data-year') : '')
+    area.querySelectorAll('.year-btn').forEach(function (b) {
+      b.classList.toggle('active', b.getAttribute('data-year-btn') === act)
+    })
+  }
+
+  function revealChunk (n) {
+    var to = Math.min(years.length, revealed + n)
+    for (var i = revealed; i < to; i++) years[i].classList.remove('is-later')
+    revealed = to
+    if (revealed >= years.length) {
+      if (status) { status.dataset.state = 'done'; status.textContent = '已经到底啦 · 共 ' + totalPosts + ' 篇' }
+    } else if (status) { status.dataset.state = 'ready'; status.textContent = '' }
+    syncNav()
+  }
+
+  function revealAll () {
+    if (revealed < years.length) revealChunk(years.length - revealed)
+  }
+
+  // 底部哨兵：滚动接近末尾时继续加载更早归档
+  var observer = null
+  if (typeof IntersectionObserver !== 'undefined' && status) {
+    observer = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting && !loading && revealed < years.length) {
+          loading = true
+          status.dataset.state = 'loading'
+          status.innerHTML = '<span class="arch-spinner"></span>正在加载更早的归档…'
+          setTimeout(function () { loading = false; revealChunk(CHUNK) }, 200)
+        }
+      })
+    }, { root: area, rootMargin: '120px 0px' })
+    observer.observe(status)
+  } else if (status) {
+    status.textContent = '点击加载更早归档'
+    status.style.cursor = 'pointer'
+    status.addEventListener('click', function () {
+      if (revealed < years.length) revealChunk(CHUNK)
+    })
+  }
+
+  if (revealed < years.length && status) {
+    status.dataset.state = 'ready'
+    status.textContent = ''
+  } else {
+    revealChunk(0)
+  }
+
+  // 滚动高亮当前年份 + 触底自动加载
+  area.addEventListener('scroll', function () {
+    if (scrollRaf) return
+    scrollRaf = requestAnimationFrame(function () {
+      scrollRaf = 0
+      var top = area.scrollTop + 24
+      var cur = ''
+      years.forEach(function (s) {
+        if (s.offsetTop <= top) cur = s.getAttribute('data-year')
+      })
+      if (cur && cur !== activeYear) { activeYear = cur; syncNav() }
+      var st = area.querySelector('[data-part="status"]')
+      if (st && !loading && revealed < years.length && st.getBoundingClientRect().bottom <= area.getBoundingClientRect().bottom) {
+        loading = true
+        setTimeout(function () { loading = false; revealChunk(CHUNK) }, 200)
+      }
+    })
+  }, { passive: true })
+
+  // 月份折叠
+  area.addEventListener('click', function (e) {
+    var toggle = e.target.closest('[data-act="mon-toggle"]')
+    if (toggle) {
+      e.preventDefault()
+      var expanded = toggle.getAttribute('aria-expanded') !== 'false'
+      toggle.setAttribute('aria-expanded', expanded ? 'false' : 'true')
+      return
+    }
+    var btn = e.target.closest('[data-year-btn]')
+    if (btn) {
+      e.preventDefault()
+      var year = btn.getAttribute('data-year-btn')
+      if (!year) return
+      if (revealed < years.length) revealAll()
+      var sec = years.find(function (s) { return s.getAttribute('data-year') === year })
+      if (sec) {
+        var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches
+        var top = sec.getBoundingClientRect().top - area.getBoundingClientRect().top + area.scrollTop
+        area.scrollTo({ top: top, behavior: reduce ? 'auto' : 'smooth' })
+      }
+    }
+  })
+
+  area.addEventListener('keydown', function (e) {
+    if (e.key !== 'Enter' && e.key !== ' ') return
+    var toggle = e.target.closest('[data-act="mon-toggle"]')
+    if (!toggle) return
+    e.preventDefault()
+    var expanded = toggle.getAttribute('aria-expanded') !== 'false'
+    toggle.setAttribute('aria-expanded', expanded ? 'false' : 'true')
+  })
+
+  syncNav()
+})()
+</script>

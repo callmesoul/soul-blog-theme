@@ -26,6 +26,7 @@ export interface ArticleComment {
  *   summary     卡片摘要
  *   paragraphs  详情页正文段落
  *   comments    评论区预置内容（部分文章可缺省）
+ *   tags        标签数组（可选）
  */
 export interface Article {
   id: string
@@ -38,4 +39,5 @@ export interface Article {
   commentCount: number
   paragraphs: string[]
   comments?: ArticleComment[]
+  tags?: string[]
 }
