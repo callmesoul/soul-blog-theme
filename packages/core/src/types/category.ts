@@ -16,4 +16,6 @@ export interface Category {
   w: number
   /** 图标高度（px） */
   h: number
+  /** 该分类下文章数（可选，用于首页/归档的卡片摘要展示） */
+  count?: number
 }

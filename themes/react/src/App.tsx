@@ -17,6 +17,21 @@ function AppLayout() {
     siteConfig.load().then(() => siteConfig.apply())
   }, [])
 
+  // 按当前路由设置页面 <title>（阅读器打开文章时会由组件自行覆盖）
+  useEffect(() => {
+    const site = siteConfig.siteName || 'CallMeSoul'
+    const p = location.pathname
+    if (p === '/login') {
+      document.title = `登录 - ${site}`
+    } else if (p === '/archives') {
+      document.title = `归档 - ${site}`
+    } else if (p === '/search') {
+      document.title = `搜索 - ${site}`
+    } else {
+      document.title = `${site} - 首页`
+    }
+  }, [location.pathname, siteConfig.siteName])
+
   useEffect(() => {
     const searchPanel = document.querySelector('search-panel') as any
     if (searchPanel) {

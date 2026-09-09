@@ -35,7 +35,10 @@ export const useArticles = create<ArticleState>((set, get) => {
 
   return {
     articles: ARTICLES,
-    categories: CATEGORIES,
+    categories: CATEGORIES.map(c => ({
+      ...c,
+      count: ARTICLES.filter(a => a.cat === c.id).length
+    })),
     icons: ICONS,
     activeCat: 'all',
     activeTag: '',

@@ -147,7 +147,6 @@ export function applySiteConfig(cfg: SiteConfig = getSiteConfig()): void {
       el.textContent = cfg.site.icp
     })
   }
-  if (cfg.site.name) {
-    document.title = `${cfg.site.name} - 首页`
-  }
+  // 注意：页面 <title> 由路由层（App.vue applyRouteTitle）按当前路由维护，
+  // 首页 / 归档 / 登录 / 搜索 各自设置，避免归档等页面被误写成「- 首页」。
 }

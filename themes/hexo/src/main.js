@@ -75,7 +75,12 @@ const searchPanel = document.querySelector('search-panel')
 const searchResults = document.querySelector('search-results')
 
 if (sidebar) {
-  sidebar.categories = CATEGORIES
+  sidebar.categories = CATEGORIES.map(c => ({
+    ...c,
+    count: c.count != null
+      ? c.count
+      : (data?.articles || []).filter(a => String(a.cat ?? '').toLowerCase() === String(c.id ?? '').toLowerCase()).length
+  }))
   sidebar.social = social
   sidebar.siteName = siteName
   sidebar.icp = icp
@@ -154,6 +159,11 @@ if (searchResults) {
 // 路由
 // =====================================================================
 function applyRoute () {
+  // 仅首页 SPA（含 article-list）需要 hash 路由。SSR 页面（文章 / 归档）没有
+  // article-list，直接跳过——否则这里会在 DOMContentLoaded 时把 post.ejs 已用
+  // viewer.openWithFlip() 打开的文章阅读器误关闭，并把标题改回「首页」。
+  if (!articleList) return
+
   const cat = resolveCat(getHashCat())
   const tag = getHashTag()
   const artId = getHashArt()

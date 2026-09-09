@@ -5,7 +5,10 @@ import { CATEGORIES, ARTICLES, ICONS } from '../data/mock-data'
 
 export const useArticleStore = defineStore('articles', () => {
   const articles = ref<Article[]>(ARTICLES)
-  const categories = ref<Category[]>(CATEGORIES)
+  const categories = ref<Category[]>(CATEGORIES.map(c => ({
+    ...c,
+    count: ARTICLES.filter(a => a.cat === c.id).length
+  })))
   const icons = ref(ICONS)
   const activeCat = ref('all')
   const activeTag = ref('')

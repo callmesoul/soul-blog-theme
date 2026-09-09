@@ -2,7 +2,7 @@ import { WcBase } from '../helpers/wc-base'
 import { escapeHtml } from '../helpers/escape-html'
 import type { Category, SocialItem } from '../types'
 
-/** 导航项数据结构（首页 + 各目录） */
+/** 二级目录项数据结构 */
 export interface NavItem {
   cat: string
   zh: string
@@ -19,161 +19,405 @@ export interface TagItem {
 }
 
 /**
- * 首页侧栏组件
+ * 双轨站点侧栏
  *
- * 属性：
- *   active-cat — 当前激活的目录 id（默认 'all'）
- *
- * 属性（JS property）：
- *   categories — Category[] 目录列表
- *   social     — SocialItem[] 社交链接
- *   siteName   — 站点名称
- *   icp        — 备案文案
- *
- * 事件：
- *   navigate — 导航点击时触发，detail 为 { cat: string }
+ * 一级导航固定为：首页 / 目录 / 归档。
+ * 桌面端始终展示二级栏；点击「目录」时才显示分类和标签列表。
  */
 class SiteSidebar extends WcBase {
   static get observedAttributes (): string[] {
     return ['active-cat', 'active-tag']
   }
 
-  /** 导航高亮指示条元素 */
   private _hlEl: HTMLElement | null = null
+  private _directoryOpen = false
 
-  /** 导出导航模板供 main.js 过渡期使用 */
+  /** 导出二级目录模板供过渡期代码复用 */
   static navigationItemsTemplate (items: NavItem[], activeCat: string): string {
-    return items.map(item => `
-      <a class="nav-item${item.cat === activeCat ? ' active' : ''}" href="./#cat=${encodeURIComponent(item.cat)}"
-         data-cat="${escapeHtml(item.cat)}" title="${escapeHtml(item.zh)} · ${escapeHtml(item.en)}">
-        <img class="nav-icon" src="${escapeHtml(item.icon)}" alt="" style="width:${Number(item.w)}px;height:${Number(item.h)}px;">
-        <div>
-          <div class="nav-zh">${escapeHtml(item.zh)}</div>
-          <div class="nav-en">${escapeHtml(item.en)}</div>
-        </div>
+    return items.map((item, index) => `
+      <a class="nav-item${item.cat === activeCat ? ' active' : ''}"
+         href="./#cat=${encodeURIComponent(item.cat)}"
+         data-cat="${escapeHtml(item.cat)}"
+         title="${escapeHtml(item.zh)} · ${escapeHtml(item.en)}">
+        <span class="nav-icon-slot" aria-hidden="true">
+          <img class="nav-icon" src="${escapeHtml(item.icon)}" alt=""
+               style="width:${Number(item.w)}px;height:${Number(item.h)}px;">
+        </span>
+        <span class="nav-copy">
+          <span class="nav-zh">${escapeHtml(item.zh)}</span>
+          <span class="nav-en">${escapeHtml(item.en)}</span>
+        </span>
+        <span class="nav-index" aria-hidden="true">${String(index + 1).padStart(2, '0')}</span>
       </a>
     `).join('')
   }
 
   protected render (): string {
     const activeCat = this.getAttribute('active-cat') || 'all'
+    const activeTag = this.getAttribute('active-tag') || ''
     const categories = (this as any)._categories as Category[] | undefined
     const social = (this as any)._social as SocialItem[] | undefined
-    const icp = (this as any)._icp as string | undefined
     const tags = (this as any)._tags as TagItem[] | undefined
-
-    // 导航项：首页 +（归档入口）+ 各目录
+    const icp = (this as any)._icp as string | undefined
     const archiveUrl = (this as any)._archiveUrl as string | undefined
-    const catItems = (categories || []).map(c => ({
-      cat: c.id, zh: c.name, en: c.en, icon: c.icon, w: c.w, h: c.h
+    const siteName = ((this as any)._siteName as string | undefined) || 'CallMeSoul'
+
+    const categoryItems = (categories || []).map(c => ({
+      cat: c.id,
+      zh: c.name,
+      en: c.en,
+      icon: c.icon,
+      w: c.w,
+      h: c.h,
+      count: c.count
     }))
-    const homeItem = {
-      cat: 'all', zh: '首页', en: 'Home', icon: '/images/extracted/home/iconfont-shouye@2x.png', w: 21, h: 21
-    }
+    const categorySelected = activeCat !== 'all' && activeCat !== 'archives'
+    const directoryOpen = this._directoryOpen || categorySelected
+    const panelHidden = typeof window !== 'undefined' &&
+      window.matchMedia('(max-width: 1199px)').matches && !directoryOpen
+    const homeActive = activeCat === 'all' && !directoryOpen
+    const directoryActive = directoryOpen || categorySelected
+    const archiveActive = activeCat === 'archives'
 
-    // 「归档」原生链接项：href 由宿主注入（SPA 用 hash / 真实路径，Hexo 用 url_for）
-    const archiveHtml = archiveUrl
-      ? `<a class="nav-item${activeCat === 'archives' ? ' active' : ''}" data-cat="archives" href="${escapeHtml(archiveUrl)}" title="归档 · Archives">
-          <img class="nav-icon" src="/images/extracted/home/iconfont-03(1)@2x.png" alt="" style="width:21px;height:21px;">
-          <div>
-            <div class="nav-zh">归档</div>
-            <div class="nav-en">Archives</div>
-          </div>
-        </a>`
-      : ''
-
-    const navHtml = SiteSidebar.navigationItemsTemplate([homeItem], activeCat)
-      + archiveHtml
-      + SiteSidebar.navigationItemsTemplate(catItems, activeCat)
-
-    // 标签列表
+    const categoryHtml = SiteSidebar.navigationItemsTemplate(categoryItems, activeTag ? '' : activeCat)
     const tagHtml = (tags || []).map(t => {
-      const activeTag = this.getAttribute('active-tag') || ''
       const isActive = t.name === activeTag
-      return `<a class="tag-item${isActive ? ' active' : ''}" href="./#tag=${encodeURIComponent(t.name)}" data-tag="${escapeHtml(t.name)}">${escapeHtml(t.name)}<span class="tag-count">${t.count}</span></a>`
+      return `<a class="tag-item${isActive ? ' active' : ''}"
+                 href="./#tag=${encodeURIComponent(t.name)}"
+                 data-tag="${escapeHtml(t.name)}">
+                <span class="tag-name">${escapeHtml(t.name)}</span>
+                <span class="tag-count">${Number(t.count)}</span>
+              </a>`
     }).join('')
 
-    // 社交栏
     const socialHtml = (social || []).map(s => {
       const name = escapeHtml(s.name || '')
-      const icon = `<img${s.mono ? ' class="tone-mono"' : ''} src="${escapeHtml(s.icon)}" alt="${name}" style="width:${s.width || 22}px;height:${s.height || 18}px;object-fit:contain;--hue:${s.hue ?? 0}deg;">`
+      const icon = `<img${s.mono ? ' class="tone-mono"' : ''}
+                         src="${escapeHtml(s.icon)}" alt="${name}"
+                         style="width:${s.width || 22}px;height:${s.height || 18}px;object-fit:contain;--hue:${s.hue ?? 0}deg;">`
       const href = s.href && s.href !== '#' ? escapeHtml(s.href) : ''
       const qr = s.qr && s.qr !== '#' ? escapeHtml(s.qr) : ''
 
       if (href) {
-        return `<a class="social-icon has-link" href="${href}" target="_blank" rel="noopener noreferrer" aria-label="${name}" title="${name}">${icon}</a>`
+        return `<a class="social-icon has-link" href="${href}" target="_blank"
+                   rel="noopener noreferrer" aria-label="${name}" title="${name}">${icon}</a>`
       }
       if (qr) {
-        return `<span class="social-icon has-qr" role="img" tabindex="0" aria-label="${name}二维码" title="扫码关注${name}">
+        return `<span class="social-icon has-qr" role="img" aria-label="${name}二维码" title="扫码关注${name}">
           ${icon}
-          <span class="social-qr"><img class="qr-image" src="${qr}" alt="${name}二维码"><em>扫一扫关注</em><b>${name}</b></span>
+          <span class="social-qr">
+            <img class="qr-image" src="${qr}" alt="${name}二维码">
+            <em>扫一扫关注</em><b>${name}</b>
+          </span>
         </span>`
       }
       return `<span class="social-icon is-static" aria-label="${name}" title="${name}">${icon}</span>`
     }).join('')
+
+    const archiveHtml = archiveUrl
+      ? `<a class="primary-item${archiveActive ? ' active' : ''}"
+            href="${escapeHtml(archiveUrl)}" data-cat="archives"
+            aria-label="归档" title="归档 · Archives">
+          <img src="/images/extracted/home/iconfont-03(1)@2x.png" alt="" aria-hidden="true">
+          <span class="primary-tooltip">归档</span>
+        </a>`
+      : ''
 
     return `
       <style>
         :host {
           display: contents;
         }
+        * {
+          box-sizing: border-box;
+        }
         .sidebar {
-          display: flex;
-          height: 100%;
-          width: 372px;
-          min-width: 372px;
-          max-width: 372px;
-          flex-direction: column;
-          border-right: 1px solid rgba(255,255,255,0.16);
-          background: rgba(15,14,13,0.55);
-          backdrop-filter: blur(16px) saturate(120%);
-          -webkit-backdrop-filter: blur(16px) saturate(120%);
           position: relative;
           z-index: 20;
-        }
-        @media (max-width: 1023px) {
-          .sidebar { width: 64px; min-width: 64px; background: rgba(15,14,13,0.85); }
-        }
-        .logo-area {
-          padding: 20px 0;
           display: flex;
-          justify-content: center;
+          width: 320px;
+          min-width: 320px;
+          max-width: 320px;
+          height: 100%;
+          color: #f2f2f2;
+          transition: width 0.32s cubic-bezier(0.22, 1, 0.36, 1),
+                      min-width 0.32s cubic-bezier(0.22, 1, 0.36, 1),
+                      max-width 0.32s cubic-bezier(0.22, 1, 0.36, 1);
         }
-        .logo-area .logo-img {
-          height: 80px;
-          width: auto;
+        .sidebar.directory-open {
+          width: 320px;
+          min-width: 320px;
+          max-width: 320px;
+        }
+
+        /* 一级图标轨道 */
+        .primary-rail {
+          position: relative;
+          z-index: 2;
+          display: flex;
+          width: 68px;
+          min-width: 68px;
+          height: 100%;
+          flex-direction: column;
+          align-items: center;
+          border-right: 1px solid rgba(255, 255, 255, 0.08);
+          background: rgba(9, 9, 9, 0.97);
+          backdrop-filter: blur(18px) saturate(120%);
+          -webkit-backdrop-filter: blur(18px) saturate(120%);
+        }
+        .primary-logo {
+          display: grid;
+          width: 38px;
+          height: 38px;
+          margin: 22px auto 26px;
+          place-items: center;
+          border-radius: 11px;
+          background: var(--brand-primary);
+          box-shadow: 0 8px 22px rgba(var(--brand-rgb), 0.24);
+        }
+        .primary-logo img {
+          display: block;
+          width: 21px;
+          height: auto;
           object-fit: contain;
+          filter: brightness(0) invert(1);
         }
-        @media (max-width: 1023px) {
-          .logo-area { display: none; }
+        .primary-nav {
+          display: flex;
+          width: 100%;
+          flex-direction: column;
+          align-items: center;
+          gap: 10px;
         }
-        @media (max-width: 1199px) {
-          .nav-item {
-            padding: 24px 0 !important;
-            justify-content: center;
-          }
-          .nav-item > div { display: none; }
-          .footer-area > div:first-child { display: none; }
-          .social-bar {
-            flex-direction: column;
-            width: 100%;
-            height: auto !important;
-            border-top: none;
-          }
-          .social-icon {
-            min-height: 48px;
-            border-right: none;
-            border-bottom: 1px solid #2a2a2a;
-          }
-          .social-icon:last-child { border-bottom: none; }
+        .primary-item {
+          position: relative;
+          display: grid;
+          width: 42px;
+          height: 42px;
+          padding: 0;
+          place-items: center;
+          border: 0;
+          border-radius: 12px;
+          color: #76716b;
+          background: transparent;
+          cursor: pointer;
+          text-decoration: none;
+          -webkit-tap-highlight-color: transparent;
+          transition: color 0.2s ease, background 0.2s ease, transform 0.2s ease;
+        }
+        .primary-item::before {
+          content: '';
+          position: absolute;
+          top: 8px;
+          bottom: 8px;
+          left: -13px;
+          width: 3px;
+          border-radius: 0 3px 3px 0;
+          background: var(--brand-primary);
+          opacity: 0;
+          transition: opacity 0.2s ease;
+        }
+        .primary-item:hover,
+        .primary-item:focus-visible {
+          color: #ffffff;
+          background: rgba(255, 255, 255, 0.055);
+        }
+        .primary-item.active {
+          color: var(--brand-primary);
+          background: rgba(var(--brand-rgb), 0.14);
+        }
+        .primary-item.active::before {
+          opacity: 1;
+        }
+        .primary-item:active {
+          transform: scale(0.94);
+        }
+        .primary-item img {
+          display: block;
+          width: 20px;
+          height: 20px;
+          object-fit: contain;
+          filter: brightness(0) invert(0.46);
+          transition: filter 0.2s ease;
+        }
+        .primary-item:hover img,
+        .primary-item:focus-visible img {
+          filter: brightness(0) invert(1);
+        }
+        .primary-item.active img {
+          filter: brightness(0) saturate(100%) invert(46%) sepia(82%) saturate(2207%) hue-rotate(336deg) brightness(100%) contrast(87%);
+        }
+        .primary-item svg {
+          width: 19px;
+          height: 19px;
+          fill: none;
+          stroke: currentColor;
+          stroke-linecap: round;
+          stroke-linejoin: round;
+          stroke-width: 1.8;
+        }
+        .primary-tooltip {
+          position: absolute;
+          top: 50%;
+          left: calc(100% + 12px);
+          z-index: 80;
+          padding: 5px 9px;
+          border: 1px solid #3c3936;
+          border-radius: 6px;
+          color: #ffffff;
+          background: rgba(20, 19, 18, 0.96);
+          box-shadow: 0 8px 18px rgba(0, 0, 0, 0.3);
+          font-family: var(--font-sans);
+          font-size: 11px;
+          line-height: 1.3;
+          white-space: nowrap;
+          opacity: 0;
+          visibility: hidden;
+          pointer-events: none;
+          transform: translate(-4px, -50%);
+          transition: opacity 0.18s ease, transform 0.18s ease, visibility 0.18s;
+        }
+        .primary-item:hover .primary-tooltip,
+        .primary-item:focus-visible .primary-tooltip {
+          opacity: 1;
+          visibility: visible;
+          transform: translate(0, -50%);
+        }
+        .directory-open .primary-tooltip {
+          display: none;
+        }
+        .rail-caption {
+          margin-top: auto;
+          margin-bottom: 18px;
+          color: #494541;
+          font-family: var(--font-sans);
+          font-size: 8px;
+          letter-spacing: 0.12em;
+          text-transform: uppercase;
+          writing-mode: vertical-rl;
+          text-decoration: none;
+          cursor: pointer;
+          transition: color 0.2s ease;
+        }
+        .rail-caption:hover { color: #9e9d99; }
+
+        /* 二级目录面板 */
+        .secondary-panel {
+          position: absolute;
+          top: 0;
+          bottom: 0;
+          left: 68px;
+          z-index: 1;
+          display: flex;
+          width: 252px;
+          flex-direction: column;
+          border-right: 1px solid rgba(255, 255, 255, 0.12);
+          color: #f2f2f2;
+          background: rgba(20, 18, 16, 0.94);
+          box-shadow: 18px 0 48px rgba(0, 0, 0, 0.15);
+          backdrop-filter: blur(18px) saturate(120%);
+          -webkit-backdrop-filter: blur(18px) saturate(120%);
+          opacity: 1;
+          visibility: visible;
+          pointer-events: auto;
+          transform: translateX(0);
+          transition: opacity 0.24s ease,
+                      transform 0.32s cubic-bezier(0.22, 1, 0.36, 1),
+                      visibility 0.24s;
+        }
+        .secondary-header {
+          display: flex;
+          min-height: 104px;
+          padding: 22px 16px;
+          align-items: center;
+          justify-content: space-between;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        }
+        .secondary-title {
+          min-width: 0;
+        }
+        .context-title {
+          display: none;
+        }
+        .sidebar:not(.directory-open):not(.archive-context) .context-home,
+        .sidebar.directory-open .context-directory,
+        .sidebar.archive-context:not(.directory-open) .context-archive {
+          display: block;
+        }
+        .secondary-title small,
+        .secondary-title strong,
+        .secondary-title span {
+          display: block;
+        }
+        .secondary-title small {
+          overflow: hidden;
+          margin-bottom: 5px;
+          color: #706a64;
+          font-family: var(--font-sans);
+          font-size: 9px;
+          line-height: 1.2;
+          letter-spacing: 0.05em;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+        .secondary-title strong {
+          color: #ffffff;
+          font-family: var(--font-sans);
+          font-size: 17px;
+          font-weight: 500;
+          line-height: 1.25;
+          letter-spacing: 0.04em;
+        }
+        .secondary-title span {
+          margin-top: 3px;
+          color: #625d57;
+          font-family: var(--font-sans);
+          font-size: 8px;
+          line-height: 1.2;
+          letter-spacing: 0.14em;
+          text-transform: uppercase;
+        }
+        .panel-close {
+          display: none;
+          width: 32px;
+          height: 32px;
+          flex: 0 0 auto;
+          padding: 0;
+          place-items: center;
+          border: 0;
+          border-radius: 8px;
+          color: #746e68;
+          background: rgba(255, 255, 255, 0.04);
+          cursor: pointer;
+        }
+        .panel-close:hover,
+        .panel-close:focus-visible {
+          color: #ffffff;
+          background: rgba(255, 255, 255, 0.08);
+        }
+        .panel-close svg {
+          width: 15px;
+          height: 15px;
+          fill: none;
+          stroke: currentColor;
+          stroke-linecap: round;
+          stroke-width: 1.8;
         }
         .site-nav {
+          position: relative;
+          min-height: 0;
           flex: 1;
+          padding: 18px 0 10px;
           overflow-x: hidden;
           overflow-y: auto;
+          scrollbar-color: #45403b transparent;
           scrollbar-width: thin;
-          scrollbar-color: #444 transparent;
-          position: relative;
+        }
+        .categories-section {
+          display: none;
+        }
+        .directory-open .categories-section {
+          display: block;
         }
         .site-nav::-webkit-scrollbar {
           width: 4px;
@@ -182,130 +426,119 @@ class SiteSidebar extends WcBase {
           background: transparent;
         }
         .site-nav::-webkit-scrollbar-thumb {
-          background: #444;
           border-radius: 3px;
+          background: #45403b;
         }
-        .site-nav::-webkit-scrollbar-thumb:hover {
-          background: #555;
+        .section-heading {
+          display: flex;
+          margin: 0 14px 9px;
+          align-items: center;
+          justify-content: space-between;
+          color: #6d6761;
+          font-family: var(--font-sans);
+          font-size: 10px;
+          font-weight: 500;
+          line-height: 1.2;
+          letter-spacing: 0.11em;
+        }
+        .section-heading span:last-child {
+          color: #4e4944;
+          font-size: 9px;
+          letter-spacing: 0;
         }
         .nav-item {
           position: relative;
           z-index: 1;
-          display: flex;
+          display: grid;
+          grid-template-columns: 38px minmax(0, 1fr) 24px;
+          min-height: 52px;
+          margin: 1px 0;
+          padding: 0 14px;
           align-items: center;
-          gap: 13px;
-          padding: 24px 84px;
           color: #9e9d99;
           cursor: pointer;
           text-decoration: none;
           -webkit-tap-highlight-color: transparent;
-          transition: color 0.25s ease;
+          transition: color 0.2s ease;
         }
-        .nav-item:hover {
-          color: #ffffff;
-        }
+        .nav-item:hover,
         .nav-item.active {
           color: #ffffff;
         }
-        .tags-section {
-          padding: 16px;
-          border-top: 1px solid #2a2a2a;
-          margin-top: 8px;
-        }
-        .tags-section h3 {
-          font-size: 13px;
-          font-weight: 500;
-          color: #c9c6c2;
-          margin: 0 0 12px;
-          letter-spacing: 0.04em;
-        }
-        .tags-list {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 4px;
-        }
-        .tag-item {
-          display: inline-flex;
-          align-items: center;
-          gap: 3px;
-          padding: 2px 8px;
-          font-size: 12px;
-          color: #9e9d99;
-          background: rgba(255,255,255,0.05);
-          border: 1px solid #2a2a2a;
-          border-radius: 4px;
-          text-decoration: none;
-          transition: color 0.2s, border-color 0.2s, background 0.2s;
-        }
-        .tag-item:hover {
-          color: #ffffff;
-          border-color: #eb4f38;
-          background: rgba(235,79,56,0.08);
-        }
-        .tag-item.active {
-          color: #ffffff;
-          border-color: #eb4f38;
-          background: rgba(235,79,56,0.15);
-        }
-        .tag-count {
-          min-width: 18px;
-          text-align: center;
-          font-size: 10px;
-          color: #5d5a59;
-          background: rgba(0,0,0,0.3);
-          padding: 1px 4px;
-          border-radius: 3px;
-        }
-        .tag-item:hover .tag-count,
-        .tag-item.active .tag-count {
-          color: #9e9d99;
-        }
-        @media (max-width: 1199px) {
-          .tags-section {
-            padding: 16px;
-          }
+        .nav-icon-slot {
+          display: grid;
+          width: 32px;
+          height: 32px;
+          place-items: center;
+          border-radius: 9px;
+          background: rgba(255, 255, 255, 0.035);
         }
         .nav-icon {
-          width: 21px;
-          height: 21px;
+          max-width: 18px;
+          max-height: 18px;
           object-fit: contain;
-          filter: brightness(0) invert(0.62);
-          flex-shrink: 0;
-          transition: filter 0.25s ease, transform 0.25s ease;
+          filter: brightness(0) invert(0.52);
+          transition: filter 0.2s ease, transform 0.2s ease;
         }
         .nav-item:hover .nav-icon,
         .nav-item.active .nav-icon {
-          filter: brightness(0) invert(1);
-          transform: scale(1.06);
+          filter: brightness(0) saturate(100%) invert(46%) sepia(82%) saturate(2207%) hue-rotate(336deg) brightness(100%) contrast(87%);
+          transform: scale(1.05);
         }
-        .nav-item:active .nav-icon {
-          transform: scale(0.95);
+        .nav-copy,
+        .nav-zh,
+        .nav-en {
+          display: block;
+          min-width: 0;
+        }
+        .nav-copy {
+          padding-left: 7px;
+        }
+        .nav-zh,
+        .nav-en {
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
         }
         .nav-zh {
           font-family: var(--font-sans);
-          font-size: 14px;
+          font-size: 13px;
           font-weight: 500;
-          letter-spacing: 0.04em;
-          line-height: 1.3;
-          margin-bottom: 5px;
+          line-height: 1.25;
+          letter-spacing: 0.02em;
         }
         .nav-en {
+          margin-top: 3px;
+          color: #69635d;
           font-family: var(--font-sans);
-          font-size: 11px;
-          letter-spacing: 0.09em;
+          font-size: 8px;
+          line-height: 1.2;
+          letter-spacing: 0.08em;
           text-transform: uppercase;
-          line-height: 1.3;
+        }
+        .nav-item.active .nav-en {
+          color: #8d8580;
+        }
+        .nav-index {
+          color: #514c47;
+          font-family: var(--font-sans);
+          font-size: 9px;
+          line-height: 1;
+          text-align: right;
+        }
+        .nav-item.active .nav-index {
+          color: var(--brand-primary);
         }
         .nav-highlight {
           position: absolute;
           top: 0;
           left: 0;
-          width: 100%;
           z-index: 0;
-          pointer-events: none;
+          width: 100%;
           opacity: 0;
-          transition: transform 0.55s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.3s ease;
+          pointer-events: none;
           will-change: transform;
+          transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.2s ease;
         }
         .nav-highlight.is-on {
           opacity: 1;
@@ -316,188 +549,237 @@ class SiteSidebar extends WcBase {
         .nav-highlight::before {
           content: '';
           position: absolute;
-          inset: 0;
+          inset: 4px 10px;
+          border-radius: 10px;
           background: linear-gradient(90deg,
-            rgba(var(--brand-rgb), 0.24) 0%,
-            rgba(var(--brand-rgb), 0.08) 55%,
-            rgba(var(--brand-rgb), 0) 100%);
+            rgba(var(--brand-rgb), 0.15),
+            rgba(var(--brand-rgb), 0.055));
         }
         .nav-highlight::after {
           content: '';
           position: absolute;
+          top: 10px;
+          bottom: 10px;
           left: 0;
-          top: 0;
-          bottom: 0;
           width: 3px;
+          border-radius: 0 3px 3px 0;
           background: var(--brand-primary);
         }
-        @media (prefers-reduced-motion: reduce) {
-          .nav-highlight {
-            transition: opacity 0.15s ease;
-          }
+
+        /* 标签 */
+        .tags-section {
+          margin: 16px 14px 0;
+          padding-top: 15px;
+          border-top: 1px solid rgba(255, 255, 255, 0.075);
         }
-        .footer-area {
-          margin-top: 12px;
+        /* 首页/归档（非目录浏览）场景：标签区作为面板最后一块，不显示上边框 */
+        .sidebar:not(.directory-open) .tags-section {
+          border-top: none;
+        }
+        .tags-section .section-heading {
+          margin-right: 0;
+          margin-left: 0;
+        }
+        .tags-list {
+          display: grid;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 6px;
+        }
+        .tag-item {
+          display: flex;
+          min-width: 0;
+          min-height: 30px;
+          padding: 5px 7px 5px 10px;
+          align-items: center;
+          justify-content: space-between;
+          gap: 6px;
+          border-radius: 7px;
+          color: #9e9d99;
+          background: rgba(255, 255, 255, 0.045);
+          font-family: var(--font-sans);
+          font-size: 11px;
+          line-height: 1.25;
+          text-decoration: none;
+          transition: color 0.18s ease, background 0.18s ease, box-shadow 0.18s ease;
+        }
+        .tag-name {
+          min-width: 0;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+        .tag-count {
+          flex: 0 0 auto;
+          color: #625d57;
+          font-size: 9px;
+          font-weight: 400;
+        }
+        .tag-item:hover,
+        .tag-item:focus-visible {
+          color: #ffffff;
+          background: rgba(var(--brand-rgb), 0.1);
+          box-shadow: inset 2px 0 0 var(--brand-primary);
+        }
+        .tag-item.active {
+          color: #ffffff;
+          font-weight: 500;
+          background: linear-gradient(90deg,
+            rgba(var(--brand-rgb), 0.2),
+            rgba(var(--brand-rgb), 0.1));
+          box-shadow:
+            inset 0 0 0 1px rgba(var(--brand-rgb), 0.38),
+            inset 3px 0 0 var(--brand-primary);
+        }
+        .tag-item:hover .tag-count,
+        .tag-item:focus-visible .tag-count {
+          color: var(--brand-primary);
+        }
+        .tag-item.active .tag-count {
+          padding: 1px 4px;
+          border-radius: 4px;
+          color: #ffffff;
+          background: rgba(var(--brand-rgb), 0.22);
+        }
+
+        /* 二级面板底部 */
+        .secondary-footer {
+          margin-top: auto;
+          border-top: 1px solid rgba(255, 255, 255, 0.065);
         }
         .icp-text {
-          padding: 0 96px 24px;
-          font-size: 12px;
-          line-height: 1.3;
-          letter-spacing: 0.02em;
-          color: #6b6b6b;
+          padding: 13px 16px 11px;
+          overflow: hidden;
+          color: #5c5751;
+          font-family: var(--font-sans);
+          font-size: 9px;
+          line-height: 1.4;
+          text-overflow: ellipsis;
+          white-space: nowrap;
         }
         .social-bar {
-          display: flex;
-          height: 51px;
-          border-top: 1px solid #333;
+          display: grid;
+          grid-template-columns: repeat(6, minmax(0, 1fr));
+          height: 44px;
+          border-top: 1px solid rgba(255, 255, 255, 0.065);
         }
         .social-icon {
-          flex: 1;
           position: relative;
           display: flex;
+          min-width: 0;
           align-items: center;
           justify-content: center;
-          border-right: 1px solid #333;
-          text-decoration: none;
+          border-right: 1px solid rgba(255, 255, 255, 0.065);
+          color: #8b857e;
           cursor: pointer;
-          -webkit-tap-highlight-color: transparent;
-          transition: box-shadow 0.25s ease;
+          text-decoration: none;
         }
         .social-icon:last-child {
-          border-right: none;
+          border-right: 0;
         }
         .social-icon img {
           --hue: 0deg;
-          opacity: 1;
+          opacity: 0.92;
           filter: invert(64%) sepia(79%) saturate(467%) hue-rotate(var(--hue)) brightness(97%);
-          transition: opacity 0.25s ease, transform 0.25s cubic-bezier(0.22, 1, 0.36, 1), filter 0.25s ease;
+          transition: opacity 0.2s ease, transform 0.2s ease, filter 0.2s ease;
         }
-        .social-icon::before {
-          content: '';
-          position: absolute;
-          inset: 0;
-          background: linear-gradient(180deg, rgba(var(--brand-rgb), 0.10), rgba(255, 255, 255, 0.03) 55%, rgba(var(--brand-rgb), 0.05));
-          opacity: 0;
-          transition: opacity 0.25s ease;
-          pointer-events: none;
-        }
-        .social-icon:hover::before,
-        .social-icon:focus-visible::before {
-          opacity: 1;
-        }
-        .social-bar .social-icon:hover img,
-        .social-bar .social-icon:focus-visible img {
+        .social-icon:hover img,
+        .social-icon:focus-visible img {
           opacity: 1;
           transform: translateY(-1px) scale(1.06);
           filter: invert(54%) sepia(88%) saturate(740%) hue-rotate(var(--hue)) brightness(112%);
         }
-        .social-icon:hover,
-        .social-icon:focus-visible {
-          box-shadow: inset 0 -2px 0 var(--brand-primary);
-          outline: none;
+        .social-icon img.tone-mono {
+          filter: brightness(0) invert(0.62);
         }
-        .social-icon:active img {
-          transform: translateY(0) scale(0.92);
-          opacity: 0.85;
+        .social-icon:hover img.tone-mono,
+        .social-icon:focus-visible img.tone-mono {
+          filter: brightness(0) invert(0.92);
         }
         .social-icon::after {
           content: attr(aria-label);
           position: absolute;
+          bottom: calc(100% + 9px);
           left: 50%;
-          bottom: calc(100% + 10px);
-          transform: translateX(-50%) translateY(4px);
-          padding: 4px 10px;
+          z-index: 70;
+          padding: 4px 8px;
           border: 1px solid #3c3936;
-          border-radius: 4px;
-          background: rgba(20, 19, 18, 0.92);
+          border-radius: 5px;
           color: #ffffff;
+          background: rgba(20, 19, 18, 0.96);
           font-family: var(--font-sans);
-          font-size: 12px;
-          line-height: 1.4;
-          letter-spacing: 0.02em;
+          font-size: 11px;
+          line-height: 1.3;
           white-space: nowrap;
           opacity: 0;
           visibility: hidden;
           pointer-events: none;
-          transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s;
-          z-index: 60;
+          transform: translate(-50%, 4px);
+          transition: opacity 0.18s ease, transform 0.18s ease, visibility 0.18s;
         }
         .social-icon:hover::after,
         .social-icon:focus-visible::after {
           opacity: 1;
           visibility: visible;
-          transform: translateX(-50%) translateY(0);
-        }
-        .social-bar .social-icon img.tone-mono {
-          filter: brightness(0) invert(0.62);
-        }
-        .social-bar .social-icon:hover img.tone-mono,
-        .social-bar .social-icon:focus-visible img.tone-mono {
-          filter: brightness(0) invert(0.92);
+          transform: translate(-50%, 0);
         }
         .social-icon.has-qr::after {
           display: none;
         }
-        .social-icon.has-qr {
-          cursor: help;
-        }
-        .social-icon .social-qr {
+        .social-qr {
           position: absolute;
+          bottom: calc(100% + 9px);
           left: 50%;
-          bottom: calc(100% + 10px);
-          transform: translateX(-50%) translateY(6px);
-          width: 150px;
-          padding: 10px 10px 9px;
+          z-index: 80;
           display: flex;
+          width: 146px;
+          padding: 9px;
           flex-direction: column;
           align-items: center;
-          gap: 5px;
-          background: rgba(22, 21, 20, 0.96);
+          gap: 4px;
           border: 1px solid #3c3936;
           border-radius: 8px;
+          color: #ffffff;
+          background: rgba(22, 21, 20, 0.98);
           box-shadow: 0 12px 28px rgba(0, 0, 0, 0.5);
           opacity: 0;
           visibility: hidden;
           pointer-events: none;
-          transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s;
-          z-index: 70;
-        }
-        .social-bar .social-icon .social-qr img.qr-image {
-          width: 124px;
-          height: 124px;
-          display: block;
-          object-fit: contain;
-          padding: 5px;
-          border-radius: 6px;
-          background: #ffffff;
-          filter: none !important;
-          transform: none !important;
-          opacity: 1 !important;
-        }
-        .social-qr em {
-          font-style: normal;
-          font-family: var(--font-sans);
-          font-size: 11px;
-          color: #9e9d99;
-          line-height: 1.4;
-          letter-spacing: 0.5px;
-        }
-        .social-qr b {
-          font-family: var(--font-sans);
-          font-size: 12px;
-          color: #ffffff;
-          line-height: 1.4;
-          font-weight: 500;
-          letter-spacing: 0.04em;
+          transform: translate(-50%, 6px);
+          transition: opacity 0.18s ease, transform 0.18s ease, visibility 0.18s;
         }
         .social-icon.has-qr:hover .social-qr,
         .social-icon.has-qr:focus-visible .social-qr {
           opacity: 1;
           visibility: visible;
-          transform: translateX(-50%) translateY(0);
+          transform: translate(-50%, 0);
+        }
+        .social-bar .social-qr .qr-image {
+          display: block;
+          width: 120px !important;
+          height: 120px !important;
+          padding: 5px;
+          border-radius: 6px;
+          object-fit: contain;
+          background: #ffffff;
+          filter: none !important;
+          opacity: 1 !important;
+          transform: none !important;
+        }
+        .social-qr em {
+          color: #9e9d99;
+          font-family: var(--font-sans);
+          font-size: 10px;
+          font-style: normal;
+          line-height: 1.3;
+        }
+        .social-qr b {
+          font-family: var(--font-sans);
+          font-size: 11px;
+          font-weight: 500;
+          line-height: 1.3;
         }
         .social-icon:first-child .social-qr {
-          left: 6px;
+          left: 5px;
           transform: translateY(6px);
         }
         .social-icon:first-child.has-qr:hover .social-qr,
@@ -505,30 +787,137 @@ class SiteSidebar extends WcBase {
           transform: translateY(0);
         }
         .social-icon:last-child .social-qr {
+          right: 5px;
           left: auto;
-          right: 6px;
           transform: translateY(6px);
         }
         .social-icon:last-child.has-qr:hover .social-qr,
         .social-icon:last-child.has-qr:focus-visible .social-qr {
           transform: translateY(0);
         }
+
+        @media (max-width: 1199px) {
+          .sidebar,
+          .sidebar.directory-open {
+            width: 68px;
+            min-width: 68px;
+            max-width: 68px;
+          }
+          .secondary-panel {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transform: translateX(-14px);
+          }
+          .directory-open .secondary-panel {
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+            transform: translateX(0);
+          }
+          .directory-open .secondary-panel {
+            box-shadow: 22px 0 48px rgba(0, 0, 0, 0.36);
+          }
+          .panel-close {
+            display: grid;
+          }
+        }
+        @media (max-width: 380px) {
+          .secondary-panel {
+            width: calc(100vw - 68px);
+          }
+          .tags-list {
+            grid-template-columns: minmax(0, 1fr);
+          }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .sidebar,
+          .secondary-panel,
+          .nav-highlight {
+            transition-duration: 0.01ms;
+          }
+        }
       </style>
-      <aside class="sidebar">
-        <div class="logo-area">
-          <img src="/images/home/logo_text.png" alt="CallMeSoul" class="logo-img">
+
+      <aside class="sidebar${directoryOpen ? ' directory-open' : ''}${archiveActive ? ' archive-context' : ''}">
+        <div class="primary-rail">
+          <div class="primary-logo" title="${escapeHtml(siteName)}">
+            <img src="/images/extracted/login/图形@2x.png" alt="${escapeHtml(siteName)}">
+          </div>
+
+          <nav class="primary-nav" aria-label="一级导航">
+            <a class="primary-item${homeActive ? ' active' : ''}"
+               href="./#cat=all" data-cat="all" aria-label="首页"
+               ${homeActive ? 'aria-current="page"' : ''} title="首页 · Home">
+              <img src="/images/extracted/home/iconfont-shouye@2x.png" alt="" aria-hidden="true">
+              <span class="primary-tooltip">首页</span>
+            </a>
+
+            <button class="primary-item directory-toggle${directoryActive ? ' active' : ''}"
+                    type="button" aria-label="目录" aria-controls="category-panel"
+                    aria-expanded="${directoryOpen ? 'true' : 'false'}" title="目录 · Categories">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M3.5 6.5h6l1.8 2h9.2v9.5a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2z"></path>
+                <path d="M3.5 9h17"></path>
+              </svg>
+              <span class="primary-tooltip">目录</span>
+            </button>
+
+            ${archiveHtml}
+          </nav>
+
+          <a class="rail-caption" href="https://github.com/callmesoul/soul-blog-theme"
+             target="_blank" rel="noopener noreferrer"
+             title="Soul Blog Theme · 本项目 GitHub" aria-label="Soul Blog Theme · 本项目 GitHub">Soul&nbsp;Blog</a>
         </div>
 
-        <nav class="site-nav" aria-label="文章目录">
-          ${navHtml}
-          <span class="nav-highlight" aria-hidden="true"></span>
-          ${tagHtml ? `<div class="tags-section"><h3>标签</h3><div class="tags-list">${tagHtml}</div></div>` : ''}
-        </nav>
+        <section class="secondary-panel" id="category-panel"
+                 aria-label="二级导航" aria-hidden="${panelHidden ? 'true' : 'false'}">
+          <header class="secondary-header">
+            <div class="secondary-title context-title context-home">
+              <small>${escapeHtml(siteName)}</small>
+              <strong>首页</strong>
+              <span>Home</span>
+            </div>
+            <div class="secondary-title context-title context-directory">
+              <small>${escapeHtml(siteName)}</small>
+              <strong>内容目录</strong>
+              <span>Categories</span>
+            </div>
+            <div class="secondary-title context-title context-archive">
+              <small>${escapeHtml(siteName)}</small>
+              <strong>归档</strong>
+              <span>Archives</span>
+            </div>
+            <button class="panel-close" type="button" aria-label="收起目录" title="收起目录">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="m15 6-6 6 6 6"></path>
+              </svg>
+            </button>
+          </header>
 
-        <div class="footer-area">
-          <div class="icp-text">${icp ? escapeHtml(icp) : '@CallMeSoul 粤ICP备15053557'}</div>
-          <div class="social-bar" aria-label="社交媒体">${socialHtml}</div>
-        </div>
+          <nav class="site-nav" aria-label="目录列表">
+            <section class="categories-section" aria-label="分类列表">
+              <div class="section-heading">
+                <span>分类</span><span>${String(categoryItems.length).padStart(2, '0')}</span>
+              </div>
+              ${categoryHtml || '<p class="section-heading"><span>暂无分类</span></p>'}
+              <span class="nav-highlight" aria-hidden="true"></span>
+            </section>
+
+            ${tagHtml ? `<section class="tags-section" aria-label="标签列表">
+              <h3 class="section-heading">
+                <span>标签</span><span>${String(tags?.length || 0).padStart(2, '0')}</span>
+              </h3>
+              <div class="tags-list">${tagHtml}</div>
+            </section>` : ''}
+          </nav>
+
+          <footer class="secondary-footer">
+            <div class="icp-text">${icp ? escapeHtml(icp) : '@CallMeSoul 粤ICP备15053557'}</div>
+            <div class="social-bar" aria-label="社交媒体">${socialHtml}</div>
+          </footer>
+        </section>
       </aside>
     `
   }
@@ -537,73 +926,144 @@ class SiteSidebar extends WcBase {
     this._hlEl = this.$('.nav-highlight')
     this._layoutHighlight()
 
-    // 导航点击事件委托
+    this.$('.directory-toggle')?.addEventListener('click', () => {
+      this._setDirectoryOpen(true)
+    })
+    this.$('.panel-close')?.addEventListener('click', () => {
+      this._setDirectoryOpen(false)
+    })
+
+    const home = this.$<HTMLAnchorElement>('.primary-item[data-cat="all"]')
+    home?.addEventListener('click', (e: Event) => {
+      e.preventDefault()
+      this._setDirectoryOpen(false)
+      this.emit('navigate', { cat: 'all' })
+    })
+
     const nav = this.$('.site-nav') as HTMLElement | null
     nav?.addEventListener('click', (e: Event) => {
-      // 标签点击
-      const tagItem = (e.target as HTMLElement).closest('.tag-item') as HTMLElement | null
+      const target = e.target as HTMLElement
+      const tagItem = target.closest('.tag-item') as HTMLElement | null
       if (tagItem) {
         const tag = (tagItem.dataset as Record<string, string>).tag
         if (tag) {
           e.preventDefault()
           this.emit('navigate', { cat: 'all', tag })
+          this._closeOverlayAfterNavigation()
         }
         return
       }
-      // 目录导航点击
-      const item = (e.target as HTMLElement).closest('.nav-item') as HTMLElement | null
-      if (!item) return
-      const cat = (item.dataset as Record<string, string>).cat
+
+      const item = target.closest('.nav-item') as HTMLElement | null
+      const cat = item && (item.dataset as Record<string, string>).cat
       if (cat) {
-        // 「归档」为原生链接，交给宿主路由/页面跳转
-        if (cat === 'archives' && (this as any)._archiveUrl) return
         e.preventDefault()
         this.emit('navigate', { cat })
+        this._closeOverlayAfterNavigation()
       }
     })
   }
 
   attributeChangedCallback (name: string, oldValue: string | null, newValue: string | null): void {
     if (oldValue === newValue) return
-    // active-cat 变化时只更新高亮和 active 类，不重建整个 DOM
+
     if (name === 'active-cat') {
-      this._syncActiveClass(newValue || 'all')
-      this._layoutHighlight()
+      const activeCat = newValue || 'all'
+      const activeTag = this.getAttribute('active-tag') || ''
+      this._syncActiveClass(activeTag ? '' : activeCat)
+      if (activeCat !== 'all' && activeCat !== 'archives') this._setDirectoryOpen(true)
+      if ((activeCat === 'all' || activeCat === 'archives') && !activeTag) this._setDirectoryOpen(false)
     }
-    // active-tag 变化时只更新标签 active 类，不重建整个 DOM
+
     if (name === 'active-tag') {
-      this._syncTagActiveClass(newValue || '')
+      const activeTag = newValue || ''
+      const activeCat = this.getAttribute('active-cat') || 'all'
+      this._syncTagActiveClass(activeTag)
+      this._syncActiveClass(activeTag ? '' : activeCat)
+      if (!activeTag && activeCat === 'all') this._setDirectoryOpen(false)
     }
+
+    this._syncPrimaryState()
+    this._layoutHighlight()
   }
 
-  /** 属性 setter：JS property 写入 */
   set categories (val: Category[]) {
     (this as any)._categories = val
     this._reRender()
   }
+
   set social (val: SocialItem[]) {
     (this as any)._social = val
     this._reRender()
   }
+
+  set siteName (val: string) {
+    (this as any)._siteName = val
+    this._reRender()
+  }
+
   set icp (val: string) {
     (this as any)._icp = val
     this._reRender()
   }
+
   set tags (val: TagItem[]) {
     (this as any)._tags = val
     this._reRender()
   }
-  /** 归档页链接：设置后在「首页」与分类之间渲染「归档」导航项 */
+
+  /** 归档页链接；传入空字符串可隐藏归档一级导航 */
   set archiveUrl (val: string) {
     (this as any)._archiveUrl = val || ''
     this._reRender()
   }
 
   private _reRender (): void {
-    // 重建整个 Shadow DOM
-    this.shadow.innerHTML = ''
     this.shadow.innerHTML = this.render()
     this.mounted()
+  }
+
+  private _isDirectoryOpen (): boolean {
+    return Boolean(this.$('.sidebar')?.classList.contains('directory-open'))
+  }
+
+  private _setDirectoryOpen (open: boolean): void {
+    this._directoryOpen = open
+    const sidebar = this.$('.sidebar')
+    const panel = this.$('.secondary-panel')
+    const toggle = this.$('.directory-toggle')
+    sidebar?.classList.toggle('directory-open', open)
+    const panelHidden = window.matchMedia('(max-width: 1199px)').matches && !open
+    panel?.setAttribute('aria-hidden', panelHidden ? 'true' : 'false')
+    toggle?.setAttribute('aria-expanded', open ? 'true' : 'false')
+    this._syncPrimaryState()
+    if (open) requestAnimationFrame(() => this._layoutHighlight())
+  }
+
+  private _syncPrimaryState (): void {
+    const activeCat = this.getAttribute('active-cat') || 'all'
+    const activeTag = this.getAttribute('active-tag') || ''
+    const open = this._isDirectoryOpen()
+    const home = this.$('.primary-item[data-cat="all"]')
+    const directory = this.$('.directory-toggle')
+    const archive = this.$('.primary-item[data-cat="archives"]')
+
+    home?.classList.toggle('active', activeCat === 'all' && !open)
+    directory?.classList.toggle('active', open || (activeCat !== 'all' && activeCat !== 'archives'))
+    archive?.classList.toggle('active', activeCat === 'archives' && !open)
+
+    // 同步 secondary-header 标题上下文类（CSS 据此切换 首页/目录/归档 显示）。
+    // 注意 directory-open 的真源是交互字段 _directoryOpen，与 render() 的
+    // directoryOpen = this._directoryOpen || categorySelected 推导保持一致，
+    // 不能用 activeCat 反推——否则在首页(active-cat=all)点击目录展开后，
+    // 回调会把刚加上的 directory-open 类移除，导致二级分类面板显示不出来。
+    const aside = this.$('.sidebar')
+    if (aside) {
+      const categorySelected = activeCat !== 'all' && activeCat !== 'archives'
+      const dirState = this._directoryOpen || (categorySelected && !activeTag)
+      aside.classList.toggle('archive-context', activeCat === 'archives' && !activeTag)
+      aside.classList.toggle('directory-open', dirState)
+    }
   }
 
   private _syncActiveClass (activeCat: string): void {
@@ -620,20 +1080,31 @@ class SiteSidebar extends WcBase {
 
   private _layoutHighlight (): void {
     const hl = this._hlEl
-    if (!hl) return
+    if (!hl || !this._isDirectoryOpen() || this.getAttribute('active-tag')) {
+      hl?.classList.remove('is-on')
+      return
+    }
+
     const activeCat = this.getAttribute('active-cat') || 'all'
-    const items = Array.from(this.shadow.querySelectorAll<HTMLElement>('.nav-item'))
-    const active = items.find(el => (el.dataset as Record<string, string>).cat === activeCat) || items[0]
+    const active = Array.from(this.shadow.querySelectorAll<HTMLElement>('.nav-item'))
+      .find(el => (el.dataset as Record<string, string>).cat === activeCat)
     if (!active) {
       hl.classList.remove('is-on')
       return
     }
+
     const created = !hl.classList.contains('is-on')
     if (created) hl.classList.add('no-anim')
     hl.style.height = active.offsetHeight + 'px'
     hl.style.transform = 'translateY(' + active.offsetTop + 'px)'
     hl.classList.add('is-on')
     if (created) requestAnimationFrame(() => hl.classList.remove('no-anim'))
+  }
+
+  private _closeOverlayAfterNavigation (): void {
+    if (window.matchMedia('(max-width: 1199px)').matches) {
+      this._setDirectoryOpen(false)
+    }
   }
 }
 

@@ -31,7 +31,7 @@ function getHashArt () {
 }
 
 function getHashTag () {
-  const m = location.hash.match(/[#&]tag=([\w-]+)/)
+  const m = location.hash.match(/[#&]tag=([^&]+)/)
   return m ? decodeURIComponent(m[1]) : ''
 }
 
@@ -74,7 +74,10 @@ function collectTags () {
 // 侧栏
 if (sidebar) {
   const config = getSiteConfig()
-  sidebar.categories = CATEGORIES
+  sidebar.categories = CATEGORIES.map(c => ({
+    ...c,
+    count: ARTICLES.filter(a => a.cat === c.id).length
+  }))
   sidebar.tags = collectTags()
   sidebar.social = config.social
   sidebar.siteName = siteName()

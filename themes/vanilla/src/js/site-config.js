@@ -251,9 +251,11 @@ function applySiteMeta (site = {}) {
     const page = pageName()
     document.title = page.startsWith('login')
       ? `登录 - ${site.name}`
-      : page.startsWith('search')
-        ? `搜索 - ${site.name}`
-        : `${site.name} - 首页`
+      : page.startsWith('archives')
+        ? `归档 - ${site.name}`
+        : page.startsWith('search')
+          ? `搜索 - ${site.name}`
+          : `${site.name} - 首页`
   }
 }
 
