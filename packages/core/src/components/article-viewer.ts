@@ -110,7 +110,10 @@ class ArticleViewer extends WcBase {
   }
 
   static articleParagraphsTemplate (paragraphs: string[] = []): string {
-    return paragraphs.map(p => `<p>${escapeHtml(p)}</p>`).join('')
+    // 段落内容视为调用方提供的可信 HTML（hexo 服务端 page.content 已渲染；
+    // mock-data 段落为纯文本），由调用方负责来源可信度。直接注入，避免对
+    // hexo 已渲染的 HTML 二次转义导致标签变成字面文本。
+    return paragraphs.map(p => `<p>${p}</p>`).join('')
   }
 
   static emojiItemsTemplate (emojis: string[]): string {
@@ -266,19 +269,24 @@ class ArticleViewer extends WcBase {
         }
         .viewer-meta {
           display: flex;
+          flex-wrap: wrap;
           align-items: center;
-          gap: 16px;
+          gap: 6px 16px;
           font-size: 12px;
-          color: #6b6b6b;
+          color: #9e9d99;
           margin-bottom: 12px;
+        }
+        .viewer-meta span {
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
         }
         .viewer-meta img {
           width: 14px;
           height: 14px;
           object-fit: contain;
-          vertical-align: middle;
-          margin-right: 4px;
-          opacity: 0.5;
+          filter: brightness(0) invert(0.62);
+          transition: filter 0.2s ease;
         }
         .viewer-tags {
           display: flex;
@@ -786,11 +794,17 @@ class ArticleViewer extends WcBase {
         const tag = (tagEl.dataset as Record<string, string>).tag
         if (tag) {
           e.preventDefault()
-          this.emit('viewer-close')
-          // 延迟一小段时间再触发路由，让关闭动画先执行
-          setTimeout(() => {
-            window.location.hash = '#tag=' + encodeURIComponent(tag)
-          }, 50)
+          // 先派发可取消的 tag-select，让宿主决定路由（vue-router / react-router 等）。
+          // 宿主 preventDefault 即「已接管」，组件不再关闭阅读器、也不再写 hash；
+          // 未接管的宿主（纯 location.hash 路由）保持旧行为不变。
+          const ev = this.emit('tag-select', { tag }, { cancelable: true })
+          if (!ev.defaultPrevented) {
+            this.emit('viewer-close')
+            // 延迟一小段时间再触发路由，让关闭动画先执行
+            setTimeout(() => {
+              window.location.hash = '#tag=' + encodeURIComponent(tag)
+            }, 50)
+          }
         }
         return
       }

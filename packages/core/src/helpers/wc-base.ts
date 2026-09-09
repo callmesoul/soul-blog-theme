@@ -54,13 +54,20 @@ export abstract class WcBase extends HTMLElement {
     return this.shadow.querySelectorAll<T>(sel)
   }
 
-  /** 触发冒泡自定义事件 */
-  protected emit (name: string, detail?: unknown): void {
-    this.dispatchEvent(new CustomEvent(name, {
+  /**
+   * 触发冒泡自定义事件。
+   * 传入 `{ cancelable: true }` 时宿主可监听并调用 `preventDefault()`
+   * 表示「由宿主接管默认行为」（如路由跳转），组件据此跳过内置处理。
+   */
+  protected emit (name: string, detail?: unknown, init?: { cancelable?: boolean }): CustomEvent {
+    const ev = new CustomEvent(name, {
       detail,
       bubbles: true,
-      composed: true
-    }))
+      composed: true,
+      cancelable: init?.cancelable === true
+    })
+    this.dispatchEvent(ev)
+    return ev
   }
 
   // ---- 生命周期 ----
