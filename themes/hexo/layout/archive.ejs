@@ -76,14 +76,37 @@ allPosts.forEach(function (p) {
 })
 
 // —— 侧栏数据（与 index.ejs 结构一致）——
-var cats = []
-if (site.categories && site.categories.length) {
-  site.categories.forEach(function (c) {
-    var name = typeof c === 'string' ? c : (c.name || '')
-    var slug = typeof c === 'string' ? c.toLowerCase().replace(/\s+/g, '-') : (c.slug || name.toLowerCase().replace(/\s+/g, '-'))
-    cats.push({ id: slug.toLowerCase(), name: name, en: slug.toLowerCase(), icon: '/images/extracted/home/iconfont-daima2@2x.png', w: 21, h: 21 })
-  })
+// 从文章源路径构建分类（文章用 _posts/[cat]/xxx.md 目录分类，不依赖 front-matter categories）
+var catMap = {};
+var catOrder = [];
+if (site.posts && site.posts.length) {
+  site.posts.forEach(function (p) {
+    var name = 'uncategorized';
+    if (p.source && typeof p.source === 'string') {
+      var parts = p.source.split('/');
+      if (parts.length >= 2 && parts[0] === '_posts' && parts[1]) {
+        name = parts[1];
+      }
+    }
+    var slug = name.toLowerCase().replace(/\s+/g, '-');
+    if (!catMap[slug]) {
+      catMap[slug] = { slug: slug, name: name, count: 0 };
+      catOrder.push(catMap[slug]);
+    }
+    catMap[slug].count++;
+  });
 }
+var cats = catOrder.map(function (c) {
+  return {
+    id: c.slug,
+    name: c.name,
+    en: c.slug,
+    count: c.count,
+    icon: '/images/extracted/home/iconfont-daima2@2x.png',
+    w: 21,
+    h: 21
+  };
+});
 var tagCounts = {}
 allPosts.forEach(function (p) {
   if (p.tags && p.tags.length) {
@@ -95,8 +118,54 @@ allPosts.forEach(function (p) {
 })
 var tags = Object.keys(tagCounts).sort().map(function (name) { return { name: name, count: tagCounts[name] } })
 
+// 从 Hexo 文章构建 ARTICLES 结构（与 index.ejs 保持一致），
+// 归档页点击文章时据此原地弹出阅读器；全局搜索弹窗亦依赖它。
+var arts = [];
+if (allPosts && allPosts.length) {
+  allPosts.forEach(function (p) {
+    // 提取标签
+    var tags = [];
+    if (p.tags && p.tags.length) {
+      p.tags.forEach(function (t) {
+        if (typeof t === 'string') {
+          tags.push(t.toLowerCase());
+        } else if (t && t.name) {
+          tags.push(String(t.name).toLowerCase());
+        }
+      });
+    }
+    // 所属分类（与 index.ejs 相同：优先 source 路径目录，回退 front-matter categories）
+    var artCat = (function () {
+      var fromPath = null;
+      if (p.source && typeof p.source === 'string') {
+        var parts = p.source.split('/');
+        if (parts.length >= 2 && parts[0] === '_posts' && parts[1]) {
+          fromPath = parts[1];
+        }
+      }
+      var c0 = p.categories && p.categories.length ? p.categories[0] : null;
+      var fromCat = null;
+      if (c0) fromCat = typeof c0 === 'string' ? c0 : (c0.slug || c0.name || null);
+      return (fromPath || fromCat || 'uncategorized').toLowerCase().replace(/\s+/g, '-');
+    })();
+    arts.push({
+      id: p.path || p._id || p.slug || p.title,
+      cat: artCat,
+      title: p.title,
+      cover: p.cover || p.thumbnail || '/images/extracted/home/图层_21@2x.png',
+      summary: p.excerpt || p.description || (p.content ? p.content.substring(0, 120) : ''),
+      date: fmtDate(p.date),
+      views: p.views || 0,
+      commentCount: 0,
+      tags: tags,
+      paragraphs: p.content ? [p.content.substring(0, 200)] : []
+    });
+  });
+}
+
 var siteData = {
   categories: cats,
+  articles: arts,
   tags: tags,
   icons: {
     home: '/images/extracted/home/iconfont-shouye@2x.png',
@@ -124,8 +193,9 @@ var LOAD_CHUNK = 2
 
 <site-sidebar active-cat="archives"></site-sidebar>
 
-<div class="relative flex min-w-0 flex-1 flex-col overflow-hidden">
-  <% if (!yearGroups.length) { %>
+  <div class="relative flex min-w-0 flex-1 flex-col overflow-hidden">
+    <article-viewer></article-viewer>
+    <% if (!yearGroups.length) { %>
     <div class="arch-top">
       <span class="arch-home-icon"></span>
       <a href="<%= homeUrl %>" class="arch-home-link">首页</a>
@@ -176,7 +246,7 @@ var LOAD_CHUNK = 2
                       </h3>
                       <div class="tl-mon-body">
                         <% mm.posts.forEach(function (p) { %>
-                          <a class="tl-post" href="<%= url_for(p.path) %>">
+                          <a class="tl-post" href="<%= url_for(p.path) %>" data-id="<%= p.path %>">
                             <time class="tl-date"><%= fmtDate(p.date).slice(5) %></time>
                             <span class="tl-title"><%= p.title %></span>
                             <% var cn = catNameOf(p); if (cn) { %><span class="tl-cat"><%= cn %></span><% } %>
@@ -413,5 +483,66 @@ var LOAD_CHUNK = 2
   })
 
   syncNav()
+})()
+</script>
+
+<script>
+(function () {
+  'use strict'
+  // =====================================================================
+  // 归档页「原地弹出阅读器」
+  // 点击时间线文章时，在当前页翻转打开 article-viewer（与首页交互一致），
+  // 不再整页跳转到文章页。文章数据来自 <script id="site-data"> 的 articles。
+  // =====================================================================
+  var dataEl = document.getElementById('site-data')
+  if (!dataEl) return
+  var siteData = null
+  try { siteData = JSON.parse(dataEl.textContent) } catch (e) { return }
+  var viewer = document.querySelector('article-viewer')
+  var area = document.querySelector('[data-arch-area]')
+  var arts = siteData.articles || []
+  if (!viewer || !area || !arts.length) return
+
+  var siteName = siteData.siteName || 'CallMeSoul'
+  var origTitle = document.title
+  var byId = {}
+  arts.forEach(function (a) { byId[a.id] = a })
+
+  // 注意：不在此处给 viewer 赋值 articles/icons —— 本脚本先于 main.js 执行，
+  // 组件尚未 upgrade，直接赋值会在元素上生成自有属性遮蔽原型 setter，
+  // 导致 main.js 的 viewer.articles = k（推荐文章数据源）失效。
+  // 数据统一由 main.js 注入（与首页同一份 site-data）。
+
+  function openArticle (art, trigger) {
+    viewer.article = art
+    viewer.openWithFlip(trigger || null, siteName)
+  }
+
+  // 点击时间线条目 → 原地弹出（无 JS 时 href 仍可整页跳转）
+  area.addEventListener('click', function (e) {
+    var link = e.target.closest('a.tl-post')
+    if (!link) return
+    var id = link.getAttribute('data-id')
+    var art = id ? byId[id] : null
+    if (!art) return
+    e.preventDefault()
+    openArticle(art, link)
+  })
+
+  // 阅读器打开时会改写 document.title，关闭后还原归档页标题
+  viewer.addEventListener('viewer-close', function () {
+    if (document.title !== origTitle) document.title = origTitle
+  })
+
+  // 阅读器内「相关推荐」→ 原地切换文章；
+  // 阻止 main.js 对 article-select 的默认处理（其按首页 hash 路由，归档页不适用）
+  viewer.addEventListener('article-select', function (e) {
+    var id = e.detail && e.detail.id
+    var art = id ? byId[id] : null
+    if (!art) return
+    if (e.cancelable) e.preventDefault()
+    if (e.stopImmediatePropagation) e.stopImmediatePropagation()
+    openArticle(art, null)
+  })
 })()
 </script>
