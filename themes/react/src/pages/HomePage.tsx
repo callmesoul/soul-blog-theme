@@ -17,7 +17,7 @@ function getHashArt(): string | null {
 }
 
 function getHashTag(): string {
-  const m = location.hash.match(/[#&]tag=([\w-]+)/)
+  const m = location.hash.match(/[#&]tag=([^&]+)/)
   return m ? decodeURIComponent(m[1]) : ''
 }
 
@@ -94,8 +94,14 @@ export default function HomePage() {
 
   const handleViewerClose = useCallback(() => {
     isClosingByUser.current = true
-    window.location.hash = '#cat=' + encodeURIComponent(articles.resolveCat(currentCat))
-  }, [currentCat])
+    // 仅当 URL 仍带 art（用户点 ×/Esc/遮罩主动关闭）才回落为分类列表，
+    // 避免关闭动画结束后组件补发的 viewer-close 把 tag/分类导航 hash 二次改写
+    if (getHashArt()) {
+      window.location.hash = '#cat=' + encodeURIComponent(articles.resolveCat(currentCat))
+    }
+    // 阅读器已真正关闭：还原路由标题，避免残留文章标题
+    document.title = (siteConfig.siteName || 'CallMeSoul') + ' - 首页'
+  }, [currentCat, siteConfig.siteName])
 
   const currentArticle = currentArtId ? (articles.findArticle(currentArtId) ?? null) : null
 
@@ -128,6 +134,7 @@ export default function HomePage() {
 	          articles={articles.articles}
 	          icons={articles.icons}
 	          onArticleSelect={handleViewerArticleSelect}
+	          onTagSelect={handleTagSelect}
           onViewerClose={handleViewerClose}
         />
       </div>

@@ -6,6 +6,7 @@ interface Props {
   articles: Article[]
   icons: Record<string, string>
   onArticleSelect?: (id: string, cat: string) => void
+  onTagSelect?: (tag: string) => void
   onViewerClose?: () => void
 }
 
@@ -15,7 +16,7 @@ export interface ArticleViewerHandle {
 }
 
 const ArticleViewer = forwardRef<ArticleViewerHandle, Props>(
-  function ArticleViewer({ article, articles, icons, onArticleSelect, onViewerClose }, ref) {
+  function ArticleViewer({ article, articles, icons, onArticleSelect, onTagSelect, onViewerClose }, ref) {
     const wcRef = useRef<HTMLElement>(null)
 
     useImperativeHandle(ref, () => ({
@@ -59,6 +60,19 @@ const ArticleViewer = forwardRef<ArticleViewerHandle, Props>(
         el.removeEventListener('viewer-close', closeHandler)
       }
     }, [onArticleSelect, onViewerClose])
+
+    // 阅读器内标签点击：preventDefault 表示已由宿主接管路由，
+    // 组件将不再自行关闭阅读器/改写 location.hash
+    useEffect(() => {
+      const el = wcRef.current
+      if (!el) return
+      const tagHandler = (e: Event) => {
+        ;(e as CustomEvent).preventDefault()
+        onTagSelect?.(((e as CustomEvent).detail as any)?.tag)
+      }
+      el.addEventListener('tag-select', tagHandler)
+      return () => el.removeEventListener('tag-select', tagHandler)
+    }, [onTagSelect])
 
     return <article-viewer ref={wcRef}></article-viewer>
   }
