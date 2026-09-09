@@ -1,12 +1,28 @@
 <script setup lang="ts">
-import { onMounted } from 'vue'
+import { onMounted, watch } from 'vue'
 import { useSiteConfigStore } from './stores/site-config'
 import { useArticleStore } from './stores/articles'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 
 const siteConfig = useSiteConfigStore()
 const articles = useArticleStore()
+const route = useRoute()
 const router = useRouter()
+
+/** 按当前路由设置页面 <title>（首页/归档/登录 各自维护，打开阅读器等由组件自行覆盖） */
+function applyRouteTitle (): void {
+  const site = siteConfig.siteName || 'CallMeSoul'
+  const name = route.name
+  if (name === 'login') {
+    document.title = `登录 - ${site}`
+  } else if (name === 'archives') {
+    document.title = `归档 - ${site}`
+  } else if (name === 'search') {
+    document.title = `搜索 - ${site}`
+  } else {
+    document.title = `${site} - 首页`
+  }
+}
 
 onMounted(async () => {
   await siteConfig.load()
@@ -20,6 +36,16 @@ onMounted(async () => {
       router.push({ query: { cat: cat || 'all', art: id } })
     })
   }
+})
+
+// 路由切换与站点名异步就绪时同步页面标题
+watch(() => route.name, applyRouteTitle, { immediate: true })
+watch(() => siteConfig.siteName, applyRouteTitle)
+
+// 阅读器打开时组件会覆写 document.title 为文章标题；
+// art 从 URL 移除（关闭阅读器 / 点击 tag 等）后统一还原为路由标题
+watch(() => route.query.art, (val) => {
+  if (!val) applyRouteTitle()
 })
 </script>
 

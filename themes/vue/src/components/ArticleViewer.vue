@@ -10,6 +10,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   articleSelect: [id: string, cat: string]
+  tagSelect: [tag: string]
   viewerClose: []
 }>()
 
@@ -25,6 +26,13 @@ function closeWithFlip() {
   if (wcRef.value) {
     (wcRef.value as any).closeWithFlip()
   }
+}
+
+// 阅读器内标签点击：preventDefault 表示已由 vue-router 接管，
+// 组件将不再自行关闭阅读器/改写 location.hash
+function onWcTagSelect(e: Event) {
+  ;(e as CustomEvent).preventDefault()
+  emit('tagSelect', ((e as CustomEvent).detail as any)?.tag)
 }
 
 function setData() {
@@ -57,6 +65,7 @@ defineExpose({ openWithFlip, closeWithFlip })
     ref="wcRef"
     v-bind="{ article, articles, icons }"
     @article-select="emit('articleSelect', ($event as any).detail.id, ($event as any).detail.cat)"
+    @tag-select="onWcTagSelect"
     @viewer-close="emit('viewerClose')"
   ></article-viewer>
 </template>

@@ -68,9 +68,18 @@ function onViewerArticleSelect(id: string, cat: string) {
   onRouteUpdate()
 }
 
+// 阅读器内标签点击：路由到 tag 列表（阅读器随 art 移除自动关闭）
+function onViewerTagSelect(tag: string) {
+  router.push({ query: { tag } })
+}
+
 // 阅读器关闭
 function onViewerClose() {
   isClosingByUser = true
+  // 阅读器关闭可能是「外部导航已把 art 移除」（如点击 tag / 推荐切文后）所致，
+  // 此时 URL 已不再指向文章，无需再改写路由；
+  // 仅当 URL 仍带 art（用户点 × / Esc / 遮罩主动关闭）才回落为纯分类列表。
+  if (!route.query.art) return
   router.push({ query: { cat: articles.resolveCat(currentCat.value) } })
 }
 
@@ -157,6 +166,7 @@ function _openViewer(id: string) {
 	      :articles="articles.articles"
 	      :icons="articles.icons"
 	      @article-select="onViewerArticleSelect"
+	      @tag-select="onViewerTagSelect"
 	      @viewer-close="onViewerClose"
     />
   </div>
