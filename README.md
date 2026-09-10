@@ -18,6 +18,8 @@
 
 - 🗂 **归档时间线** — 按 年 → 月 → 文章 三级倒序归档，年份快捷导航、月份可折叠、滚动触底自动续载（IntersectionObserver）
 
+- 👤 **关于我页面** — 杂志式卡片布局的自我介绍页（Manifesto 卡片、Currently 状态、联系方式），内容由 `site-config.json` 的 `about` 字段驱动，改配置即改页面
+
 - 🧭 **面包屑导航** — 文章阅读器、归档页统一展示「首页 > 目录 > 文章」路径
 
 - 🏷 **标签筛选** — 侧栏标签云、文章卡片 tag chip、阅读器内 tag 一键回列表过滤
@@ -35,8 +37,8 @@
 | ![首页](assets/screenshots/home.png) | ![文章阅读器](assets/screenshots/article-viewer.png) |
 |                   **登录页**                  |                   **搜索页**                  |
 | ![登录页](assets/screenshots/login.png) | ![搜索页](assets/screenshots/search.png) |
-|                   **归档页**                  ||
-| ![归档页](assets/screenshots/archives.png) ||
+|                   **归档页**                  |                 **关于我**                  |
+| ![归档页](assets/screenshots/archives.png) | ![关于我](assets/screenshots/about.png) |
 
 ## 🗂️ 项目架构
 
@@ -45,7 +47,7 @@ soul-blog-theme/
 ├── packages/
 │   └── core/                      # @soul-blog/wc — 框架无关的组件库（唯一 UI 真源）
 │       └── src/
-│           ├── components/        # 9 个 Web Components（Shadow DOM + 自包含样式）
+│           ├── components/        # 10 个 Web Components（Shadow DOM + 自包含样式）
 │           ├── helpers/           # 工具函数（wc-base、store、search、escape-html、format-time）
 │           ├── styles/            # Tailwind v4 主题变量与设计令牌
 │           └── types/             # TypeScript 类型契约（Article / Category / SocialItem）
@@ -78,6 +80,7 @@ soul-blog-theme/
 | SiteSidebar    | `<site-sidebar>`    | 双轨侧栏：首页 / 目录 / 归档 + 分类、社交、标签云                  |
 | ArticleList    | `<article-list>`    | 文章卡片网格（分类筛选、标签筛选、入场动画、滚动续载）                 |
 | ArchiveList    | `<archive-list>`    | 归档时间线（年 → 月 → 文章、年份快捷导航、月份折叠、滚动续载）           |
+| AboutPage      | `<about-page>`      | 关于我页面（杂志式卡片布局，内容由 site-config 的 `about` 驱动）       |
 | ArticleViewer  | `<article-viewer>`  | 文章阅读器（FLIP 动画、面包屑、段落、评论、相关推荐、tag 点击路由）        |
 | SearchPanel    | `<search-panel>`    | 搜索弹出层（模糊搜索、键盘导航；Ctrl/Cmd + Shift + F 唤起）      |
 | SearchResults  | `<search-results>`  | 搜索结果列表（独立 `/search` 路由，复用 ArticleList 渲染逻辑）     |
@@ -165,6 +168,8 @@ pnpm --filter @soul-blog/vue dev
 pnpm --filter @soul-blog/react dev
 ```
 
+> 端口被占用时 Vite 会自动顺延（+1），以启动时实际输出的地址为准。
+
 ## 路由 & 页面
 
 各端均提供一致的页面结构（具体路由名以各端实现为准）：
@@ -175,6 +180,7 @@ pnpm --filter @soul-blog/react dev
 | `/articles/:id` | 文章阅读器（FLIP 翻转打开）      | `article-viewer`、面包屑                   |
 | `/search`    | 独立搜索结果页                  | `search-results`                       |
 | `/archives`  | 归档时间线（年 → 月 → 文章）        | `archive-list`                         |
+| `/about`     | 关于我（杂志式卡片自我介绍页）        | `about-page`                           |
 | `/login`     | 登录页                      | `login-panel`                          |
 
 > Hexo 版对应 `/archives/`（默认 `archive_dir`），正文页在归档 / 首页里通过 FLIP 翻转在原地弹出阅读器，无独立文章页 URL，便于静态托管 SEO。
@@ -204,6 +210,18 @@ pnpm --filter @soul-blog/react dev
     "primary": "#EB4F38",
     "cta": "#EE5B44"
   },
+  "about": {
+    "kicker": "About · Personal Manifesto",
+    "title": "代码是工具，",
+    "titleAccent": "表达才是目的。",
+    "description": "一句话简介（标题下方段落）",
+    "cards": [
+      { "eyebrow": "01 · About", "title": "卡片大标题，\\n 支持换行", "variant": "wide" },
+      { "eyebrow": "Currently", "title": "Build.\\nWrite.\\nRepeat.", "variant": "accent" },
+      { "eyebrow": "02 · Believe", "text": "纯文本卡片" },
+      { "eyebrow": "04 · Contact", "text": "有好想法？\\nhello@example.com", "href": "mailto:hello@example.com" }
+    ]
+  },
   "social": [
     { "name": "微信", "icon": "/images/weixin.png", "href": "", "qr": "/images/qr-weixin.svg", "hue": 74, "width": 22, "height": 18 }
   ],
@@ -213,6 +231,8 @@ pnpm --filter @soul-blog/react dev
 ```
 
 > **社交栏交互规则**：`href` 为有效外链 → 新窗口跳转；`href` 为空但有 `qr` → hover 弹二维码；两者皆无 → 纯展示图标。
+
+> **关于我页**：`about.cards` 每项为一张卡片，`variant: "wide" | "accent"` 控制大卡/强调色卡，缺省为普通卡；`href` 存在时整卡可点击。
 
 ## 数据接入
 

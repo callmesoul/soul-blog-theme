@@ -15,6 +15,7 @@ export default defineConfig({
           isCustomElement: tag => tag.startsWith('site-')
             || tag.startsWith('article-')
             || tag.startsWith('archive-')
+            || tag.startsWith('about-')
             || tag.startsWith('search-')
             || tag.startsWith('music-')
             || tag.startsWith('login-')

@@ -41,3 +41,37 @@ logo:
   width: 60
   height: 55
   alt: CallMeSoul
+
+# 关于我页面（D 款：个人宣言）
+# 修改这里即可更新 /about/ 的全部展示内容。
+about:
+  enabled: true
+  path: about
+  page_title: 关于我
+  kicker: About · Personal Manifesto
+  title: 代码是工具，
+  title_accent: 表达才是目的。
+  description: 我喜欢把复杂的问题，做成简单、可靠、耐看的东西。这里记录我的技术实践、设计思考，以及值得被保存下来的生活切片。
+  cards:
+    - eyebrow: 01 · About
+      title: |-
+        我喜欢把复杂的问题，
+        做成简单、可靠、耐看的东西。
+      variant: wide
+    - eyebrow: Currently
+      title: |-
+        Build.
+        Write.
+        Repeat.
+      variant: accent
+    - eyebrow: 02 · Believe
+      text: 好产品应该安静地工作，不要求用户先理解它。
+    - eyebrow: 03 · Explore
+      text: |-
+        Web / AI / Design
+        Open Source / Life
+    - eyebrow: 04 · Contact
+      text: |-
+        有好想法？
+        hello@callmesoul.cn
+      href: mailto:hello@callmesoul.cn

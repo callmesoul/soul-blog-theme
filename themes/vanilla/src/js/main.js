@@ -54,11 +54,15 @@ const viewer = document.querySelector('article-viewer')
 const searchPanel = document.querySelector('search-panel')
 const searchResults = document.querySelector('search-results')
 const archiveList = document.querySelector('archive-list')
+const aboutPage = document.querySelector('about-page')
 
-/** 当前是否为归档页（归档页内点击分类/标签需跳回首页应用筛选） */
+/** 独立页面内点击分类/标签时需跳回首页应用筛选。 */
 const isArchivePage = !!archiveList
+const isAboutPage = !!aboutPage
+const isStandalonePage = isArchivePage || isAboutPage
 const homePage = 'index.html'
 const archivePage = 'archives.html'
+const aboutPageUrl = 'about.html'
 
 // 收集所有标签及计数
 function collectTags () {
@@ -83,16 +87,22 @@ if (sidebar) {
   sidebar.siteName = siteName()
   sidebar.icp = config.site.icp
   sidebar.archiveUrl = archivePage
+  sidebar.aboutUrl = aboutPageUrl
   sidebar.addEventListener('navigate', e => {
     const hash = e.detail.tag
       ? '#tag=' + encodeURIComponent(e.detail.tag)
       : '#cat=' + encodeURIComponent(e.detail.cat)
-    if (isArchivePage) {
+    if (isStandalonePage) {
       location.href = homePage + hash
     } else {
       location.hash = hash
     }
   })
+}
+
+// 关于我页面由共享配置驱动，与 Hexo / Vue / React 复用同一核心组件。
+if (aboutPage) {
+  aboutPage.config = getSiteConfig().about
 }
 
 // 归档列表
@@ -195,7 +205,7 @@ function applyRoute () {
   const art = artId ? findArticle(artId) : null
 
   // 同步侧栏和列表目录（归档页为独立页面，保持「归档」高亮即可）
-  if (sidebar && !isArchivePage) {
+  if (sidebar && !isStandalonePage) {
     sidebar.setAttribute('active-cat', cat)
     sidebar.setAttribute('active-tag', tag)
   }
@@ -243,6 +253,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     sidebar.social = config.social
     sidebar.siteName = siteName()
     sidebar.icp = config.site.icp
+    sidebar.aboutUrl = aboutPageUrl
+  }
+  if (aboutPage) {
+    aboutPage.config = getSiteConfig().about
   }
 
   applyRoute()
@@ -250,6 +264,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   // 归档页独立路由：高亮「归档」导航项
   if (isArchivePage && sidebar) {
     sidebar.setAttribute('active-cat', 'archives')
+  }
+  if (isAboutPage && sidebar) {
+    sidebar.setAttribute('active-cat', 'about')
   }
 
   // 调试钩子

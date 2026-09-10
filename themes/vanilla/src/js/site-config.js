@@ -47,6 +47,21 @@ export const DEFAULT_SITE_CONFIG = {
     cta: '#EE5B44' // 行动按钮主色：登录按钮等
   },
 
+  // 关于我（D 款：个人宣言）
+  about: {
+    kicker: 'About · Personal Manifesto',
+    title: '代码是工具，',
+    titleAccent: '表达才是目的。',
+    description: '我喜欢把复杂的问题，做成简单、可靠、耐看的东西。这里记录我的技术实践、设计思考，以及值得被保存下来的生活切片。',
+    cards: [
+      { eyebrow: '01 · About', title: '我喜欢把复杂的问题，\n做成简单、可靠、耐看的东西。', variant: 'wide' },
+      { eyebrow: 'Currently', title: 'Build.\nWrite.\nRepeat.', variant: 'accent' },
+      { eyebrow: '02 · Believe', text: '好产品应该安静地工作，不要求用户先理解它。' },
+      { eyebrow: '03 · Explore', text: 'Web / AI / Design\nOpen Source / Life' },
+      { eyebrow: '04 · Contact', text: '有好想法？\nhello@callmesoul.cn', href: 'mailto:hello@callmesoul.cn' }
+    ]
+  },
+
   // 社交媒体（页脚图标栏，按数组顺序从左到右渲染）
   //   每一条目自动适配以下三种交互形态：
   //     ① href 为有效外链(非空且非 '#') → 渲染为 <a target="_blank">，点击在新窗口打开；
@@ -253,9 +268,11 @@ function applySiteMeta (site = {}) {
       ? `登录 - ${site.name}`
       : page.startsWith('archives')
         ? `归档 - ${site.name}`
-        : page.startsWith('search')
-          ? `搜索 - ${site.name}`
-          : `${site.name} - 首页`
+        : page.startsWith('about')
+          ? `关于我 - ${site.name}`
+          : page.startsWith('search')
+            ? `搜索 - ${site.name}`
+            : `${site.name} - 首页`
   }
 }
 

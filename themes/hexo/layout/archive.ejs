@@ -181,6 +181,9 @@ var siteData = {
   icp: theme.icp || '',
   social: (theme.social || []).map(function (s) { return Object.assign({}, s, { href: s.href || s.url || '' }) }),
   archiveUrl: archiveUrl,
+  aboutUrl: theme.about && theme.about.enabled !== false
+    ? url_for('/' + String(theme.about.path || 'about').replace(/^\/+|\/+$/g, '') + '/')
+    : '',
   homeUrl: homeUrl
 }
 

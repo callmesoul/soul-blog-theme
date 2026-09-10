@@ -1,3 +1,5 @@
+import type { AboutPageConfig } from './about'
+
 // =====================================================================
 // 站点品牌配置 类型契约
 // 字段来源于 themes/vanilla/src/js/site-config.js 的 DEFAULT_SITE_CONFIG，
@@ -55,4 +57,5 @@ export interface SiteConfig {
   logo: SiteLogo
   theme: ThemeConfig
   social: SocialItem[]
+  about: AboutPageConfig
 }

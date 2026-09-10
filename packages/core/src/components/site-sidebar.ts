@@ -60,6 +60,7 @@ class SiteSidebar extends WcBase {
     const tags = (this as any)._tags as TagItem[] | undefined
     const icp = (this as any)._icp as string | undefined
     const archiveUrl = (this as any)._archiveUrl as string | undefined
+    const aboutUrl = (this as any)._aboutUrl as string | undefined
     const siteName = ((this as any)._siteName as string | undefined) || 'CallMeSoul'
 
     const categoryItems = (categories || []).map(c => ({
@@ -71,13 +72,14 @@ class SiteSidebar extends WcBase {
       h: c.h,
       count: c.count
     }))
-    const categorySelected = activeCat !== 'all' && activeCat !== 'archives'
+    const categorySelected = activeCat !== 'all' && activeCat !== 'archives' && activeCat !== 'about'
     const directoryOpen = this._directoryOpen || categorySelected
     const panelHidden = typeof window !== 'undefined' &&
       window.matchMedia('(max-width: 1199px)').matches && !directoryOpen
     const homeActive = activeCat === 'all' && !directoryOpen
     const directoryActive = directoryOpen || categorySelected
     const archiveActive = activeCat === 'archives'
+    const aboutActive = activeCat === 'about'
 
     const categoryHtml = SiteSidebar.navigationItemsTemplate(categoryItems, activeTag ? '' : activeCat)
     const tagHtml = (tags || []).map(t => {
@@ -120,6 +122,18 @@ class SiteSidebar extends WcBase {
             aria-label="归档" title="归档 · Archives">
           <img src="/images/extracted/home/iconfont-03(1)@2x.png" alt="" aria-hidden="true">
           <span class="primary-tooltip">归档</span>
+        </a>`
+      : ''
+
+    const aboutHtml = aboutUrl
+      ? `<a class="primary-item${aboutActive ? ' active' : ''}"
+            href="${escapeHtml(aboutUrl)}" data-cat="about"
+            aria-label="关于" title="关于我 · About">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="12" cy="8" r="3"></circle>
+            <path d="M6 19c.8-4 3-6 6-6s5.2 2 6 6"></path>
+          </svg>
+          <span class="primary-tooltip">关于</span>
         </a>`
       : ''
 
@@ -339,9 +353,10 @@ class SiteSidebar extends WcBase {
         .context-title {
           display: none;
         }
-        .sidebar:not(.directory-open):not(.archive-context) .context-home,
+        .sidebar:not(.directory-open):not(.archive-context):not(.about-context) .context-home,
         .sidebar.directory-open .context-directory,
-        .sidebar.archive-context:not(.directory-open) .context-archive {
+        .sidebar.archive-context:not(.directory-open) .context-archive,
+        .sidebar.about-context:not(.directory-open) .context-about {
           display: block;
         }
         .secondary-title small,
@@ -839,7 +854,7 @@ class SiteSidebar extends WcBase {
         }
       </style>
 
-      <aside class="sidebar${directoryOpen ? ' directory-open' : ''}${archiveActive ? ' archive-context' : ''}">
+      <aside class="sidebar${directoryOpen ? ' directory-open' : ''}${archiveActive ? ' archive-context' : ''}${aboutActive ? ' about-context' : ''}">
         <div class="primary-rail">
           <div class="primary-logo" title="${escapeHtml(siteName)}">
             <img src="/images/extracted/login/图形@2x.png" alt="${escapeHtml(siteName)}">
@@ -864,6 +879,7 @@ class SiteSidebar extends WcBase {
             </button>
 
             ${archiveHtml}
+            ${aboutHtml}
           </nav>
 
           <a class="rail-caption" href="https://github.com/callmesoul/soul-blog-theme"
@@ -888,6 +904,11 @@ class SiteSidebar extends WcBase {
               <small>${escapeHtml(siteName)}</small>
               <strong>归档</strong>
               <span>Archives</span>
+            </div>
+            <div class="secondary-title context-title context-about">
+              <small>${escapeHtml(siteName)}</small>
+              <strong>关于我</strong>
+              <span>About</span>
             </div>
             <button class="panel-close" type="button" aria-label="收起目录" title="收起目录">
               <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -971,8 +992,8 @@ class SiteSidebar extends WcBase {
       const activeCat = newValue || 'all'
       const activeTag = this.getAttribute('active-tag') || ''
       this._syncActiveClass(activeTag ? '' : activeCat)
-      if (activeCat !== 'all' && activeCat !== 'archives') this._setDirectoryOpen(true)
-      if ((activeCat === 'all' || activeCat === 'archives') && !activeTag) this._setDirectoryOpen(false)
+      if (activeCat !== 'all' && activeCat !== 'archives' && activeCat !== 'about') this._setDirectoryOpen(true)
+      if ((activeCat === 'all' || activeCat === 'archives' || activeCat === 'about') && !activeTag) this._setDirectoryOpen(false)
     }
 
     if (name === 'active-tag') {
@@ -1018,6 +1039,12 @@ class SiteSidebar extends WcBase {
     this._reRender()
   }
 
+  /** 关于页链接；传入空字符串可隐藏关于一级导航 */
+  set aboutUrl (val: string) {
+    (this as any)._aboutUrl = val || ''
+    this._reRender()
+  }
+
   private _reRender (): void {
     this.shadow.innerHTML = this.render()
     this.mounted()
@@ -1047,10 +1074,12 @@ class SiteSidebar extends WcBase {
     const home = this.$('.primary-item[data-cat="all"]')
     const directory = this.$('.directory-toggle')
     const archive = this.$('.primary-item[data-cat="archives"]')
+    const about = this.$('.primary-item[data-cat="about"]')
 
     home?.classList.toggle('active', activeCat === 'all' && !open)
-    directory?.classList.toggle('active', open || (activeCat !== 'all' && activeCat !== 'archives'))
+    directory?.classList.toggle('active', open || (activeCat !== 'all' && activeCat !== 'archives' && activeCat !== 'about'))
     archive?.classList.toggle('active', activeCat === 'archives' && !open)
+    about?.classList.toggle('active', activeCat === 'about' && !open)
 
     // 同步 secondary-header 标题上下文类（CSS 据此切换 首页/目录/归档 显示）。
     // 注意 directory-open 的真源是交互字段 _directoryOpen，与 render() 的
@@ -1059,9 +1088,10 @@ class SiteSidebar extends WcBase {
     // 回调会把刚加上的 directory-open 类移除，导致二级分类面板显示不出来。
     const aside = this.$('.sidebar')
     if (aside) {
-      const categorySelected = activeCat !== 'all' && activeCat !== 'archives'
+      const categorySelected = activeCat !== 'all' && activeCat !== 'archives' && activeCat !== 'about'
       const dirState = this._directoryOpen || (categorySelected && !activeTag)
       aside.classList.toggle('archive-context', activeCat === 'archives' && !activeTag)
+      aside.classList.toggle('about-context', activeCat === 'about' && !activeTag)
       aside.classList.toggle('directory-open', dirState)
     }
   }

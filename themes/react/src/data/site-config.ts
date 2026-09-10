@@ -8,6 +8,19 @@ export const DEFAULT_SITE_CONFIG: SiteConfig = {
     loginIcon: { src: '/images/extracted/login/图形@2x.png', width: 88, height: 81, alt: '' }
   },
   theme: { primary: '#EB4F38', cta: '#EE5B44' },
+  about: {
+    kicker: 'About · Personal Manifesto',
+    title: '代码是工具，',
+    titleAccent: '表达才是目的。',
+    description: '我喜欢把复杂的问题，做成简单、可靠、耐看的东西。这里记录我的技术实践、设计思考，以及值得被保存下来的生活切片。',
+    cards: [
+      { eyebrow: '01 · About', title: '我喜欢把复杂的问题，\n做成简单、可靠、耐看的东西。', variant: 'wide' },
+      { eyebrow: 'Currently', title: 'Build.\nWrite.\nRepeat.', variant: 'accent' },
+      { eyebrow: '02 · Believe', text: '好产品应该安静地工作，不要求用户先理解它。' },
+      { eyebrow: '03 · Explore', text: 'Web / AI / Design\nOpen Source / Life' },
+      { eyebrow: '04 · Contact', text: '有好想法？\nhello@callmesoul.cn', href: 'mailto:hello@callmesoul.cn' }
+    ]
+  },
   social: [
     { name: '微信', icon: '/images/extracted/home/iconfont-weixin@2x.png', href: '', qr: '/images/social/qr-weixin.svg', hue: 74, width: 22, height: 18 },
     { name: 'QQ', icon: '/images/extracted/home/iconfont-QQ@2x.png', href: '', qr: '/images/social/qr-qq.svg', hue: 178, width: 17, height: 18 },

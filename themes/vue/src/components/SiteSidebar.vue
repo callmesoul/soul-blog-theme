@@ -12,9 +12,12 @@ const props = withDefaults(defineProps<{
   activeTag?: string
   /** 归档页地址（默认 Vue hash 路由），设为 '' 可隐藏归档导航 */
   archiveUrl?: string
+  /** 关于页地址（默认 Vue hash 路由），设为 '' 可隐藏关于导航 */
+  aboutUrl?: string
 }>(), {
   tags: () => [],
-  archiveUrl: '#/archives'
+  archiveUrl: '#/archives',
+  aboutUrl: '#/about'
 })
 
 const emit = defineEmits<{
@@ -32,6 +35,7 @@ function setData() {
   ;(el as any).siteName = props.siteName
   ;(el as any).icp = props.icp
   ;(el as any).archiveUrl = props.archiveUrl
+  ;(el as any).aboutUrl = props.aboutUrl
   el.setAttribute('active-cat', props.activeCat)
   if (props.activeTag) el.setAttribute('active-tag', props.activeTag)
 }
@@ -51,6 +55,10 @@ watch(() => props.activeTag, (val) => {
 
 watch(() => props.archiveUrl, (val) => {
   if (wcRef.value) (wcRef.value as any).archiveUrl = val
+})
+
+watch(() => props.aboutUrl, (val) => {
+  if (wcRef.value) (wcRef.value as any).aboutUrl = val
 })
 
 watch(() => props.categories, (val) => {

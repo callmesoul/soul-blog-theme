@@ -25,6 +25,7 @@ const siteName = data?.siteName || 'CallMeSoul'
 const icp = data?.icp || ''
 const social = data?.social || []
 const archiveUrl = data?.archiveUrl || ''
+const aboutUrl = data?.aboutUrl || ''
 const homeUrl = data?.homeUrl || '/'
 
 // =====================================================================
@@ -73,6 +74,7 @@ const articleList = document.querySelector('article-list')
 const viewer = document.querySelector('article-viewer')
 const searchPanel = document.querySelector('search-panel')
 const searchResults = document.querySelector('search-results')
+const aboutPage = document.querySelector('about-page')
 
 if (sidebar) {
   sidebar.categories = CATEGORIES.map(c => ({
@@ -86,6 +88,7 @@ if (sidebar) {
   sidebar.icp = icp
   sidebar.tags = data?.tags && data.tags.length ? data.tags : collectTags()
   sidebar.archiveUrl = archiveUrl
+  sidebar.aboutUrl = aboutUrl
   sidebar.addEventListener('navigate', e => {
     const hash = e.detail.tag
       ? '#tag=' + encodeURIComponent(e.detail.tag)
@@ -98,6 +101,10 @@ if (sidebar) {
       location.href = homeUrl + hash
     }
   })
+}
+
+if (aboutPage) {
+  aboutPage.config = data?.about || {}
 }
 
 if (articleList) {

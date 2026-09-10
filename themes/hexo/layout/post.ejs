@@ -20,6 +20,9 @@ var siteData = {
   icp: theme.icp || '',
   social: theme.social || [],
   archiveUrl: url_for('/' + (config.archive_dir || 'archives') + '/'),
+  aboutUrl: theme.about && theme.about.enabled !== false
+    ? url_for('/' + String(theme.about.path || 'about').replace(/^\/+|\/+$/g, '') + '/')
+    : '',
   homeUrl: url_for('/')
 };
 %>

@@ -1,0 +1,83 @@
+<%
+var archiveDir = config.archive_dir || 'archives'
+var aboutSource = theme.about || {}
+var aboutPath = String(aboutSource.path || 'about').replace(/^\/+|\/+$/g, '')
+
+var catMap = {}
+var catOrder = []
+var tagCounts = {}
+if (site.posts && site.posts.length) {
+  site.posts.forEach(function (p) {
+    var catName = 'uncategorized'
+    if (p.source && typeof p.source === 'string') {
+      var parts = p.source.split('/')
+      if (parts.length >= 2 && parts[0] === '_posts' && parts[1]) catName = parts[1]
+    }
+    var catSlug = catName.toLowerCase().replace(/\s+/g, '-')
+    if (!catMap[catSlug]) {
+      catMap[catSlug] = { slug: catSlug, name: catName, count: 0 }
+      catOrder.push(catMap[catSlug])
+    }
+    catMap[catSlug].count++
+
+    if (p.tags && p.tags.length) {
+      p.tags.forEach(function (t) {
+        var tagName = typeof t === 'string' ? t.toLowerCase() : (t && t.name ? String(t.name).toLowerCase() : '')
+        if (tagName) tagCounts[tagName] = (tagCounts[tagName] || 0) + 1
+      })
+    }
+  })
+}
+
+var categories = catOrder.map(function (c) {
+  return {
+    id: c.slug,
+    name: c.name,
+    en: c.slug,
+    count: c.count,
+    icon: '/images/extracted/home/iconfont-daima2@2x.png',
+    w: 21,
+    h: 21
+  }
+})
+var tags = Object.keys(tagCounts).sort().map(function (name) {
+  return { name: name, count: tagCounts[name] }
+})
+
+var aboutConfig = {
+  kicker: aboutSource.kicker || 'About · Personal Manifesto',
+  title: aboutSource.title || '代码是工具，',
+  titleAccent: aboutSource.title_accent || '表达才是目的。',
+  description: aboutSource.description || '',
+  cards: (aboutSource.cards || []).map(function (card) {
+    return {
+      eyebrow: card.eyebrow || '',
+      title: card.title || '',
+      text: card.text || '',
+      variant: card.variant || 'default',
+      href: card.href || ''
+    }
+  })
+}
+
+var siteData = {
+  articles: [],
+  categories: categories,
+  tags: tags,
+  about: aboutConfig,
+  icons: {},
+  siteName: config.title || 'CallMeSoul',
+  icp: theme.icp || '',
+  social: (theme.social || []).map(function (s) { return Object.assign({}, s, { href: s.href || s.url || '' }) }),
+  archiveUrl: url_for('/' + archiveDir + '/'),
+  aboutUrl: url_for('/' + aboutPath + '/'),
+  homeUrl: url_for('/')
+}
+%>
+<script id="site-data" type="application/json"><%- JSON.stringify(siteData) %></script>
+
+<site-sidebar active-cat="about"></site-sidebar>
+
+<div class="flex min-w-0 flex-1 flex-col overflow-hidden">
+  <about-page></about-page>
+</div>

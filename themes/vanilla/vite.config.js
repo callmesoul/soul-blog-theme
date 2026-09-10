@@ -21,6 +21,7 @@ export default defineConfig({
         login: 'login.html',
         search: 'search.html',
         archives: 'archives.html',
+        about: 'about.html',
       }
     }
   }

@@ -17,6 +17,8 @@ function applyRouteTitle (): void {
     document.title = `登录 - ${site}`
   } else if (name === 'archives') {
     document.title = `归档 - ${site}`
+  } else if (name === 'about') {
+    document.title = `关于我 - ${site}`
   } else if (name === 'search') {
     document.title = `搜索 - ${site}`
   } else {

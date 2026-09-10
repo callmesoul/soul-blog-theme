@@ -4,6 +4,54 @@
 
 格式基于 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.0.0/)，版本号遵循 [语义化版本](https://semver.org/lang/zh-CN/)。
 
+## [Unreleased]
+
+### Added
+
+- **关于我页面**（第 10 个 Web Component `<about-page>`，四端统一）：
+  - 杂志式卡片布局：Manifesto 大卡、`Currently` 状态卡、普通文本卡、联系方式卡（支持 `href` 整卡可点）
+  - 内容全部由 `site-config.json` 的 `about` 字段驱动（`kicker` / `title` / `titleAccent` / `description` / `cards`），改配置即改页面，无需改代码
+  - 卡片 `variant` 支持 `wide`（宽卡）与 `accent`（强调色）
+  - 各端落地：vanilla `about.html`、Vue `AboutView.vue`（`/about`）、React `AboutPage.tsx`、Hexo `layout/about.ejs` + `scripts/about.js`
+  - 新增类型契约 `packages/core/src/types/about.ts`
+
+### Changed
+
+- README 补充「关于我」页面说明：特性条目、截图预览（新增 `assets/screenshots/about.png`）、组件清单 9 → 10、路由表新增 `/about`、站点配置补 `about` 字段示例
+- 各包 `version` 统一对齐到 `1.2.0`（根 `package.json`、`@soul-blog/wc` 及四个主题此前分别为 `1.0.0` / `0.1.0`，与 CHANGELOG 不同步）
+
+## [1.2.0] - 2026-09-09
+
+### Added
+
+- **归档页**（`<archive-list>`，四端统一）：
+  - 年 → 月 → 文章 三级倒序时间线，年 / 月 header 显示该时间段篇数，月份可折叠
+  - 渐进续载：默认渲染 4 个年份，滚动触底每次加载 2 个，加载完毕显示「已经到底啦 · 共 N 篇」
+  - 年份快捷导航：桌面 `≥760px` 容器查询显示右侧 sticky 列表，窄屏显示顶部胶囊
+  - 各端路由：vanilla `archives.html`、Vue `/archives`、React `/archives`、Hexo `/archives/`（由 `scripts/archives.js` 自定义生成器产出）
+- **双轨侧栏** `site-sidebar`：可折叠目录面板（一级导航 / 二级分类）、分类文章数 `count`、侧栏 logo 区按页面上下文切换文案（首页 / 目录 / 归档）
+- **可取消事件**：`wc-base.emit` 支持 `{ cancelable }`；阅读器内点击 tag 先派发可取消 `tag-select` 事件，宿主可 `preventDefault()` 接管路由
+- **按路由维护页面标题**：Vue / React / vanilla / hexo 各端统一（首页 / 登录 / 归档 / 搜索 / 文章）
+- Hexo 归档页点击文章原地 FLIP 翻转弹出阅读器（与首页一致，不再整页跳转）
+
+### Changed
+
+- `wc-base` 的 `attributeChangedCallback` 现在仅对子类在 `observedAttributes` 中声明的属性生效，符合 Web Components 规范，避免外部库设置无关属性时触发 Shadow DOM 重建
+- `archive-list` 重渲染改用 `requestAnimationFrame` 调度（防重入），避免在 Vue setter 链中触发同步栈溢出
+- 侧栏新增 `archiveUrl` 属性：非空时在「首页」与「分类」之间插入「归档 / Archives」原生链接项
+- README 与截图更新：归档时间线、面包屑、标签筛选；组件清单 8 → 9；新增「路由 & 页面」章节；主题定制改为 Tailwind v4 设计令牌；截图统一 1440 窗口
+
+### Fixed
+
+- 归档页 `document.title` 错显「首页」：Vue / React 原在 `applySiteConfig()` 无条件写入首页标题，改为由路由层维护
+- 归档页侧栏 logo 区仍显示「首页 / HOME」：`attributeChangedCallback` 未同步 `archive-context` / `directory-open` 类
+- 点侧栏「目录」二级导航不显示分类：`_syncPrimaryState` 用 `active-cat` 反推 `directoryOpen`，覆盖了用户点击展开的状态
+- Hexo 文章页阅读器被误关闭：`applyRoute()` 在 SSR 页面（无 `article-list`）错误执行 `closeWithFlip()` 并改写标题，新增 `if (!articleList) return` 守卫
+- Hexo 文章正文显示字面 HTML 标签：`article-viewer` 对已渲染的 `page.content` 重复 `escapeHtml`
+- Vue 阅读器内点击 tag 白屏：组件内写死的 `location.hash` 与 vue-router hash 结构冲突，改为由宿主通过 `tag-select` 接管 `router.push`
+- React 阅读器内点击 tag 弹窗不关闭 / 标题残留：`ArticleViewer.tsx` 未监听 `tag-select`，且关闭回调无条件回落 `#cat=` 导致自动关闭分支被守卫拦截
+- Vue 归档页 `RangeError: Maximum call stack size exceeded`：由 `attributeChangedCallback` 规范化 + rAF 防重入修复（三端归档页现已均可正常渲染）
+
 ## [1.1.0] - 2026-09-06
 
 ### Changed
@@ -52,9 +100,9 @@
 - Pinia store：`useArticleStore`、`useSiteConfigStore`
 - Hash 路由同步
 
-#### React 19 主题 (`themes/react`)
+#### React 18 主题 (`themes/react`)
 
-- React 19 + Zustand + React Router 6 技术栈
+- React 18 + Zustand + React Router 6 技术栈
 - 4 个 Web Components 的 thin wrapper 组件
 - 3 个页面：`HomePage`、`LoginPage`、`SearchPage`
 - Zustand store：`useArticleStore`、`useSiteConfigStore`

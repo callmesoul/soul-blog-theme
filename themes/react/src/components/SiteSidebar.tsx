@@ -11,10 +11,12 @@ interface Props {
   activeTag?: string
   /** 归档页地址（默认 /archives），设为 '' 可隐藏归档导航 */
   archiveUrl?: string
+  /** 关于页地址（默认 /about），设为 '' 可隐藏关于导航 */
+  aboutUrl?: string
   onNavigate?: (cat: string, tag?: string) => void
 }
 
-export default function SiteSidebar({ categories, tags, social, siteName, icp, activeCat, activeTag, archiveUrl = '/archives', onNavigate }: Props) {
+export default function SiteSidebar({ categories, tags, social, siteName, icp, activeCat, activeTag, archiveUrl = '/archives', aboutUrl = '/about', onNavigate }: Props) {
   const ref = useRef<HTMLElement>(null)
 
   useEffect(() => {
@@ -26,7 +28,8 @@ export default function SiteSidebar({ categories, tags, social, siteName, icp, a
     ;(el as any).siteName = siteName
     ;(el as any).icp = icp
     ;(el as any).archiveUrl = archiveUrl
-  }, [categories, tags, social, siteName, icp, archiveUrl])
+    ;(el as any).aboutUrl = aboutUrl
+  }, [categories, tags, social, siteName, icp, archiveUrl, aboutUrl])
 
   useEffect(() => {
     ref.current?.setAttribute('active-cat', activeCat)
