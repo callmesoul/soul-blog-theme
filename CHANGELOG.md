@@ -6,6 +6,8 @@
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-09-10
+
 ### Added
 
 - **关于我页面**（第 10 个 Web Component `<about-page>`，四端统一）：
@@ -18,7 +20,7 @@
 ### Changed
 
 - README 补充「关于我」页面说明：特性条目、截图预览（新增 `assets/screenshots/about.png`）、组件清单 9 → 10、路由表新增 `/about`、站点配置补 `about` 字段示例
-- 各包 `version` 统一对齐到 `1.2.0`（根 `package.json`、`@soul-blog/wc` 及四个主题此前分别为 `1.0.0` / `0.1.0`，与 CHANGELOG 不同步）
+- 各包 `version` 随本次发布统一到 `1.3.0`（根 `package.json`、`@soul-blog/wc` 及四个主题此前分别为 `1.0.0` / `0.1.0`，长期与 CHANGELOG 不同步；此后每次发布全仓同步）
 
 ## [1.2.0] - 2026-09-09
 
