@@ -1,8 +1,17 @@
 <%
 var cat = 'uncategorized';
-if (page.categories && page.categories.length) {
-  try { var c0 = page.categories[0]; } catch(e) { var c0 = null; }
-  cat = c0 ? (typeof c0 === 'string' ? c0 : (c0.slug || c0.name || 'uncategorized')) : 'uncategorized';
+try {
+  var pageCats = page.categories;
+  var c0 = pageCats && typeof pageCats.first === 'function'
+    ? pageCats.first()
+    : (pageCats && typeof pageCats.toArray === 'function'
+        ? pageCats.toArray()[0]
+        : (pageCats && pageCats.length ? pageCats[0] : null));
+  if (c0) cat = typeof c0 === 'string' ? c0 : (c0.name || c0.slug || cat);
+} catch (e) { /* noop */ }
+if (cat === 'uncategorized' && page.source && typeof page.source === 'string') {
+  var sourceParts = page.source.split('/');
+  if (sourceParts.length >= 2 && sourceParts[0] === '_posts' && sourceParts[1]) cat = sourceParts[1];
 }
 var siteData = {
   articles: [],

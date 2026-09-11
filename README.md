@@ -21,6 +21,8 @@
 - 👤 **关于我页面** — 杂志式卡片布局的自我介绍页（Manifesto 卡片、Currently 状态、联系方式），内容由 `site-config.json` 的 `about` 字段驱动，改配置即改页面
 - 💬 **Giscus 文章评论** — 基于 GitHub Discussions，按稳定文章键隔离评论；支持 Vanilla、Vue、React 与 Hexo，切换阅读器文章时自动切换 Discussion
 
+- 📖 **沉浸式文章阅读** — 桌面端控制舒适行宽并强化标题、列表、引用、代码块与图片层级；移动端切换为完整单栏滚动，推荐内容自然衔接在正文之后
+
 - 🧭 **面包屑导航** — 文章阅读器、归档页统一展示「首页 > 目录 > 文章」路径
 
 - 🏷 **标签筛选** — 侧栏标签云、文章卡片 tag chip、阅读器内 tag 一键回列表过滤
@@ -84,7 +86,7 @@ soul-blog-theme/
 | ArticleList    | `<article-list>`    | 文章卡片网格（分类筛选、标签筛选、入场动画、滚动续载）                 |
 | ArchiveList    | `<archive-list>`    | 归档时间线（年 → 月 → 文章、年份快捷导航、月份折叠、滚动续载）           |
 | AboutPage      | `<about-page>`      | 关于我页面（杂志式卡片布局，内容由 site-config 的 `about` 驱动）       |
-| ArticleViewer  | `<article-viewer>`  | 文章阅读器（FLIP 动画、面包屑、Giscus 评论、相关推荐、tag 点击路由）      |
+| ArticleViewer  | `<article-viewer>`  | 响应式文章阅读器（FLIP 动画、富文本排版、Giscus 评论、相关推荐、tag 点击路由）  |
 | SearchPanel    | `<search-panel>`    | 搜索弹出层（模糊搜索、键盘导航；Ctrl/Cmd + Shift + F 唤起）      |
 | SearchResults  | `<search-results>`  | 搜索结果列表（独立 `/search` 路由，复用 ArticleList 渲染逻辑）     |
 | MusicPlayer    | `<music-player>`    | 音乐播放器（进度、音量、播放列表、跨页保持状态、3 种播放模式）             |

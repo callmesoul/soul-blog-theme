@@ -1,6 +1,6 @@
 {
   "name": "@soul-blog/wc",
-  "version": "1.5.2",
+  "version": "1.6.0",
   "description": "框架无关的 Web Components 组件库（soul-blog-theme 唯一 UI 真源）",
   "type": "module",
   "sideEffects": [

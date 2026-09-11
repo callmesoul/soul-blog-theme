@@ -158,9 +158,10 @@ class ArticleViewer extends WcBase {
 
   static articleParagraphsTemplate (paragraphs: string[] = []): string {
     // 段落内容视为调用方提供的可信 HTML（hexo 服务端 page.content 已渲染；
-    // mock-data 段落为纯文本），由调用方负责来源可信度。直接注入，避免对
-    // hexo 已渲染的 HTML 二次转义导致标签变成字面文本。
-    return paragraphs.map(p => `<p>${p}</p>`).join('')
+    // mock-data 段落为纯文本），由调用方负责来源可信度。含块级标签的内容
+    // 直接注入，避免额外的 <p> 破坏 Hexo 已渲染的标题、列表与代码块结构。
+    const blockHtml = /<(?:address|article|aside|blockquote|details|div|dl|fieldset|figure|footer|form|h[1-6]|header|hr|main|nav|ol|p|pre|section|table|ul)\b/i
+    return paragraphs.map(p => blockHtml.test(p) ? p : `<p>${p}</p>`).join('')
   }
 
   static emojiItemsTemplate (emojis: string[]): string {
@@ -214,7 +215,9 @@ class ArticleViewer extends WcBase {
           flex-direction: column;
           width: 100%;
           height: 100%;
-          background: rgba(15, 14, 13, 0.96);
+          background:
+            radial-gradient(circle at 18% 0%, rgba(var(--brand-rgb), 0.055), transparent 30%),
+            rgba(15, 14, 13, 0.975);
           overflow: hidden;
         }
         .viewer-panel.viewer-open {
@@ -227,8 +230,11 @@ class ArticleViewer extends WcBase {
           display: flex;
           align-items: center;
           justify-content: space-between;
-          padding: 16px 32px;
+          min-height: 64px;
+          padding: 14px clamp(20px, 3vw, 40px);
           border-bottom: 1px solid #2a2a2a;
+          background: rgba(15, 14, 13, 0.82);
+          backdrop-filter: blur(16px);
           flex-shrink: 0;
         }
         .viewer-headline {
@@ -292,9 +298,16 @@ class ArticleViewer extends WcBase {
         .viewer-main {
           flex: 1;
           overflow-y: auto;
+          overscroll-behavior: contain;
           scrollbar-width: thin;
           scrollbar-color: #444 transparent;
-          padding: 32px 40px 40px;
+          padding: clamp(32px, 5vw, 64px) clamp(24px, 5vw, 72px) 96px;
+          scroll-behavior: smooth;
+        }
+        .viewer-main > * {
+          width: 100%;
+          max-width: 860px;
+          margin-inline: auto;
         }
         .viewer-main.viewer-swap-out {
           opacity: 0;
@@ -308,11 +321,14 @@ class ArticleViewer extends WcBase {
           to { opacity: 1; }
         }
         .viewer-title {
-          font-size: 24px;
-          font-weight: 500;
-          line-height: 1.4;
+          font-size: clamp(28px, 3vw, 38px);
+          font-weight: 650;
+          line-height: 1.25;
+          letter-spacing: -0.025em;
           color: #ffffff;
-          margin: 0 0 16px;
+          margin: 0 auto 18px;
+          text-wrap: balance;
+          overflow-wrap: anywhere;
         }
         .viewer-meta {
           display: flex;
@@ -320,8 +336,8 @@ class ArticleViewer extends WcBase {
           align-items: center;
           gap: 6px 16px;
           font-size: 12px;
-          color: #9e9d99;
-          margin-bottom: 12px;
+          color: #8f8b86;
+          margin: 0 auto 16px;
         }
         .viewer-meta span {
           display: inline-flex;
@@ -352,16 +368,16 @@ class ArticleViewer extends WcBase {
           display: flex;
           flex-wrap: wrap;
           gap: 8px;
-          margin-bottom: 20px;
+          margin: 0 auto 28px;
         }
         .viewer-tag {
           display: inline-block;
-          padding: 3px 10px;
+          padding: 4px 11px;
           font-size: 12px;
           color: #9e9d99;
           background: rgba(255,255,255,0.05);
           border: 1px solid #2a2a2a;
-          border-radius: 4px;
+          border-radius: 999px;
           cursor: pointer;
           text-decoration: none;
           transition: color 0.2s, border-color 0.2s, background 0.2s;
@@ -372,25 +388,192 @@ class ArticleViewer extends WcBase {
           background: rgba(235,79,56,0.08);
         }
         .viewer-cover {
+          display: block;
           width: 100%;
-          max-height: 360px;
+          aspect-ratio: 16 / 9;
           object-fit: cover;
-          border-radius: 4px;
-          margin-bottom: 28px;
+          border: 1px solid rgba(255,255,255,0.07);
+          border-radius: 12px;
+          margin: 0 auto clamp(32px, 5vw, 52px);
+          box-shadow: 0 24px 70px rgba(0,0,0,0.28);
         }
         .article-content {
-          font-size: 15px;
-          line-height: 1.8;
-          color: #a8a5a0;
-          letter-spacing: 0.01em;
+          font-size: 16px;
+          line-height: 1.9;
+          color: #bbb7b1;
+          letter-spacing: 0.012em;
+          overflow-wrap: break-word;
         }
         .article-content p {
-          margin: 0 0 20px;
+          margin: 0 0 22px;
+        }
+        .article-content > :first-child {
+          margin-top: 0;
+        }
+        .article-content h2,
+        .article-content h3,
+        .article-content h4 {
+          color: #f5f3f0;
+          font-weight: 650;
+          line-height: 1.4;
+          letter-spacing: -0.015em;
+          text-wrap: balance;
+        }
+        .article-content h2 {
+          margin: 52px 0 20px;
+          padding-top: 8px;
+          font-size: 25px;
+        }
+        .article-content h3 {
+          margin: 38px 0 16px;
+          font-size: 20px;
+        }
+        .article-content h4 {
+          margin: 30px 0 14px;
+          font-size: 17px;
+        }
+        .article-content .headerlink {
+          color: inherit;
+          text-decoration: none;
+        }
+        .article-content .headerlink::before {
+          content: '#';
+          margin-right: 10px;
+          color: var(--brand-primary, #eb4f38);
+          font-weight: 500;
+          opacity: 0.72;
+        }
+        .article-content a:not(.headerlink) {
+          color: #f08070;
+          text-decoration-color: rgba(var(--brand-rgb), 0.45);
+          text-decoration-thickness: 1px;
+          text-underline-offset: 4px;
+          transition: color 0.18s ease, text-decoration-color 0.18s ease;
+        }
+        .article-content a:not(.headerlink):hover {
+          color: #ff9a8c;
+          text-decoration-color: currentColor;
+        }
+        .article-content strong {
+          color: #e7e3de;
+          font-weight: 650;
+        }
+        .article-content ul,
+        .article-content ol {
+          margin: 0 0 24px;
+          padding-left: 1.45em;
+        }
+        .article-content li {
+          padding-left: 0.35em;
+        }
+        .article-content li + li {
+          margin-top: 8px;
+        }
+        .article-content li::marker {
+          color: var(--brand-primary, #eb4f38);
+        }
+        .article-content blockquote {
+          margin: 28px 0;
+          padding: 18px 22px;
+          border-left: 3px solid var(--brand-primary, #eb4f38);
+          border-radius: 0 9px 9px 0;
+          background: rgba(var(--brand-rgb), 0.075);
+          color: #c9c4bd;
+        }
+        .article-content blockquote > :last-child {
+          margin-bottom: 0;
+        }
+        .article-content code {
+          padding: 0.16em 0.42em;
+          border: 1px solid rgba(255,255,255,0.08);
+          border-radius: 5px;
+          background: rgba(255,255,255,0.055);
+          color: #e8b4aa;
+          font-size: 0.9em;
+        }
+        .article-content pre code,
+        .article-content .highlight code {
+          padding: 0;
+          border: 0;
+          border-radius: 0;
+          background: transparent;
+          color: inherit;
+          font-size: inherit;
+        }
+        .article-content pre,
+        .article-content figure.highlight {
+          margin: 28px 0;
+          border: 1px solid #292725;
+          border-radius: 10px;
+          background: #0a0909;
+          box-shadow: inset 0 1px rgba(255,255,255,0.025);
+          overflow-x: auto;
+        }
+        .article-content > pre {
+          padding: 18px 20px;
+        }
+        .article-content figure.highlight table {
+          width: 100%;
+          min-width: max-content;
+          border-collapse: collapse;
+        }
+        .article-content figure.highlight td {
+          padding: 18px 0;
+          vertical-align: top;
+        }
+        .article-content figure.highlight .gutter {
+          width: 1%;
+          border-right: 1px solid #242220;
+          color: #514e4a;
+          text-align: right;
+          user-select: none;
+        }
+        .article-content figure.highlight .gutter pre {
+          padding: 0 13px;
+        }
+        .article-content figure.highlight .code pre {
+          padding: 0 18px;
+        }
+        .article-content pre,
+        .article-content figure.highlight pre {
+          font-size: 13px;
+          line-height: 1.75;
+          tab-size: 2;
+        }
+        .article-content img {
+          display: block;
+          max-width: 100%;
+          height: auto;
+          margin: 30px auto;
+          border-radius: 10px;
+        }
+        .article-content hr {
+          height: 1px;
+          margin: 44px 0;
+          border: 0;
+          background: linear-gradient(90deg, transparent, #34312f 15%, #34312f 85%, transparent);
+        }
+        .article-content > table:not(.highlight) {
+          display: block;
+          width: 100%;
+          margin: 28px 0;
+          border-collapse: collapse;
+          overflow-x: auto;
+        }
+        .article-content > table:not(.highlight) th,
+        .article-content > table:not(.highlight) td {
+          padding: 10px 14px;
+          border: 1px solid #302e2b;
+          text-align: left;
+        }
+        .article-content > table:not(.highlight) th {
+          color: #e7e3de;
+          background: rgba(255,255,255,0.04);
         }
         .viewer-divider {
           height: 1px;
           background: #333;
-          margin: 32px 0;
+          margin: 56px auto 36px;
         }
         .viewer-comments-head {
           display: flex;
@@ -665,14 +848,18 @@ class ArticleViewer extends WcBase {
           font-size: 12px;
         }
         .viewer-aside {
-          width: 280px;
+          width: 300px;
           flex-shrink: 0;
           overflow-y: auto;
           scrollbar-width: thin;
           scrollbar-color: #444 transparent;
-          padding: 32px 24px 40px;
+          padding: 40px 28px 96px;
           border-left: 1px solid #2a2a2a;
+          background: rgba(0,0,0,0.08);
           min-height: 100%;
+        }
+        .viewer-aside[hidden] {
+          display: none !important;
         }
         .viewer-aside.viewer-swap-out {
           opacity: 0;
@@ -732,6 +919,108 @@ class ArticleViewer extends WcBase {
         }
         .emoji-item:hover {
           background: rgba(255,255,255,0.06);
+        }
+        @media (max-width: 1000px) {
+          .viewer-main {
+            padding-inline: 32px;
+          }
+          .viewer-aside {
+            width: 250px;
+            padding-inline: 22px;
+          }
+        }
+        @media (max-width: 760px) {
+          :host {
+            position: fixed;
+          }
+          .viewer-backdrop {
+            display: none;
+          }
+          .viewer-panel {
+            background: #0f0e0d;
+          }
+          .viewer-head {
+            min-height: 58px;
+            padding: 10px 16px;
+          }
+          .viewer-headline {
+            min-width: 0;
+            overflow: hidden;
+            white-space: nowrap;
+          }
+          .viewer-cat-name {
+            overflow: hidden;
+            text-overflow: ellipsis;
+          }
+          .viewer-close {
+            flex: 0 0 36px;
+            width: 36px;
+            height: 36px;
+          }
+          .viewer-body {
+            display: block;
+            overflow-x: hidden;
+            overflow-y: auto;
+            overscroll-behavior: contain;
+            scrollbar-width: thin;
+            scrollbar-color: #444 transparent;
+          }
+          .viewer-main {
+            overflow: visible;
+            padding: 28px 20px 96px;
+          }
+          .viewer-title {
+            font-size: clamp(25px, 8vw, 32px);
+            line-height: 1.3;
+          }
+          .viewer-cover {
+            margin-bottom: 34px;
+            border-radius: 9px;
+          }
+          .article-content {
+            font-size: 16px;
+            line-height: 1.85;
+          }
+          .article-content h2 {
+            margin-top: 42px;
+            font-size: 22px;
+          }
+          .article-content h3 {
+            margin-top: 32px;
+            font-size: 19px;
+          }
+          .article-content pre,
+          .article-content figure.highlight {
+            border-radius: 8px;
+          }
+          .viewer-aside {
+            width: auto;
+            min-height: 0;
+            padding: 30px 20px 104px;
+            border-top: 1px solid #2a2a2a;
+            border-left: 0;
+            overflow: visible;
+          }
+        }
+        @media (max-width: 420px) {
+          .viewer-main {
+            padding-inline: 16px;
+          }
+          .viewer-meta {
+            gap: 7px 12px;
+          }
+          .viewer-tags {
+            gap: 7px;
+          }
+          .viewer-cover {
+            aspect-ratio: 4 / 3;
+          }
+          .article-content h2 {
+            font-size: 21px;
+          }
+          .article-content blockquote {
+            padding: 16px 18px;
+          }
         }
       </style>
       <div class="viewer-backdrop" data-part="backdrop"></div>
@@ -1208,6 +1497,8 @@ class ArticleViewer extends WcBase {
       const same = others.filter(a => a.cat === art.cat)
       const rest = others.filter(a => a.cat !== art.cat)
       const recs = [...same, ...rest].slice(0, 6)
+      const aside = this.$('[data-part="aside"]') as HTMLElement | null
+      if (aside) aside.hidden = recs.length === 0
       rec.innerHTML = recs.length
         ? recs.map((r, i) => ArticleViewer.recommendationItemTemplate(r, { href: '#', isLast: i === recs.length - 1 })).join('')
         : '<p class="viewer-rec-empty">暂无推荐</p>'
@@ -1223,6 +1514,8 @@ class ArticleViewer extends WcBase {
     // 滚动复位
     const main = this.$('[data-part="main"]') as HTMLElement | null
     main?.scrollTo(0, 0)
+    const body = this.$('[data-part="body"]') as HTMLElement | null
+    body?.scrollTo(0, 0)
     const aside = this.$('[data-part="aside"]') as HTMLElement | null
     aside?.scrollTo(0, 0)
   }
