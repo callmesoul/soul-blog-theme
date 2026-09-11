@@ -197,7 +197,9 @@ var LOAD_CHUNK = 2
 <site-sidebar active-cat="archives"></site-sidebar>
 
   <div class="relative flex min-w-0 flex-1 flex-col overflow-hidden">
-    <article-viewer></article-viewer>
+    <article-viewer>
+      <span slot="page-views" id="vercount_value_page_pv" aria-label="本文阅读量">—</span>
+    </article-viewer>
     <% if (!yearGroups.length) { %>
     <div class="arch-top">
       <span class="arch-home-icon"></span>

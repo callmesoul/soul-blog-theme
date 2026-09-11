@@ -114,5 +114,37 @@ var siteData = {
 
 <div class="relative flex min-w-0 flex-1 flex-col">
   <article-list active-cat="all"></article-list>
-  <article-viewer></article-viewer>
+  <article-viewer>
+    <span slot="page-views" id="vercount_value_page_pv" aria-label="本文阅读量">—</span>
+  </article-viewer>
+
+  <!-- Vercount 访问统计：站点总访问量与访客数（置于左侧栏 Soul Blog 标签上方） -->
+  <div id="site-stat-badge" role="status" aria-label="站点访问统计">
+    <span class="site-stat-item" data-label="总浏览量" aria-label="站点总访问量">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z"/><circle cx="12" cy="12" r="2.5"/></svg>
+      <strong id="vercount_value_site_pv" class="is-loading" aria-busy="true">—</strong>
+    </span>
+    <span class="site-stat-divider" aria-hidden="true"></span>
+    <span class="site-stat-item" data-label="总访客数" aria-label="站点总访客数">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.5"/><path d="M5.5 20c.5-4 2.7-6 6.5-6s6 2 6.5 6"/></svg>
+      <strong id="vercount_value_site_uv" class="is-loading" aria-busy="true">—</strong>
+    </span>
+  </div>
+  <style>
+    #site-stat-badge { position:fixed;left:20px;bottom:132px;z-index:40;display:flex;width:28px;align-items:center;flex-direction:column;justify-content:center;gap:6px;padding:7px 5px;background:linear-gradient(145deg,rgba(39,35,31,.84),rgba(18,17,16,.9));-webkit-backdrop-filter:blur(12px) saturate(125%);backdrop-filter:blur(12px) saturate(125%);border:1px solid rgba(255,255,255,.1);border-radius:13px;color:#8f8982;font-family:inherit;line-height:1;user-select:none;box-shadow:0 10px 24px rgba(0,0,0,.32),inset 0 1px 0 rgba(255,255,255,.05); }
+    #site-stat-badge::before { content:"";position:absolute;top:-1px;left:6px;width:14px;height:1px;background:linear-gradient(90deg,transparent,rgba(224,111,32,.78),transparent); }
+    .site-stat-item { position:relative;display:flex;width:100%;align-items:center;flex-direction:column;gap:5px; }
+    .site-stat-item svg { width:10px;height:10px;flex:0 0 10px;fill:none;stroke:#a85b2a;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round; }
+    .site-stat-item strong { color:#e9e6e2;font-size:9px;font-weight:600;font-variant-numeric:tabular-nums;line-height:1;letter-spacing:.08em;writing-mode:vertical-rl;text-orientation:upright; }
+    .site-stat-item strong.is-loading { display:inline-flex;width:10px;height:10px;align-items:center;justify-content:center;color:transparent;font-size:0;letter-spacing:0;writing-mode:horizontal-tb; }
+    .site-stat-item strong.is-loading::after { content:"";width:8px;height:8px;border:1.5px solid rgba(143,137,130,.3);border-top-color:#e06f20;border-radius:50%;animation:siteStatSpin .72s linear infinite; }
+    .site-stat-item::after { content:attr(data-label);position:absolute;top:-5px;left:calc(100% + 16px);padding:6px 9px;border:1px solid rgba(255,255,255,.1);border-radius:7px;color:#d8d4cf;background:rgba(20,18,16,.96);box-shadow:0 8px 24px rgba(0,0,0,.3);font-size:10px;font-weight:500;letter-spacing:.04em;white-space:nowrap;opacity:0;visibility:hidden;transform:translateX(-4px);transition:opacity .18s ease,transform .18s ease,visibility .18s;pointer-events:none; }
+    .site-stat-item:hover::after { opacity:1;visibility:visible;transform:translateX(0); }
+    .site-stat-divider { width:100%;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.12),transparent); }
+    @keyframes siteStatSpin { to { transform:rotate(360deg); } }
+    @media (prefers-reduced-motion: reduce) { .site-stat-item strong.is-loading::after { animation:none; } }
+    @media (max-width: 420px) {
+      #site-stat-badge { bottom:126px; }
+    }
+  </style>
 </div>

@@ -1,5 +1,6 @@
 import { WcBase } from '../helpers/wc-base'
 import { escapeHtml } from '../helpers/escape-html'
+import { readVercountArticleView, VERCOUNT_PAGE_VIEW_EVENT } from '../helpers/vercount'
 import type { Article } from '../types'
 
 /**
@@ -32,6 +33,8 @@ class ArticleList extends WcBase {
   private _catName = '全部文章'
   private _totalCount = 0
   private _activeTag = ''
+  private _remoteViews = new Map<string, number>()
+  private _vercountListenerBound = false
 
   set articles (val: Article[]) {
     this._articles = val
@@ -67,7 +70,7 @@ class ArticleList extends WcBase {
           <p class="card-desc">${escapeHtml(article.summary)}</p>
           ${tags ? `<div class="card-tags">${tags}</div>` : ''}
           <div class="card-meta">
-            <span class="meta-item"><img class="meta-icon" src="${escapeHtml(icons.eye)}" alt="">${escapeHtml(article.views)}</span>
+            <span class="meta-item"><img class="meta-icon" src="${escapeHtml(icons.eye)}" alt=""><span class="is-loading" data-part="article-views" aria-busy="true">${escapeHtml(article.views)}</span></span>
             <span class="meta-item"><img class="meta-icon" src="${escapeHtml(icons.comment)}" alt="">${escapeHtml(article.commentCount)}</span>
             <span class="meta-item" style="margin-left:auto;"><img class="meta-icon" src="${escapeHtml(icons.calendar)}" alt="">${escapeHtml(article.date)}</span>
           </div>
@@ -296,6 +299,28 @@ class ArticleList extends WcBase {
           align-items: center;
           gap: 4px;
         }
+        [data-part="article-views"] {
+          display: inline-flex;
+          min-width: 1.2em;
+          align-items: center;
+          justify-content: center;
+        }
+        [data-part="article-views"].is-loading {
+          width: 12px;
+          height: 12px;
+          min-width: 12px;
+          color: transparent;
+          font-size: 0;
+        }
+        [data-part="article-views"].is-loading::after {
+          content: '';
+          width: 8px;
+          height: 8px;
+          border: 1.5px solid rgba(158,157,153,0.28);
+          border-top-color: var(--brand-primary, #eb4f38);
+          border-radius: 50%;
+          animation: viewCountSpin 0.72s linear infinite;
+        }
         .meta-icon {
           display: block;
           width: 16px;
@@ -306,6 +331,12 @@ class ArticleList extends WcBase {
         }
         .article-card:hover .card-meta .meta-icon {
           filter: brightness(0) invert(0.78);
+        }
+        @keyframes viewCountSpin {
+          to { transform: rotate(360deg); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          [data-part="article-views"].is-loading::after { animation: none; }
         }
         .list-status {
           text-align: center;
@@ -409,6 +440,7 @@ class ArticleList extends WcBase {
   protected mounted (): void {
     this._setupIntersectionObserver()
     this._setupCardClick()
+    this._setupVercountUpdates()
     this._resetList()
     this._renderPage()
     // 初始内容可能未撑满可视区，触发首次滚动加载
@@ -465,6 +497,54 @@ class ArticleList extends WcBase {
     })
   }
 
+  private _setupVercountUpdates (): void {
+    if (this._vercountListenerBound) return
+    this._vercountListenerBound = true
+    window.addEventListener(VERCOUNT_PAGE_VIEW_EVENT, ((event: CustomEvent) => {
+      const articleId = String(event.detail?.articleId || '')
+      const views = Number(event.detail?.views)
+      if (articleId && Number.isFinite(views)) this._applyRemoteViews(articleId, views)
+    }) as EventListener)
+  }
+
+  private _applyRemoteViews (articleId: string, views: number): void {
+    this._remoteViews.set(articleId, views)
+    this.$$<HTMLElement>('.article-card').forEach(card => {
+      if (card.dataset.id !== articleId) return
+      const counter = card.querySelector<HTMLElement>('[data-part="article-views"]')
+      if (!counter) return
+      counter.textContent = String(views)
+      counter.classList.remove('is-loading')
+      counter.removeAttribute('aria-busy')
+    })
+  }
+
+  private _finishRemoteViewLoading (articleId: string): void {
+    this.$$<HTMLElement>('.article-card').forEach(card => {
+      if (card.dataset.id !== articleId) return
+      const counter = card.querySelector<HTMLElement>('[data-part="article-views"]')
+      counter?.classList.remove('is-loading')
+      counter?.removeAttribute('aria-busy')
+    })
+  }
+
+  private _hydrateVisibleViews (): void {
+    this.$$<HTMLElement>('.article-card').forEach(card => {
+      const articleId = card.dataset.id || ''
+      if (!articleId || this._remoteViews.has(articleId)) return
+      void readVercountArticleView(articleId).then(views => {
+        // 打开文章的写入结果可能比较旧的列表 GET 先返回，不要用旧值覆盖。
+        if (this._remoteViews.has(articleId)) return
+        if (views !== null) this._applyRemoteViews(articleId, views)
+        else this._finishRemoteViewLoading(articleId)
+      })
+    })
+  }
+
+  private _viewsFor (article: Article): number {
+    return this._remoteViews.get(article.id) ?? article.views
+  }
+
   private _resetList (): void {
     this._shown = 0
     this._loading = false
@@ -513,7 +593,7 @@ class ArticleList extends WcBase {
             <p class="card-desc">${escapeHtml(a.summary)}</p>
             ${tags ? `<div class="card-tags">${tags}</div>` : ''}
             <div class="card-meta">
-              <span class="meta-item"><img class="meta-icon" src="${escapeHtml(icons.eye)}" alt="">${escapeHtml(a.views)}</span>
+              <span class="meta-item"><img class="meta-icon" src="${escapeHtml(icons.eye)}" alt=""><span class="${this._remoteViews.has(a.id) ? '' : 'is-loading'}" data-part="article-views" ${this._remoteViews.has(a.id) ? '' : 'aria-busy="true"'}>${escapeHtml(this._viewsFor(a))}</span></span>
               <span class="meta-item"><img class="meta-icon" src="${escapeHtml(icons.comment)}" alt="">${escapeHtml(a.commentCount)}</span>
               <span class="meta-item" style="margin-left:auto;"><img class="meta-icon" src="${escapeHtml(icons.calendar)}" alt="">${escapeHtml(a.date)}</span>
             </div>
@@ -521,6 +601,7 @@ class ArticleList extends WcBase {
         </a>
       `
     }).join('')
+    this._hydrateVisibleViews()
 
     this._shown = Math.min(this._pageSize, sorted.length)
     this._done = this._shown >= sorted.length
@@ -588,7 +669,7 @@ class ArticleList extends WcBase {
             <p class="card-desc">${escapeHtml(a.summary)}</p>
             ${tags ? `<div class="card-tags">${tags}</div>` : ''}
             <div class="card-meta">
-              <span class="meta-item"><img class="meta-icon" src="${escapeHtml(icons.eye)}" alt="">${escapeHtml(a.views)}</span>
+              <span class="meta-item"><img class="meta-icon" src="${escapeHtml(icons.eye)}" alt=""><span class="${this._remoteViews.has(a.id) ? '' : 'is-loading'}" data-part="article-views" ${this._remoteViews.has(a.id) ? '' : 'aria-busy="true"'}>${escapeHtml(this._viewsFor(a))}</span></span>
               <span class="meta-item"><img class="meta-icon" src="${escapeHtml(icons.comment)}" alt="">${escapeHtml(a.commentCount)}</span>
               <span class="meta-item" style="margin-left:auto;"><img class="meta-icon" src="${escapeHtml(icons.calendar)}" alt="">${escapeHtml(a.date)}</span>
             </div>
@@ -596,6 +677,7 @@ class ArticleList extends WcBase {
         </a>
       `}).join('')
       if (grid) grid.insertAdjacentHTML('beforeend', html)
+      this._hydrateVisibleViews()
       this._shown += more.length
       this._loading = false
       if (this._shown >= sorted.length) {

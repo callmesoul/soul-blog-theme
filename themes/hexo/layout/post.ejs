@@ -31,7 +31,9 @@ var siteData = {
 <site-sidebar active-cat="all"></site-sidebar>
 
 <div class="flex min-w-0 flex-1 flex-col">
-  <article-viewer></article-viewer>
+  <article-viewer>
+    <span slot="page-views" id="vercount_value_page_pv" aria-label="本文阅读量">—</span>
+  </article-viewer>
 </div>
 
 <script>

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch, onMounted, computed } from 'vue'
+import { ref, watch, onMounted, onUnmounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useArticleStore } from '../stores/articles'
 import { useSiteConfigStore } from '../stores/site-config'
@@ -93,10 +93,17 @@ function siteName(): string {
 }
 
 onMounted(async () => {
+  // 首页展示 Vercount 访问统计徽标
+  document.body.classList.add('home-show-stat')
   // 初始路由
   if (currentArtId.value && currentArticle.value && viewerRef.value) {
     _openViewer(currentArtId.value)
   }
+})
+
+onUnmounted(() => {
+  // 离开首页时隐藏访问统计徽标
+  document.body.classList.remove('home-show-stat')
 })
 
 // 监听路由 query 参数变化

@@ -74,7 +74,11 @@ const ArticleViewer = forwardRef<ArticleViewerHandle, Props>(
       return () => el.removeEventListener('tag-select', tagHandler)
     }, [onTagSelect])
 
-    return <article-viewer ref={wcRef}></article-viewer>
+    return (
+      <article-viewer ref={wcRef}>
+        <span slot="page-views" id="vercount_value_page_pv" aria-label="本文阅读量">—</span>
+      </article-viewer>
+    )
   }
 )
 

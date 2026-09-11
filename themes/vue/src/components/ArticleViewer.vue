@@ -30,9 +30,10 @@ function closeWithFlip() {
 
 // 阅读器内标签点击：preventDefault 表示已由 vue-router 接管，
 // 组件将不再自行关闭阅读器/改写 location.hash
-function onWcTagSelect(e: Event) {
-  ;(e as CustomEvent).preventDefault()
-  emit('tagSelect', ((e as CustomEvent).detail as any)?.tag)
+function onWcTagSelect(value: unknown) {
+  const event = value as CustomEvent<{ tag?: string }>
+  event.preventDefault()
+  if (event.detail?.tag) emit('tagSelect', event.detail.tag)
 }
 
 function setData() {
@@ -67,5 +68,7 @@ defineExpose({ openWithFlip, closeWithFlip })
     @article-select="emit('articleSelect', ($event as any).detail.id, ($event as any).detail.cat)"
     @tag-select="onWcTagSelect"
     @viewer-close="emit('viewerClose')"
-  ></article-viewer>
+  >
+    <span slot="page-views" id="vercount_value_page_pv" aria-label="本文阅读量">—</span>
+  </article-viewer>
 </template>

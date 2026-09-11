@@ -66,6 +66,12 @@ export default function HomePage() {
     }
   }, [currentArtId])
 
+  // 首页展示 Vercount 访问统计徽标（离开首页时移除）
+  useEffect(() => {
+    document.body.classList.add('home-show-stat')
+    return () => document.body.classList.remove('home-show-stat')
+  }, [])
+
   const handleNavigate = useCallback((cat: string, tag?: string) => {
     if (tag) {
       window.location.hash = '#tag=' + encodeURIComponent(tag)

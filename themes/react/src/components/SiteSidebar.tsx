@@ -13,10 +13,12 @@ interface Props {
   archiveUrl?: string
   /** 关于页地址（默认 /about），设为 '' 可隐藏关于导航 */
   aboutUrl?: string
+  /** 友链页地址（默认 /friends-demo），设为 '' 可隐藏友链导航 */
+  friendsUrl?: string
   onNavigate?: (cat: string, tag?: string) => void
 }
 
-export default function SiteSidebar({ categories, tags, social, siteName, icp, activeCat, activeTag, archiveUrl = '/archives', aboutUrl = '/about', onNavigate }: Props) {
+export default function SiteSidebar({ categories, tags, social, siteName, icp, activeCat, activeTag, archiveUrl = '/archives', aboutUrl = '/about', friendsUrl = '/friends-demo', onNavigate }: Props) {
   const ref = useRef<HTMLElement>(null)
 
   useEffect(() => {
@@ -29,7 +31,8 @@ export default function SiteSidebar({ categories, tags, social, siteName, icp, a
     ;(el as any).icp = icp
     ;(el as any).archiveUrl = archiveUrl
     ;(el as any).aboutUrl = aboutUrl
-  }, [categories, tags, social, siteName, icp, archiveUrl, aboutUrl])
+    ;(el as any).friendsUrl = friendsUrl
+  }, [categories, tags, social, siteName, icp, archiveUrl, aboutUrl, friendsUrl])
 
   useEffect(() => {
     ref.current?.setAttribute('active-cat', activeCat)

@@ -24,6 +24,8 @@
 
 - 🏷 **标签筛选** — 侧栏标签云、文章卡片 tag chip、阅读器内 tag 一键回列表过滤
 
+- 📈 **访问统计** — 四套主题统一接入 Vercount 站点 PV / UV 与单篇文章阅读量，首页文章列表同步展示动态计数
+
 - 📱 **响应式布局** — 适配桌面、平板、移动设备
 
 - 🔐 **登录页** — 带密码验证、记住用户名、自动登录的私有文章入口
@@ -77,7 +79,7 @@ soul-blog-theme/
 | 组件             | 标签                  | 功能                                          |
 | -------------- | ------------------- | ------------------------------------------- |
 | SiteBackground | `<site-background>` | 背景粒子 / 星尘动效                                  |
-| SiteSidebar    | `<site-sidebar>`    | 双轨侧栏：首页 / 目录 / 归档 + 分类、社交、标签云                  |
+| SiteSidebar    | `<site-sidebar>`    | 双轨侧栏：首页 / 目录 / 归档 / 友链 / 关于 + 分类、社交、标签云           |
 | ArticleList    | `<article-list>`    | 文章卡片网格（分类筛选、标签筛选、入场动画、滚动续载）                 |
 | ArchiveList    | `<archive-list>`    | 归档时间线（年 → 月 → 文章、年份快捷导航、月份折叠、滚动续载）           |
 | AboutPage      | `<about-page>`      | 关于我页面（杂志式卡片布局，内容由 site-config 的 `about` 驱动）       |
@@ -181,6 +183,7 @@ pnpm --filter @soul-blog/react dev
 | `/search`    | 独立搜索结果页                  | `search-results`                       |
 | `/archives`  | 归档时间线（年 → 月 → 文章）        | `archive-list`                         |
 | `/about`     | 关于我（杂志式卡片自我介绍页）        | `about-page`                           |
+| `/friends-demo` | React 端友链页面设计提案（三种布局切换） | React 页面组件、`site-sidebar`            |
 | `/login`     | 登录页                      | `login-panel`                          |
 
 > Hexo 版对应 `/archives/`（默认 `archive_dir`），正文页在归档 / 首页里通过 FLIP 翻转在原地弹出阅读器，无独立文章页 URL，便于静态托管 SEO。

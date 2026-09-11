@@ -1,5 +1,6 @@
 import { WcBase } from '../helpers/wc-base'
 import { escapeHtml } from '../helpers/escape-html'
+import { recordVercountArticleView } from '../helpers/vercount'
 import type { Article, ArticleComment } from '../types'
 
 // 时间节奏（毫秒）
@@ -37,10 +38,13 @@ class ArticleViewer extends WcBase {
   private _swapBusy = false
   private _swapPendingId: string | null = null
   private _cardEl: HTMLElement | null = null
+  private _trackedPageViewArticleId: string | null = null
+  private _pageViewFallbackTimer: number | null = null
 
   set article (val: Article | null) {
     this._article = val
     this._renderArticle()
+    if (val) this._trackPageView(val)
   }
   set articles (val: Article[]) {
     this._articles = val
@@ -103,10 +107,46 @@ class ArticleViewer extends WcBase {
 
   static viewerMetaTemplate (article: Article, icons: Record<string, string>): string {
     return `
-      <span><img src="${escapeHtml(icons.eye || '')}" alt="">${escapeHtml(article.views)}</span>
+      <span><img src="${escapeHtml(icons.eye || '')}" alt=""><slot name="page-views">${escapeHtml(article.views)}</slot></span>
       <span><img src="${escapeHtml(icons.comment || '')}" alt="">${escapeHtml(article.commentCount)}</span>
       <span class="viewer-date"><img src="${escapeHtml(icons.calendar || '')}" alt="">${escapeHtml(article.date)}</span>
     `
+  }
+
+  /**
+   * Vercount 的展示节点位于普通 DOM，通过 page-views slot 投影进 Shadow DOM。
+   * 文章统一映射为 /articles/{id}，避免 SPA hash 被统计服务忽略。
+   */
+  private _trackPageView (article: Article): void {
+    if (this._trackedPageViewArticleId === article.id) return
+
+    const target = this.querySelector<HTMLElement>('#vercount_value_page_pv[slot="page-views"]')
+    if (!target) return
+
+    this._trackedPageViewArticleId = article.id
+    target.textContent = '•••'
+    target.classList.add('is-loading')
+    target.setAttribute('aria-busy', 'true')
+
+    const finish = (views: number): void => {
+      if (this._article?.id !== article.id) return
+      target.textContent = String(views)
+      target.classList.remove('is-loading')
+      target.removeAttribute('aria-busy')
+      if (this._pageViewFallbackTimer !== null) {
+        window.clearTimeout(this._pageViewFallbackTimer)
+        this._pageViewFallbackTimer = null
+      }
+    }
+
+    if (this._pageViewFallbackTimer !== null) window.clearTimeout(this._pageViewFallbackTimer)
+    this._pageViewFallbackTimer = window.setTimeout(() => {
+      finish(Number(article.views) || 0)
+    }, 5000)
+
+    void recordVercountArticleView(article.id).then(views => {
+      finish(views ?? (Number(article.views) || 0))
+    })
   }
 
   static articleParagraphsTemplate (paragraphs: string[] = []): string {
@@ -287,6 +327,19 @@ class ArticleViewer extends WcBase {
           object-fit: contain;
           filter: brightness(0) invert(0.62);
           transition: filter 0.2s ease;
+        }
+        ::slotted([slot="page-views"].is-loading) {
+          min-width: 1.55em;
+          color: var(--brand-primary, #eb4f38);
+          letter-spacing: 0.08em;
+          animation: viewCountPulse 0.8s ease-in-out infinite;
+        }
+        @keyframes viewCountPulse {
+          0%, 100% { opacity: 0.3; }
+          50% { opacity: 1; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          ::slotted([slot="page-views"].is-loading) { animation: none; opacity: 0.7; }
         }
         .viewer-tags {
           display: flex;
@@ -978,6 +1031,11 @@ class ArticleViewer extends WcBase {
     this.classList.remove('is-open')
     this.hidden = true
     this._viewerGen++
+    this._trackedPageViewArticleId = null
+    if (this._pageViewFallbackTimer !== null) {
+      window.clearTimeout(this._pageViewFallbackTimer)
+      this._pageViewFallbackTimer = null
+    }
     this.emit('viewer-close')
   }
 
