@@ -1,7 +1,7 @@
 import { WcBase } from '../helpers/wc-base'
 import { escapeHtml } from '../helpers/escape-html'
 import { recordVercountArticleView } from '../helpers/vercount'
-import type { Article, ArticleComment } from '../types'
+import type { Article, ArticleComment, GiscusConfig } from '../types'
 
 // 时间节奏（毫秒）
 const FLIP_OPEN_MS = 420
@@ -34,6 +34,7 @@ class ArticleViewer extends WcBase {
   private _articles: Article[] = []
   private _icons: Record<string, string> = {}
   private _catNames: Record<string, string> = {}
+  private _giscusConfig: GiscusConfig | null = null
   private _viewerGen = 0
   private _swapBusy = false
   private _swapPendingId: string | null = null
@@ -54,6 +55,10 @@ class ArticleViewer extends WcBase {
   }
   set catNames (val: Record<string, string>) {
     this._catNames = val
+  }
+  set giscusConfig (val: GiscusConfig | null) {
+    this._giscusConfig = val
+    this._renderComments()
   }
 
   /** 导出模板函数供过渡期使用 */
@@ -412,6 +417,50 @@ class ArticleViewer extends WcBase {
           background: #333;
           margin-bottom: 20px;
         }
+        .legacy-comments[hidden],
+        .giscus-container[hidden] {
+          display: none !important;
+        }
+        .giscus-container {
+          min-height: 160px;
+          padding-top: 20px;
+        }
+        .giscus-container .giscus,
+        .giscus-container .giscus-frame {
+          width: 100%;
+        }
+        .giscus-status {
+          margin: 0;
+          padding: 28px 18px;
+          border: 1px dashed #3b3937;
+          border-radius: 6px;
+          color: #8d8984;
+          font-size: 13px;
+          line-height: 1.7;
+          text-align: center;
+        }
+        .giscus-status strong {
+          display: block;
+          margin-bottom: 8px;
+          color: #d8d4cf;
+          font-size: 15px;
+        }
+        .giscus-status p {
+          margin: 0;
+        }
+        .giscus-status ol {
+          max-width: 520px;
+          margin: 16px auto 0;
+          padding-left: 24px;
+          text-align: left;
+        }
+        .giscus-status li + li {
+          margin-top: 7px;
+        }
+        .giscus-status a {
+          color: var(--brand-primary, #eb4f38);
+          text-underline-offset: 3px;
+        }
         .viewer-comment-form {
           margin-bottom: 24px;
         }
@@ -713,16 +762,19 @@ class ArticleViewer extends WcBase {
                 <span class="comment-total" data-part="comment-total">共 0 条评论</span>
               </div>
               <div class="viewer-comments-line"></div>
-              <form class="viewer-comment-form" data-part="comment-form" novalidate>
-                <div class="comment-input-box"><textarea rows="2" placeholder="说点什么吧…" data-part="comment-input"></textarea></div>
-                <div class="comment-form-actions">
-                  <button type="button" data-act="emoji" aria-label="表情" title="表情">
-                    <img src="/images/extracted/article/iconfont-biaoqing1@2x.png" alt="表情">
-                  </button>
-                  <button type="submit" disabled>评论</button>
-                </div>
-              </form>
-              <div class="comment-list" data-part="comment-list"></div>
+              <div class="legacy-comments" data-part="legacy-comments">
+                <form class="viewer-comment-form" data-part="comment-form" novalidate>
+                  <div class="comment-input-box"><textarea rows="2" placeholder="说点什么吧…" data-part="comment-input"></textarea></div>
+                  <div class="comment-form-actions">
+                    <button type="button" data-act="emoji" aria-label="表情" title="表情">
+                      <img src="/images/extracted/article/iconfont-biaoqing1@2x.png" alt="表情">
+                    </button>
+                    <button type="submit" disabled>评论</button>
+                  </div>
+                </form>
+                <div class="comment-list" data-part="comment-list"></div>
+              </div>
+              <div class="giscus-container" data-part="giscus" hidden></div>
             </section>
           </main>
           <aside class="viewer-aside" data-part="aside">
@@ -948,6 +1000,90 @@ class ArticleViewer extends WcBase {
     total.textContent = `共 ${list.querySelectorAll(':scope > .comment-item').length} 条评论`
   }
 
+  /**
+   * Giscus 在 SPA 阅读器里不能使用 pathname 映射（多篇文章共享同一路径），
+   * 因此用 commentKey（回退 article.id）生成 specific term，切换文章时重建 iframe。
+   */
+  private _renderComments (): void {
+    const art = this._article
+    if (!art) return
+
+    const config = this._giscusConfig
+    const enabled = config?.enabled === true
+    const legacy = this.$('[data-part="legacy-comments"]') as HTMLElement | null
+    const giscus = this.$('[data-part="giscus"]') as HTMLElement | null
+    const total = this.$('[data-part="comment-total"]') as HTMLElement | null
+    if (!legacy || !giscus) return
+
+    legacy.hidden = enabled
+    giscus.hidden = !enabled
+    if (!enabled) {
+      giscus.replaceChildren()
+      this._syncCommentCount()
+      return
+    }
+
+    if (total) total.textContent = '由 GitHub Discussions 提供支持'
+    const required = [config.repo, config.repoId, config.category, config.categoryId]
+    if (required.some(value => !String(value || '').trim())) {
+      const status = document.createElement('div')
+      status.className = 'giscus-status'
+      const title = document.createElement('strong')
+      title.textContent = '完成 Giscus 配置后即可开始评论'
+      const description = document.createElement('p')
+      description.textContent = '评论功能已默认开启，目前还缺少 GitHub Discussions 的必要配置。'
+      const steps = document.createElement('ol')
+      const repo = /^[\w.-]+\/[\w.-]+$/.test(config.repo) ? config.repo : ''
+      const links = [
+        {
+          text: '在目标仓库开启 Discussions',
+          href: repo ? `https://github.com/${repo}/settings` : 'https://docs.github.com/repositories/managing-your-repositorys-settings-and-features/enabling-features-for-your-repository'
+        },
+        { text: '为仓库安装 Giscus App', href: 'https://github.com/apps/giscus' },
+        { text: '在 Giscus 配置页生成并填写 repoId 与 categoryId', href: 'https://giscus.app/zh-CN' }
+      ]
+      links.forEach(({ text, href }) => {
+        const item = document.createElement('li')
+        const link = document.createElement('a')
+        link.textContent = text
+        link.href = href
+        link.target = '_blank'
+        link.rel = 'noopener noreferrer'
+        item.appendChild(link)
+        steps.appendChild(item)
+      })
+      status.append(title, description, steps)
+      giscus.replaceChildren(status)
+      return
+    }
+
+    const script = document.createElement('script')
+    script.src = 'https://giscus.app/client.js'
+    script.async = true
+    script.crossOrigin = 'anonymous'
+    script.setAttribute('data-repo', config.repo)
+    script.setAttribute('data-repo-id', config.repoId)
+    script.setAttribute('data-category', config.category)
+    script.setAttribute('data-category-id', config.categoryId)
+    script.setAttribute('data-mapping', 'specific')
+    script.setAttribute('data-term', `${config.termPrefix ?? 'article:'}${art.commentKey || art.id}`)
+    script.setAttribute('data-strict', config.strict === false ? '0' : '1')
+    script.setAttribute('data-reactions-enabled', config.reactionsEnabled === false ? '0' : '1')
+    script.setAttribute('data-emit-metadata', config.emitMetadata === true ? '1' : '0')
+    script.setAttribute('data-input-position', config.inputPosition ?? 'top')
+    script.setAttribute('data-theme', config.theme ?? 'dark_dimmed')
+    script.setAttribute('data-lang', config.lang ?? 'zh-CN')
+    script.setAttribute('data-loading', config.loading ?? 'lazy')
+    script.addEventListener('error', () => {
+      if (script.parentNode !== giscus) return
+      const status = document.createElement('p')
+      status.className = 'giscus-status'
+      status.textContent = '评论加载失败，请检查网络连接或 Giscus 配置。'
+      giscus.replaceChildren(status)
+    })
+    giscus.replaceChildren(script)
+  }
+
   // ===== 文章渲染 =====
   private _renderArticle (): void {
     const art = this._article
@@ -983,7 +1119,7 @@ class ArticleViewer extends WcBase {
     const content = this.$('[data-part="content"]')
     if (content) content.innerHTML = ArticleViewer.articleParagraphsTemplate(art.paragraphs)
 
-    // 评论
+    // 评论（启用 Giscus 时会隐藏本地演示评论并加载对应 Discussion）
     const comments = art.comments || []
     const list = this.$('[data-part="comment-list"]')
     if (list) {
@@ -991,7 +1127,7 @@ class ArticleViewer extends WcBase {
         ? comments.map(c => ArticleViewer.commentItemTemplate(c, icons)).join('')
         : '<p class="comment-empty">还没有评论，来抢沙发吧～</p>'
     }
-    this._syncCommentCount()
+    this._renderComments()
 
     // 推荐
     const rec = this.$('[data-part="recommend-list"]')

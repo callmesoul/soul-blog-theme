@@ -23,7 +23,21 @@ var siteData = {
   aboutUrl: theme.about && theme.about.enabled !== false
     ? url_for('/' + String(theme.about.path || 'about').replace(/^\/+|\/+$/g, '') + '/')
     : '',
-  homeUrl: url_for('/')
+  homeUrl: url_for('/'),
+  giscus: theme.giscus ? {
+    enabled: theme.giscus.enabled === true,
+    repo: theme.giscus.repo || '',
+    repoId: theme.giscus.repo_id || '',
+    category: theme.giscus.category || '',
+    categoryId: theme.giscus.category_id || '',
+    termPrefix: theme.giscus.term_prefix || 'article:',
+    strict: theme.giscus.strict !== false,
+    reactionsEnabled: theme.giscus.reactions_enabled !== false,
+    inputPosition: theme.giscus.input_position || 'top',
+    theme: theme.giscus.theme || 'dark_dimmed',
+    lang: theme.giscus.lang || 'zh-CN',
+    loading: theme.giscus.loading || 'lazy'
+  } : { enabled: true }
 };
 %>
 <script id="site-data" type="application/json"><%- JSON.stringify(siteData) %></script>
@@ -42,6 +56,7 @@ document.addEventListener('DOMContentLoaded', function() {
   if (viewer) {
     viewer.article = {
       id: '<%= page._id || page.slug || page.title %>',
+      commentKey: <%- JSON.stringify(page.slug || page.path || page.title) %>,
       cat: '<%= cat %>',
       title: '<%- page.title %>',
       cover: '<%= page.cover || page.thumbnail || "/images/extracted/home/图层_21@2x.png" %>',

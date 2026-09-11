@@ -27,6 +27,7 @@ const social = data?.social || []
 const archiveUrl = data?.archiveUrl || ''
 const aboutUrl = data?.aboutUrl || ''
 const homeUrl = data?.homeUrl || '/'
+const giscus = data?.giscus || { enabled: true }
 
 // =====================================================================
 // 工具函数
@@ -131,6 +132,7 @@ if (articleList) {
 if (viewer) {
   viewer.articles = ARTICLES
   viewer.icons = ICONS
+  viewer.giscusConfig = giscus
   viewer.addEventListener('article-select', e => {
     const { id, cat } = e.detail
     location.replace(buildArticleHash(id, cat || resolveCat(getHashCat())))

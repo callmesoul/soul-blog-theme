@@ -21,6 +21,20 @@ export const DEFAULT_SITE_CONFIG: SiteConfig = {
       { eyebrow: '04 · Contact', text: '有好想法？\nhello@callmesoul.cn', href: 'mailto:hello@callmesoul.cn' }
     ]
   },
+  giscus: {
+    enabled: true,
+    repo: 'callmesoul/soul-blog-theme',
+    repoId: 'R_kgDOUG1kRA',
+    category: 'Announcements',
+    categoryId: '',
+    termPrefix: 'article:',
+    strict: true,
+    reactionsEnabled: true,
+    inputPosition: 'top',
+    theme: 'dark_dimmed',
+    lang: 'zh-CN',
+    loading: 'lazy'
+  },
   social: [
     { name: '微信', icon: '/images/extracted/home/iconfont-weixin@2x.png', href: '', qr: '/images/social/qr-weixin.svg', hue: 74, width: 22, height: 18 },
     { name: 'QQ', icon: '/images/extracted/home/iconfont-QQ@2x.png', href: '', qr: '/images/social/qr-qq.svg', hue: 178, width: 17, height: 18 },

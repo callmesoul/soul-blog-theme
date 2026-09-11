@@ -172,6 +172,7 @@ function _openViewer(id: string) {
 	      :article="currentArticle"
 	      :articles="articles.articles"
 	      :icons="articles.icons"
+	      :giscus="siteConfig.giscus"
 	      @article-select="onViewerArticleSelect"
 	      @tag-select="onViewerTagSelect"
 	      @viewer-close="onViewerClose"

@@ -19,6 +19,7 @@
 - 🗂 **归档时间线** — 按 年 → 月 → 文章 三级倒序归档，年份快捷导航、月份可折叠、滚动触底自动续载（IntersectionObserver）
 
 - 👤 **关于我页面** — 杂志式卡片布局的自我介绍页（Manifesto 卡片、Currently 状态、联系方式），内容由 `site-config.json` 的 `about` 字段驱动，改配置即改页面
+- 💬 **Giscus 文章评论** — 基于 GitHub Discussions，按稳定文章键隔离评论；支持 Vanilla、Vue、React 与 Hexo，切换阅读器文章时自动切换 Discussion
 
 - 🧭 **面包屑导航** — 文章阅读器、归档页统一展示「首页 > 目录 > 文章」路径
 
@@ -83,7 +84,7 @@ soul-blog-theme/
 | ArticleList    | `<article-list>`    | 文章卡片网格（分类筛选、标签筛选、入场动画、滚动续载）                 |
 | ArchiveList    | `<archive-list>`    | 归档时间线（年 → 月 → 文章、年份快捷导航、月份折叠、滚动续载）           |
 | AboutPage      | `<about-page>`      | 关于我页面（杂志式卡片布局，内容由 site-config 的 `about` 驱动）       |
-| ArticleViewer  | `<article-viewer>`  | 文章阅读器（FLIP 动画、面包屑、段落、评论、相关推荐、tag 点击路由）        |
+| ArticleViewer  | `<article-viewer>`  | 文章阅读器（FLIP 动画、面包屑、Giscus 评论、相关推荐、tag 点击路由）      |
 | SearchPanel    | `<search-panel>`    | 搜索弹出层（模糊搜索、键盘导航；Ctrl/Cmd + Shift + F 唤起）      |
 | SearchResults  | `<search-results>`  | 搜索结果列表（独立 `/search` 路由，复用 ArticleList 渲染逻辑）     |
 | MusicPlayer    | `<music-player>`    | 音乐播放器（进度、音量、播放列表、跨页保持状态、3 种播放模式）             |
@@ -225,6 +226,20 @@ pnpm --filter @soul-blog/react dev
       { "eyebrow": "04 · Contact", "text": "有好想法？\\nhello@example.com", "href": "mailto:hello@example.com" }
     ]
   },
+  "giscus": {
+    "enabled": true,
+    "repo": "owner/repo",
+    "repoId": "R_...",
+    "category": "Announcements",
+    "categoryId": "DIC_...",
+    "termPrefix": "article:",
+    "strict": true,
+    "reactionsEnabled": true,
+    "inputPosition": "top",
+    "theme": "dark_dimmed",
+    "lang": "zh-CN",
+    "loading": "lazy"
+  },
   "social": [
     { "name": "微信", "icon": "/images/weixin.png", "href": "", "qr": "/images/qr-weixin.svg", "hue": 74, "width": 22, "height": 18 }
   ],
@@ -232,6 +247,8 @@ pnpm --filter @soul-blog/react dev
   "homeUrl": "/"
 }
 ```
+
+Giscus 默认开启。必要字段未填写完整时，文章评论区会直接展示配置引导，不会加载无效 iframe。请先在目标 GitHub 仓库开启 Discussions、安装 [Giscus App](https://github.com/apps/giscus)，再通过 [Giscus 配置页](https://giscus.app/zh-CN) 获取 `repoId` 与 `categoryId`。主题固定使用 `specific` 映射，并以 `termPrefix + article.commentKey`（缺省回退 `article.id`）作为 Discussion 键，避免 Hash/Query SPA 中多篇文章共用同一个 pathname 而串评论。Hexo 对应字段使用 snake_case（如 `repo_id`、`category_id`）；如需恢复内置演示评论区，可设置 `enabled: false`。
 
 > **社交栏交互规则**：`href` 为有效外链 → 新窗口跳转；`href` 为空但有 `qr` → hover 弹二维码；两者皆无 → 纯展示图标。
 

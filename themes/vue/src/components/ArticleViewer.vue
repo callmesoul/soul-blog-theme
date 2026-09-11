@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { ref, watch, onMounted } from 'vue'
-import type { Article } from '@soul-blog/wc'
+import type { Article, GiscusConfig } from '@soul-blog/wc'
 
 const props = defineProps<{
   article: Article | null
   articles: Article[]
   icons: Record<string, string>
+  giscus: GiscusConfig
 }>()
 
 const emit = defineEmits<{
@@ -42,6 +43,7 @@ function setData() {
   ;(el as any).article = props.article
   ;(el as any).articles = props.articles
   ;(el as any).icons = props.icons
+  ;(el as any).giscusConfig = props.giscus
 }
 
 onMounted(setData)
@@ -58,13 +60,17 @@ watch(() => props.icons, (val) => {
   if (wcRef.value) (wcRef.value as any).icons = val
 })
 
+watch(() => props.giscus, (val) => {
+  if (wcRef.value) (wcRef.value as any).giscusConfig = val
+}, { deep: true })
+
 defineExpose({ openWithFlip, closeWithFlip })
 </script>
 
 <template>
   <article-viewer
     ref="wcRef"
-    v-bind="{ article, articles, icons }"
+    v-bind="{ article, articles, icons, giscus }"
     @article-select="emit('articleSelect', ($event as any).detail.id, ($event as any).detail.cat)"
     @tag-select="onWcTagSelect"
     @viewer-close="emit('viewerClose')"

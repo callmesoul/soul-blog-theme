@@ -139,6 +139,7 @@ export default function HomePage() {
 	          article={currentArticle}
 	          articles={articles.articles}
 	          icons={articles.icons}
+	          giscus={siteConfig.giscus}
 	          onArticleSelect={handleViewerArticleSelect}
 	          onTagSelect={handleTagSelect}
           onViewerClose={handleViewerClose}

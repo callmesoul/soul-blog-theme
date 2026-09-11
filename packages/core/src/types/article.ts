@@ -30,6 +30,8 @@ export interface ArticleComment {
  */
 export interface Article {
   id: string
+  /** 评论系统使用的稳定映射键；未提供时回退到 id。 */
+  commentKey?: string
   cat: string
   title: string
   cover: string

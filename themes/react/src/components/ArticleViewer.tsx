@@ -1,10 +1,11 @@
 import { useRef, useEffect, forwardRef, useImperativeHandle } from 'react'
-import type { Article } from '@soul-blog/wc'
+import type { Article, GiscusConfig } from '@soul-blog/wc'
 
 interface Props {
   article: Article | null
   articles: Article[]
   icons: Record<string, string>
+  giscus: GiscusConfig
   onArticleSelect?: (id: string, cat: string) => void
   onTagSelect?: (tag: string) => void
   onViewerClose?: () => void
@@ -16,7 +17,7 @@ export interface ArticleViewerHandle {
 }
 
 const ArticleViewer = forwardRef<ArticleViewerHandle, Props>(
-  function ArticleViewer({ article, articles, icons, onArticleSelect, onTagSelect, onViewerClose }, ref) {
+  function ArticleViewer({ article, articles, icons, giscus, onArticleSelect, onTagSelect, onViewerClose }, ref) {
     const wcRef = useRef<HTMLElement>(null)
 
     useImperativeHandle(ref, () => ({
@@ -44,6 +45,10 @@ const ArticleViewer = forwardRef<ArticleViewerHandle, Props>(
       ;(el as any).articles = articles
       ;(el as any).icons = icons
     }, [articles, icons])
+
+    useEffect(() => {
+      if (wcRef.current) (wcRef.current as any).giscusConfig = giscus
+    }, [giscus])
 
     useEffect(() => {
       const el = wcRef.current

@@ -145,6 +145,7 @@ if (articleList) {
 if (viewer) {
   viewer.articles = ARTICLES
   viewer.icons = ICONS
+  viewer.giscusConfig = getSiteConfig().giscus
   const catNames = {}
   CATEGORIES.forEach(c => { catNames[c.id] = c.name })
   viewer.catNames = catNames
@@ -257,6 +258,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
   if (aboutPage) {
     aboutPage.config = getSiteConfig().about
+  }
+  if (viewer) {
+    viewer.giscusConfig = getSiteConfig().giscus
   }
 
   applyRoute()

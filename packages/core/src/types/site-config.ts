@@ -35,6 +35,29 @@ export interface ThemeConfig {
   cta: string
 }
 
+/** Giscus 评论配置（GitHub Discussions）。 */
+export interface GiscusConfig {
+  /** 是否启用；关闭时保留内置演示评论区。 */
+  enabled: boolean
+  /** GitHub 仓库，格式为 owner/repo。 */
+  repo: string
+  /** Giscus 配置页生成的仓库节点 ID。 */
+  repoId: string
+  /** 用于保存评论的 Discussion 分类名称。 */
+  category: string
+  /** Giscus 配置页生成的分类节点 ID。 */
+  categoryId: string
+  /** 文章 Discussion 标题前缀；最终拼接 article.commentKey（回退 article.id）。 */
+  termPrefix?: string
+  strict?: boolean
+  reactionsEnabled?: boolean
+  emitMetadata?: boolean
+  inputPosition?: 'top' | 'bottom'
+  theme?: string
+  lang?: string
+  loading?: 'lazy' | 'eager'
+}
+
 /** 社交媒体条目（页脚图标栏） */
 export interface SocialItem {
   name: string
@@ -58,4 +81,5 @@ export interface SiteConfig {
   theme: ThemeConfig
   social: SocialItem[]
   about: AboutPageConfig
+  giscus: GiscusConfig
 }

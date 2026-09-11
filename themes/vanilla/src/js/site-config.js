@@ -62,6 +62,22 @@ export const DEFAULT_SITE_CONFIG = {
     ]
   },
 
+  // Giscus（GitHub Discussions 评论；repoId/categoryId 由 https://giscus.app/zh-CN 生成）
+  giscus: {
+    enabled: true,
+    repo: 'callmesoul/soul-blog-theme',
+    repoId: 'R_kgDOUG1kRA',
+    category: 'Announcements',
+    categoryId: '',
+    termPrefix: 'article:',
+    strict: true,
+    reactionsEnabled: true,
+    inputPosition: 'top',
+    theme: 'dark_dimmed',
+    lang: 'zh-CN',
+    loading: 'lazy'
+  },
+
   // 社交媒体（页脚图标栏，按数组顺序从左到右渲染）
   //   每一条目自动适配以下三种交互形态：
   //     ① href 为有效外链(非空且非 '#') → 渲染为 <a target="_blank">，点击在新窗口打开；

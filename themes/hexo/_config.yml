@@ -42,6 +42,23 @@ logo:
   height: 55
   alt: CallMeSoul
 
+# Giscus 评论（GitHub Discussions）
+# 先在仓库启用 Discussions 并安装 Giscus App，再到 https://giscus.app/zh-CN
+# 生成 repo_id / category_id；字段未填完整时，文章页会显示配置引导。
+giscus:
+  enabled: true
+  repo: callmesoul/soul-blog-theme
+  repo_id: R_kgDOUG1kRA
+  category: Announcements
+  category_id: ''
+  term_prefix: 'article:'
+  strict: true
+  reactions_enabled: true
+  input_position: top
+  theme: dark_dimmed
+  lang: zh-CN
+  loading: lazy
+
 # 关于我页面（D 款：个人宣言）
 # 修改这里即可更新 /about/ 的全部展示内容。
 about:

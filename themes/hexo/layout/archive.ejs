@@ -150,6 +150,7 @@ if (allPosts && allPosts.length) {
     })();
     arts.push({
       id: p.path || p._id || p.slug || p.title,
+      commentKey: p.slug || p.path || p.title,
       cat: artCat,
       title: p.title,
       cover: p.cover || p.thumbnail || '/images/extracted/home/图层_21@2x.png',
@@ -184,7 +185,21 @@ var siteData = {
   aboutUrl: theme.about && theme.about.enabled !== false
     ? url_for('/' + String(theme.about.path || 'about').replace(/^\/+|\/+$/g, '') + '/')
     : '',
-  homeUrl: homeUrl
+  homeUrl: homeUrl,
+  giscus: theme.giscus ? {
+    enabled: theme.giscus.enabled === true,
+    repo: theme.giscus.repo || '',
+    repoId: theme.giscus.repo_id || '',
+    category: theme.giscus.category || '',
+    categoryId: theme.giscus.category_id || '',
+    termPrefix: theme.giscus.term_prefix || 'article:',
+    strict: theme.giscus.strict !== false,
+    reactionsEnabled: theme.giscus.reactions_enabled !== false,
+    inputPosition: theme.giscus.input_position || 'top',
+    theme: theme.giscus.theme || 'dark_dimmed',
+    lang: theme.giscus.lang || 'zh-CN',
+    loading: theme.giscus.loading || 'lazy'
+  } : { enabled: true }
 }
 
 var totalPosts = yearGroups.reduce(function (s, g) { return s + g.total }, 0)

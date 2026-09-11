@@ -6,6 +6,16 @@
 
 ## [Unreleased]
 
+## [1.5.0] - 2026-09-11
+
+### Added
+
+- 文章详情阅读器新增默认启用的可配置 Giscus 评论：四套主题统一通过核心 Web Component 加载 GitHub Discussions，以稳定文章键执行 `specific` 映射，解决 Hash/Query SPA 使用 pathname 时多篇文章串评论的问题；切换推荐文章会同步重建对应评论会话，配置不完整时显示带直达链接的三步引导，显式禁用时保留原演示评论区。
+
+### Changed
+
+- 六个 `package.json` 的版本号随本次发布统一升级为 `1.5.0`，README 同步补充 Giscus 配置字段、启用前置条件与 SPA 映射说明。
+
 ## [1.4.0] - 2026-09-11
 
 ### Added
