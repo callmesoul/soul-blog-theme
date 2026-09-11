@@ -41,6 +41,8 @@ class ArticleViewer extends WcBase {
   private _cardEl: HTMLElement | null = null
   private _trackedPageViewArticleId: string | null = null
   private _pageViewFallbackTimer: number | null = null
+  private _giscusRenderKey = ''
+  private _giscusRenderGeneration = 0
 
   set article (val: Article | null) {
     this._article = val
@@ -425,8 +427,8 @@ class ArticleViewer extends WcBase {
           min-height: 160px;
           padding-top: 20px;
         }
-        .giscus-container .giscus,
-        .giscus-container .giscus-frame {
+        .giscus-container ::slotted(.giscus) {
+          display: block;
           width: 100%;
         }
         .giscus-status {
@@ -774,7 +776,10 @@ class ArticleViewer extends WcBase {
                 </form>
                 <div class="comment-list" data-part="comment-list"></div>
               </div>
-              <div class="giscus-container" data-part="giscus" hidden></div>
+              <div class="giscus-container" data-part="giscus" hidden>
+                <div data-part="giscus-status"></div>
+                <slot name="giscus"></slot>
+              </div>
             </section>
           </main>
           <aside class="viewer-aside" data-part="aside">
@@ -1001,6 +1006,26 @@ class ArticleViewer extends WcBase {
   }
 
   /**
+   * Giscus 的客户端脚本依赖 document.currentScript 和 document.querySelector，
+   * 因而不能直接在 Shadow DOM 内启动。Light DOM 容器通过 slot 投影回评论区，
+   * 既满足官方脚本的运行前提，也保持 iframe 的视觉位置不变。
+   */
+  private _getGiscusMount (): HTMLElement {
+    const existing = Array.from(this.children).find(child =>
+      child instanceof HTMLElement &&
+      child.classList.contains('giscus') &&
+      child.slot === 'giscus'
+    ) as HTMLElement | undefined
+    if (existing) return existing
+
+    const mount = document.createElement('div')
+    mount.className = 'giscus'
+    mount.slot = 'giscus'
+    this.appendChild(mount)
+    return mount
+  }
+
+  /**
    * Giscus 在 SPA 阅读器里不能使用 pathname 映射（多篇文章共享同一路径），
    * 因此用 commentKey（回退 article.id）生成 specific term，切换文章时重建 iframe。
    */
@@ -1011,14 +1036,21 @@ class ArticleViewer extends WcBase {
     const config = this._giscusConfig
     const enabled = config?.enabled === true
     const legacy = this.$('[data-part="legacy-comments"]') as HTMLElement | null
-    const giscus = this.$('[data-part="giscus"]') as HTMLElement | null
+    const container = this.$('[data-part="giscus"]') as HTMLElement | null
+    const statusHost = this.$('[data-part="giscus-status"]') as HTMLElement | null
     const total = this.$('[data-part="comment-total"]') as HTMLElement | null
-    if (!legacy || !giscus) return
+    if (!legacy || !container || !statusHost) return
+
+    const giscus = this._getGiscusMount()
 
     legacy.hidden = enabled
-    giscus.hidden = !enabled
+    container.hidden = !enabled
     if (!enabled) {
+      this._giscusRenderKey = ''
+      this._giscusRenderGeneration++
+      this.querySelectorAll('script[data-giscus-loader]').forEach(script => script.remove())
       giscus.replaceChildren()
+      statusHost.replaceChildren()
       this._syncCommentCount()
       return
     }
@@ -1026,6 +1058,10 @@ class ArticleViewer extends WcBase {
     if (total) total.textContent = '由 GitHub Discussions 提供支持'
     const required = [config.repo, config.repoId, config.category, config.categoryId]
     if (required.some(value => !String(value || '').trim())) {
+      this._giscusRenderKey = ''
+      this._giscusRenderGeneration++
+      this.querySelectorAll('script[data-giscus-loader]').forEach(script => script.remove())
+      giscus.replaceChildren()
       const status = document.createElement('div')
       status.className = 'giscus-status'
       const title = document.createElement('strong')
@@ -1053,20 +1089,47 @@ class ArticleViewer extends WcBase {
         steps.appendChild(item)
       })
       status.append(title, description, steps)
-      giscus.replaceChildren(status)
+      statusHost.replaceChildren(status)
       return
     }
+
+    statusHost.replaceChildren()
+
+    const term = `${config.termPrefix ?? 'article:'}${art.commentKey || art.id}`
+    const renderKey = JSON.stringify({
+      repo: config.repo,
+      repoId: config.repoId,
+      category: config.category,
+      categoryId: config.categoryId,
+      term,
+      strict: config.strict !== false,
+      reactionsEnabled: config.reactionsEnabled !== false,
+      emitMetadata: config.emitMetadata === true,
+      inputPosition: config.inputPosition ?? 'top',
+      theme: config.theme ?? 'dark_dimmed',
+      lang: config.lang ?? 'zh-CN',
+      loading: config.loading ?? 'lazy'
+    })
+    const loader = this.querySelector('script[data-giscus-loader]')
+    const frame = giscus.querySelector('.giscus-frame')
+    if (this._giscusRenderKey === renderKey && (loader || frame)) return
+
+    this._giscusRenderKey = renderKey
+    const generation = ++this._giscusRenderGeneration
+    this.querySelectorAll('script[data-giscus-loader]').forEach(script => script.remove())
+    giscus.replaceChildren()
 
     const script = document.createElement('script')
     script.src = 'https://giscus.app/client.js'
     script.async = true
     script.crossOrigin = 'anonymous'
+    script.dataset.giscusLoader = ''
     script.setAttribute('data-repo', config.repo)
     script.setAttribute('data-repo-id', config.repoId)
     script.setAttribute('data-category', config.category)
     script.setAttribute('data-category-id', config.categoryId)
     script.setAttribute('data-mapping', 'specific')
-    script.setAttribute('data-term', `${config.termPrefix ?? 'article:'}${art.commentKey || art.id}`)
+    script.setAttribute('data-term', term)
     script.setAttribute('data-strict', config.strict === false ? '0' : '1')
     script.setAttribute('data-reactions-enabled', config.reactionsEnabled === false ? '0' : '1')
     script.setAttribute('data-emit-metadata', config.emitMetadata === true ? '1' : '0')
@@ -1074,14 +1137,23 @@ class ArticleViewer extends WcBase {
     script.setAttribute('data-theme', config.theme ?? 'dark_dimmed')
     script.setAttribute('data-lang', config.lang ?? 'zh-CN')
     script.setAttribute('data-loading', config.loading ?? 'lazy')
+    script.addEventListener('load', () => {
+      script.remove()
+      if (generation === this._giscusRenderGeneration) return
+      this._giscusRenderKey = ''
+      this._renderComments()
+    })
     script.addEventListener('error', () => {
-      if (script.parentNode !== giscus) return
+      script.remove()
+      if (generation !== this._giscusRenderGeneration) return
+      this._giscusRenderKey = ''
       const status = document.createElement('p')
       status.className = 'giscus-status'
       status.textContent = '评论加载失败，请检查网络连接或 Giscus 配置。'
-      giscus.replaceChildren(status)
+      giscus.replaceChildren()
+      statusHost.replaceChildren(status)
     })
-    giscus.replaceChildren(script)
+    this.appendChild(script)
   }
 
   // ===== 文章渲染 =====

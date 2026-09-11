@@ -6,6 +6,16 @@
 
 ## [Unreleased]
 
+## [1.5.1] - 2026-09-11
+
+### Changed
+
+- 六个 `package.json` 的版本号随本次补丁发布统一升级为 `1.5.1`；README 中现有的 Giscus 能力、配置字段和 SPA 映射说明经核对后仍与实现一致，无需调整。
+
+### Fixed
+
+- Giscus 客户端不再直接从 `article-viewer` 的 Shadow DOM 启动：改用命名插槽将 Light DOM 评论容器投影回阅读器，并从 Light DOM 加载官方脚本，解决 `document.currentScript` 为 `null` 导致评论 iframe 无法创建的问题；同时按文章与配置生成渲染键，避免同一文章重复渲染时并发加载脚本。
+
 ## [1.5.0] - 2026-09-11
 
 ### Added
