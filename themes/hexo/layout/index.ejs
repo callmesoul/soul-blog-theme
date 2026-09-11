@@ -76,12 +76,12 @@ if (site.posts && site.posts.length) {
       })(),
       title: p.title,
       cover: p.cover || p.thumbnail || '/images/extracted/home/图层_21@2x.png',
-      summary: p.excerpt || p.description || p.content ? p.content.substring(0, 120) : '',
+      summary: p.excerpt || p.description || (p.content ? p.content.substring(0, 120) : ''),
       date: p.date ? p.date.format('YYYY/MM/DD') : '',
       views: p.views || 0,
       commentCount: 0,
       tags: tags,
-      paragraphs: p.content ? [p.content.substring(0, 200)] : []
+      paragraphs: p.content ? [p.content] : []
     });
   });
 }

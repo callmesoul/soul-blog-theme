@@ -159,7 +159,7 @@ if (allPosts && allPosts.length) {
       views: p.views || 0,
       commentCount: 0,
       tags: tags,
-      paragraphs: p.content ? [p.content.substring(0, 200)] : []
+      paragraphs: p.content ? [p.content] : []
     });
   });
 }
