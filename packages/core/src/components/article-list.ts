@@ -93,12 +93,6 @@ class ArticleList extends WcBase {
           align-items: center;
           padding: 40px 59px 20px;
         }
-        @media (max-width: 700px) {
-          .list-header { padding: 40px 20px 20px; }
-        }
-        @media (max-width: 480px) {
-          .list-header { padding: 40px 14px 20px; }
-        }
         .home-icon {
           display: inline-block;
           width: 14px;
@@ -185,6 +179,36 @@ class ArticleList extends WcBase {
           line-height: 1;
           letter-spacing: 0.05em;
         }
+        @media (max-width: 700px) {
+          .list-header { padding: 32px 20px 18px; }
+          .crumb-current {
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+          }
+          .header-divider {
+            min-width: 12px;
+            margin-left: 16px;
+          }
+          .search-trigger {
+            margin-left: 10px;
+            padding-inline: 10px;
+          }
+          .search-trigger-keys { display: none; }
+        }
+        @media (max-width: 480px) {
+          .list-header { padding: 28px 14px 16px; }
+          .header-divider { margin-left: 10px; }
+          .search-trigger {
+            width: 32px;
+            height: 32px;
+            justify-content: center;
+            margin-left: 8px;
+            padding: 0;
+          }
+          .search-trigger-label { display: none; }
+        }
         .article-area {
           flex: 1;
           display: flex;
@@ -241,6 +265,9 @@ class ArticleList extends WcBase {
           object-fit: cover;
         }
         .card-body {
+          flex: 1;
+          display: flex;
+          flex-direction: column;
           padding: 14px 16px 16px;
         }
         .card-title {
@@ -291,6 +318,7 @@ class ArticleList extends WcBase {
           display: flex;
           align-items: center;
           gap: 14px;
+          margin-top: auto;
           font-size: 12px;
           color: #9e9d99;
         }
@@ -425,7 +453,7 @@ class ArticleList extends WcBase {
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="11" cy="11" r="7"></circle><path d="m21 21-4.3-4.3"></path>
           </svg>
-          <span>搜索</span>
+          <span class="search-trigger-label">搜索</span>
           <span class="search-trigger-keys"><kbd>Ctrl</kbd><kbd>Shift</kbd><kbd>F</kbd></span>
         </button>
       </div>

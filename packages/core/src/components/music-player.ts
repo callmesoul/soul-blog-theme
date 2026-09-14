@@ -60,8 +60,11 @@ class MusicPlayer extends WcBase {
           display: flex;
           position: relative;
           z-index: 30;
+          width: 100%;
+          min-width: 0;
           height: 50px;
           min-height: 50px;
+          box-sizing: border-box;
           flex-shrink: 0;
           margin-top: auto;
           background: rgba(0,0,0,0.42);
@@ -71,8 +74,10 @@ class MusicPlayer extends WcBase {
         .player-inner {
           display: flex;
           flex: 1;
+          min-width: 0;
           align-items: center;
           height: 100%;
+          box-sizing: border-box;
           border-top: 1px solid rgba(255,255,255,0.16);
           padding: 0 32px;
         }
@@ -334,6 +339,63 @@ class MusicPlayer extends WcBase {
         }
         .progress-track:hover .progress-thumb { opacity: 1; }
         .progress-track.is-dragging .progress-thumb { opacity: 1; transform: translate(-50%, -50%) scale(1.15); }
+        @media (max-width: 700px) {
+          :host {
+            height: calc(54px + env(safe-area-inset-bottom, 0px));
+            min-height: calc(54px + env(safe-area-inset-bottom, 0px));
+          }
+          .player-inner {
+            padding: 0 max(12px, env(safe-area-inset-right, 0px)) env(safe-area-inset-bottom, 0px) max(12px, env(safe-area-inset-left, 0px));
+          }
+          .player-controls {
+            gap: 2px;
+          }
+          .player-btn.is-control {
+            width: 28px;
+            padding-inline: 4px;
+          }
+          .player-btn.is-primary {
+            margin-inline: 2px;
+          }
+          .player-center {
+            margin: 0 10px;
+          }
+          .progress-row {
+            gap: 6px;
+          }
+          .player-btn.volume-btn,
+          .player-btn.mode-toggle {
+            display: none;
+          }
+          .player-btn.is-pill {
+            width: 32px;
+            height: 32px;
+            flex-shrink: 0;
+            padding: 6px;
+            border-radius: 50%;
+          }
+          .player-btn.is-pill span {
+            display: none;
+          }
+        }
+        @media (max-width: 360px) {
+          .player-inner {
+            padding-left: max(8px, env(safe-area-inset-left, 0px));
+            padding-right: max(8px, env(safe-area-inset-right, 0px));
+          }
+          .player-center {
+            margin-inline: 6px;
+          }
+          .track-sep,
+          .track-artist {
+            display: none;
+          }
+          .time-current,
+          .time-duration {
+            min-width: 28px;
+            font-size: 10px;
+          }
+        }
       </style>
       <div class="player-inner">
         <div class="player-controls">
@@ -683,7 +745,9 @@ class MusicPlayer extends WcBase {
           right: 32px;
           bottom: 60px;
           width: 340px;
+          max-width: calc(100vw - 16px);
           max-height: 420px;
+          box-sizing: border-box;
           background: #0f0e0d;
           border: 1px solid #2a2a2a;
           border-radius: 6px;

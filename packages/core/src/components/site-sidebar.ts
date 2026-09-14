@@ -206,6 +206,21 @@ class SiteSidebar extends WcBase {
           border-radius: 11px;
           background: var(--brand-primary);
           box-shadow: 0 8px 22px rgba(var(--brand-rgb), 0.24);
+          cursor: pointer;
+          text-decoration: none;
+          transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .primary-logo:hover,
+        .primary-logo:focus-visible {
+          transform: translateY(-1px);
+          box-shadow: 0 10px 26px rgba(var(--brand-rgb), 0.32);
+        }
+        .primary-logo:focus-visible {
+          outline: 2px solid #ffffff;
+          outline-offset: 3px;
+        }
+        .primary-logo:active {
+          transform: scale(0.96);
         }
         .primary-logo img {
           display: block;
@@ -875,9 +890,9 @@ class SiteSidebar extends WcBase {
 
       <aside class="sidebar${directoryOpen ? ' directory-open' : ''}${archiveActive ? ' archive-context' : ''}${aboutActive ? ' about-context' : ''}${friendsActive ? ' friends-context' : ''}">
         <div class="primary-rail">
-          <div class="primary-logo" title="${escapeHtml(siteName)}">
+          <a class="primary-logo" href="./#cat=all" aria-label="返回首页" title="${escapeHtml(siteName)} · 首页">
             <img src="/images/extracted/login/图形@2x.png" alt="${escapeHtml(siteName)}">
-          </div>
+          </a>
 
           <nav class="primary-nav" aria-label="一级导航">
             <a class="primary-item${homeActive ? ' active' : ''}"
@@ -979,11 +994,12 @@ class SiteSidebar extends WcBase {
       this._setDirectoryOpen(false)
     })
 
-    const home = this.$<HTMLAnchorElement>('.primary-item[data-cat="all"]')
-    home?.addEventListener('click', (e: Event) => {
-      e.preventDefault()
-      this._setDirectoryOpen(false)
-      this.emit('navigate', { cat: 'all' })
+    this.$$<HTMLAnchorElement>('.primary-logo, .primary-item[data-cat="all"]').forEach(home => {
+      home.addEventListener('click', (e: Event) => {
+        e.preventDefault()
+        this._setDirectoryOpen(false)
+        this.emit('navigate', { cat: 'all' })
+      })
     })
 
     const nav = this.$('.site-nav') as HTMLElement | null

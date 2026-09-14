@@ -136,41 +136,52 @@ pnpm --filter @soul-blog/wc build
 
 ```bash
 # 原生 JS 主题
-pnpm --filter @soul-blog/vanilla build
+pnpm build:vanilla
 
 # Vue 3 主题
-pnpm --filter @soul-blog/vue build
+pnpm build:vue
 
 # React 18 主题
-pnpm --filter @soul-blog/react build
+pnpm build:react
 
 # Hexo 主题
-pnpm --filter @soul-blog/hexo build
+pnpm build:hexo
 ```
 
 ### 本地开发
 
+同时启动全部主题的开发任务：
+
+```bash
+pnpm dev:all
+```
+
+该命令会并行启动 Vanilla、Vue、React 的预览服务，并监听构建 Hexo 主题资源。Hexo 站点预览仍需使用下方的集成工作流。
+
 各主题默认端口：
 
-| 主题       | 端口   | 命令                                       |
-| -------- | ---- | ---------------------------------------- |
-| Vanilla  | 5173 | `pnpm --filter @soul-blog/vanilla dev`   |
-| Vue 3    | 5174 | `pnpm --filter @soul-blog/vue dev`       |
-| React 18 | 5175 | `pnpm --filter @soul-blog/react dev`     |
-| Hexo     | 4000 | 见下方 Hexo 集成工作流                           |
+| 主题       | 端口   | 命令                 |
+| -------- | ---- | ------------------ |
+| Vanilla  | 5173 | `pnpm dev:vanilla` |
+| Vue 3    | 5174 | `pnpm dev:vue`     |
+| React 18 | 5175 | `pnpm dev:react`   |
+| Hexo     | 4000 | 见下方 Hexo 集成工作流       |
 
 ```bash
 # 构建核心库（watch 模式）
-pnpm --filter @soul-blog/wc dev
+pnpm dev:core
 
 # 原生 JS 主题
-pnpm --filter @soul-blog/vanilla dev
+pnpm dev:vanilla
 
 # Vue 3 主题
-pnpm --filter @soul-blog/vue dev
+pnpm dev:vue
 
 # React 18 主题
-pnpm --filter @soul-blog/react dev
+pnpm dev:react
+
+# Hexo 主题资源（watch 模式；站点预览见下方 Hexo 集成工作流）
+pnpm dev:hexo
 ```
 
 > 端口被占用时 Vite 会自动顺延（+1），以启动时实际输出的地址为准。

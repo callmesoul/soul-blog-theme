@@ -367,17 +367,18 @@ class ArticleViewer extends WcBase {
         .viewer-tags {
           display: flex;
           flex-wrap: wrap;
-          gap: 8px;
+          gap: 6px;
           margin: 0 auto 28px;
         }
         .viewer-tag {
           display: inline-block;
-          padding: 4px 11px;
-          font-size: 12px;
+          padding: 2px 8px;
+          font-size: 11px;
+          line-height: 1.5;
           color: #9e9d99;
           background: rgba(255,255,255,0.05);
           border: 1px solid #2a2a2a;
-          border-radius: 999px;
+          border-radius: 3px;
           cursor: pointer;
           text-decoration: none;
           transition: color 0.2s, border-color 0.2s, background 0.2s;
@@ -1009,9 +1010,6 @@ class ArticleViewer extends WcBase {
           .viewer-meta {
             gap: 7px 12px;
           }
-          .viewer-tags {
-            gap: 7px;
-          }
           .viewer-cover {
             aspect-ratio: 4 / 3;
           }
@@ -1090,6 +1088,12 @@ class ArticleViewer extends WcBase {
     this._setupCommentEvents()
     this._setupEmoji()
     this._setupKeyboard()
+  }
+
+  disconnectedCallback (): void {
+    if (this.classList.contains('is-open')) {
+      document.body.classList.remove('article-viewer-open')
+    }
   }
 
   private _setupBackdrop (): void {
@@ -1523,6 +1527,7 @@ class ArticleViewer extends WcBase {
   // ===== FLIP 动画 =====
   private _open (): void {
     this.classList.add('is-open')
+    document.body.classList.add('article-viewer-open')
     this.hidden = false
     this._viewerGen++
     this._renderArticle()
@@ -1530,6 +1535,7 @@ class ArticleViewer extends WcBase {
 
   private _close (): void {
     this.classList.remove('is-open')
+    document.body.classList.remove('article-viewer-open')
     this.hidden = true
     this._viewerGen++
     this._trackedPageViewArticleId = null
@@ -1545,6 +1551,7 @@ class ArticleViewer extends WcBase {
     this._cardEl = cardEl
     this._viewerGen++
     this.classList.add('is-open')
+    document.body.classList.add('article-viewer-open')
     this.hidden = false
     this._renderArticle()
 

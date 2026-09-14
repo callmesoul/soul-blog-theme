@@ -65,7 +65,7 @@ npm run build
 npm run preview
 ```
 
-> 环境要求：Node.js 18+（构建工具为 Vite 8 / Tailwind CSS 4）。
+> 环境要求：Node.js 20+（构建工具为 Vite 8 / Tailwind CSS 4）；开发服务器默认运行在 `http://localhost:5173`。
 
 ## 站点配置
 
@@ -111,4 +111,3 @@ npm run preview
 - 阅读文章：点击列表卡片，阅读器以 FLIP 动画切换；关闭返回列表。
 
 - 其他约定见 [AGENTS.md](./AGENTS.md)（样式与组件化规范）。
-

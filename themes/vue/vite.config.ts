@@ -25,6 +25,9 @@ export default defineConfig({
     tailwindcss(),
   ],
   publicDir: resolve(__dirname, '../../assets'),
+  server: {
+    port: 5174,
+  },
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url))

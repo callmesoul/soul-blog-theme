@@ -1,15 +1,23 @@
 {
   "name": "soul-blog-theme",
   "private": true,
-  "version": "1.6.0",
+  "version": "1.7.0",
   "packageManager": "pnpm@11.13.1",
   "engines": {
     "node": ">=20"
   },
   "scripts": {
+    "dev:all": "pnpm --parallel --filter \"./themes/*\" dev",
+    "dev:core": "pnpm --filter @soul-blog/wc dev",
     "build:core": "pnpm --filter @soul-blog/wc build",
     "typecheck:core": "pnpm --filter @soul-blog/wc typecheck",
     "dev:vanilla": "pnpm --filter @soul-blog/vanilla dev",
-    "build:vanilla": "pnpm --filter @soul-blog/vanilla build"
+    "build:vanilla": "pnpm --filter @soul-blog/vanilla build",
+    "dev:vue": "pnpm --filter @soul-blog/vue dev",
+    "build:vue": "pnpm --filter @soul-blog/vue build",
+    "dev:react": "pnpm --filter @soul-blog/react dev",
+    "build:react": "pnpm --filter @soul-blog/react build",
+    "dev:hexo": "pnpm --filter @soul-blog/hexo dev",
+    "build:hexo": "pnpm --filter @soul-blog/hexo build"
   }
 }

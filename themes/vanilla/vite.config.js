@@ -14,6 +14,9 @@ export default defineConfig({
     }),
   ],
   publicDir: resolve(__dirname, '../../assets'),
+  server: {
+    port: 5173,
+  },
   build: {
     rollupOptions: {
       input: {
