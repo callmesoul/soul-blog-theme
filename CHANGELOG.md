@@ -4,6 +4,22 @@
 
 格式基于 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.0.0/)，版本号遵循 [语义化版本](https://semver.org/lang/zh-CN/)。
 
+## [1.9.0] - 2026-09-16
+
+### Added
+
+- 新增 `pnpm package:hexo`，构建 Core 与 Hexo 后生成独立运行压缩包、版本/提交元数据及 SHA256；tag 发布工作流验证全仓版本、CHANGELOG 和工作区后将产物上传 GitHub Release，解决使用者必须在站点构建整个 monorepo、手工同步产物的问题。
+
+### Changed
+
+- 六个包版本统一升级为 `1.9.0`，提供向后兼容的 Hexo 运行包发布能力。
+- README 补充 Hexo 运行包安装、发布与个人配置/资源分离的更新约定；AGENTS.md 明确默认资源从根 `assets/` 维护，避免编辑被忽略的构建目录导致资源无法随版本发布。
+
+### Fixed
+
+- Hexo Vite 构建现在清理旧产物并复制根 `assets/images/`、`assets/audio/`，解决新克隆仓库构建后缺少默认背景、图标和音乐，以及旧资源残留的问题。
+- 打包命令放在 `tools/`，避开 Hexo 对根 `scripts/` 的插件自动扫描，防止内置预览误执行 ESM 命令行工具。
+
 ## [1.8.0] - 2026-09-16
 
 ### Added

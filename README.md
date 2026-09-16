@@ -21,6 +21,7 @@
 - 👤 **关于我页面** — 杂志式卡片布局的自我介绍页（Manifesto 卡片、Currently 状态、联系方式），内容由 `site-config.json` 的 `about` 字段驱动，改配置即改页面
 
 - 🤝 **动态友链画廊** — 人物画廊式非对称卡片，支持字符标识或头像；Vanilla、Vue、React 与 Hexo 共用核心组件，内容由站点配置驱动
+- 📦 **Hexo 独立运行包** — 发布包包含模板、脚本、JS/CSS、默认图片和音乐；个人配置与资源放在站点独立目录，主题可整体替换更新
 - 💬 **Giscus 文章评论** — 基于 GitHub Discussions，按稳定文章键隔离评论；支持 Vanilla、Vue、React 与 Hexo，切换阅读器文章时自动切换 Discussion
 
 - 📖 **沉浸式文章阅读** — 桌面端控制舒适行宽并强化标题、列表、引用、代码块与图片层级；移动端切换为完整单栏滚动，推荐内容自然衔接在正文之后
@@ -370,10 +371,22 @@ pnpm dev:hexo
 
 ### 生产部署 Hexo
 
-1. 将 `themes/hexo/` 目录复制到你的 Hexo 站点 `themes/` 目录
-2. 在站点 `_config.yml` 中设置 `theme: hexo`
-3. 运行 `hexo generate` 生成静态页面
-4. 部署到你的服务器
+从 v1.9.0 开始，优先使用 GitHub Release 的 `soul-blog-hexo-vX.Y.Z.tar.gz`，它包含 EJS 模板、CommonJS 主题脚本、默认配置、JS/CSS 和完整默认图片/音频；无需在使用站点安装 pnpm 或构建 monorepo。Git tag 源码不包含运行产物，不能用源码压缩包代替运行包。
+
+主题维护者本地打包：
+
+```bash
+pnpm install --frozen-lockfile
+pnpm package:hexo
+```
+
+输出在 `dist/hexo/`：版本压缩包、`hexo-release.json`（含版本、提交、包 SHA256）及 `SHA256SUMS`。解压后得到 `hexo/` 主题目录，放在站点 `themes/hexo/`，并在站点 `_config.yml` 设置 `theme: hexo`，再运行 `hexo generate`。发布包里的 `theme.json` 可追溯构建源码；本地未提交的包标记为 `dirty`，仅供预览。
+
+使用站点应把 `themes/hexo/` 当作可整体删除并重建的目录：个人配置维护在 `theme/config.yml`，个人资源维护在 `theme/assets/images/`、`theme/assets/audio/`。安装器先校验发布包并准备完整目录，再将默认配置与个人配置合并（对象逐层覆盖、数组整体替换，`[]` 清空），最后覆盖个人资源并替换主题。未修改的默认资源不要复制进个人覆盖目录，未填写的配置继承新版本默认值。
+
+`callmesoul.github.io` 站点已采用此流程：`npm run theme:update -- vX.Y.Z` 安装并锁定版本及 SHA256，`npm run dev` / `npm run build` 自动同步；下载或配置解析失败保留旧主题。旧版 v1.8.0 无运行包，保留源码构建兼容路径，安装新版发布包后切换到直接下载。
+
+正式发布前按 AGENTS.md 完成统一版本、CHANGELOG、README 后提交，并推送对应 `vX.Y.Z` tag。`.github/workflows/release-hexo.yml` 会重新构建、验证 tag/版本/最新 CHANGELOG 和干净工作区，再创建或使用 GitHub Release 上传三个产物；不会覆盖已有同名资源。
 
 ### 添加新组件
 

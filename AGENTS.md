@@ -134,7 +134,8 @@ pnpm dev:hexo
    - 可使用 `fuser -k 4000/tcp` 结束旧进程
 
 4. **图片/静态资源路径**
-   - 所有图片放在 `themes/hexo/source/images/` 下
+   - 默认图片/音频维护在根目录 `assets/images/`、`assets/audio/`；Hexo 构建自动复制到 `themes/hexo/source/`
+   - `themes/hexo/source/` 是会清理重建的生成目录，不要直接编辑；使用者个人资源应维护在站点的独立目录
    - CSS/JS 输出到 `themes/hexo/source/css/` 和 `js/`
 
 ## 完整命令速查（一次修改完整流程）
@@ -150,3 +151,11 @@ pnpm dev:hexo
 ```
 
 然后浏览器硬刷新 `http://localhost:4000/`。
+
+## Hexo 运行包发布
+
+- `pnpm package:hexo` 会重新构建 Core 和 Hexo，再输出 `dist/hexo/` 下的运行包、`hexo-release.json` 和 `SHA256SUMS`。
+- 正式发布仍必须先统一六个包的版本、整理 CHANGELOG 最新正式版本、核对 README，然后提交并创建对应 `vX.Y.Z` tag。
+- `.github/workflows/release-hexo.yml` 在 tag 推送时执行 `pnpm package:hexo --release` 并上传 Release；校验失败不发布。已存在的同名 Release 资源不会覆盖。
+- 运行包只含模板、主题脚本、默认配置和完整运行资源，不含 workspace 依赖或构建工具。
+- 使用站点把主题目录视为整体生成物，个人配置与资源放在主题目录外；升级不再逐文件比对。

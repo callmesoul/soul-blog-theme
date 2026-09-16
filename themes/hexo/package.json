@@ -1,7 +1,7 @@
 {
   "name": "@soul-blog/hexo",
   "private": true,
-  "version": "1.8.0",
+  "version": "1.9.0",
   "type": "module",
   "scripts": {
     "build": "vite build",
