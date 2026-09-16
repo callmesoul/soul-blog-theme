@@ -16,6 +16,7 @@ export default defineConfig({
             || tag.startsWith('article-')
             || tag.startsWith('archive-')
             || tag.startsWith('about-')
+            || tag.startsWith('friends-')
             || tag.startsWith('search-')
             || tag.startsWith('music-')
             || tag.startsWith('login-')

@@ -26,6 +26,7 @@ const icp = data?.icp || ''
 const social = data?.social || []
 const archiveUrl = data?.archiveUrl || ''
 const aboutUrl = data?.aboutUrl || ''
+const friendsUrl = data?.friendsUrl || ''
 const homeUrl = data?.homeUrl || '/'
 const giscus = data?.giscus || { enabled: true }
 
@@ -43,7 +44,7 @@ function getHashCat () {
   return m ? decodeURIComponent(m[1]) : 'all'
 }
 function getHashArt () {
-  const m = location.hash.match(/[#&]art=([\w-]+)/)
+  const m = location.hash.match(/[#&]art=([^&]+)/)
   return m ? decodeURIComponent(m[1]) : null
 }
 function getHashTag () {
@@ -63,8 +64,8 @@ function resolveCat (id) {
   return catById(id) ? id : 'all'
 }
 function buildArticleHash (artId, catId) {
-  const cat = catId ? `cat=${catId}` : ''
-  return '#' + (cat ? `${cat}&` : '') + `art=${artId}`
+  const cat = catId ? `cat=${encodeURIComponent(catId)}` : ''
+  return '#' + (cat ? `${cat}&` : '') + `art=${encodeURIComponent(artId)}`
 }
 
 // =====================================================================
@@ -76,6 +77,7 @@ const viewer = document.querySelector('article-viewer')
 const searchPanel = document.querySelector('search-panel')
 const searchResults = document.querySelector('search-results')
 const aboutPage = document.querySelector('about-page')
+const friendsPage = document.querySelector('friends-page')
 
 if (sidebar) {
   sidebar.categories = CATEGORIES.map(c => ({
@@ -90,6 +92,7 @@ if (sidebar) {
   sidebar.tags = data?.tags && data.tags.length ? data.tags : collectTags()
   sidebar.archiveUrl = archiveUrl
   sidebar.aboutUrl = aboutUrl
+  sidebar.friendsUrl = friendsUrl
   sidebar.addEventListener('navigate', e => {
     const hash = e.detail.tag
       ? '#tag=' + encodeURIComponent(e.detail.tag)
@@ -106,6 +109,10 @@ if (sidebar) {
 
 if (aboutPage) {
   aboutPage.config = data?.about || {}
+}
+
+if (friendsPage) {
+  friendsPage.config = data?.friends || {}
 }
 
 if (articleList) {

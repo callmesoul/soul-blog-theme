@@ -18,6 +18,9 @@ var siteData = {
   aboutUrl: theme.about && theme.about.enabled !== false
     ? url_for('/' + String(theme.about.path || 'about').replace(/^\/+|\/+$/g, '') + '/')
     : '',
+  friendsUrl: theme.friends && theme.friends.enabled !== false
+    ? url_for('/' + String(theme.friends.path || 'friends').replace(/^\/+|\/+$/g, '') + '/')
+    : '',
   homeUrl: url_for('/')
 };
 %>

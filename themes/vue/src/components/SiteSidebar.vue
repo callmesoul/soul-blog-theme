@@ -14,10 +14,13 @@ const props = withDefaults(defineProps<{
   archiveUrl?: string
   /** 关于页地址（默认 Vue hash 路由），设为 '' 可隐藏关于导航 */
   aboutUrl?: string
+  /** 友链页地址（默认 Vue hash 路由），设为 '' 可隐藏友链导航 */
+  friendsUrl?: string
 }>(), {
   tags: () => [],
   archiveUrl: '#/archives',
-  aboutUrl: '#/about'
+  aboutUrl: '#/about',
+  friendsUrl: '#/friends'
 })
 
 const emit = defineEmits<{
@@ -36,6 +39,7 @@ function setData() {
   ;(el as any).icp = props.icp
   ;(el as any).archiveUrl = props.archiveUrl
   ;(el as any).aboutUrl = props.aboutUrl
+  ;(el as any).friendsUrl = props.friendsUrl
   el.setAttribute('active-cat', props.activeCat)
   if (props.activeTag) el.setAttribute('active-tag', props.activeTag)
 }
@@ -59,6 +63,10 @@ watch(() => props.archiveUrl, (val) => {
 
 watch(() => props.aboutUrl, (val) => {
   if (wcRef.value) (wcRef.value as any).aboutUrl = val
+})
+
+watch(() => props.friendsUrl, (val) => {
+  if (wcRef.value) (wcRef.value as any).friendsUrl = val
 })
 
 watch(() => props.categories, (val) => {

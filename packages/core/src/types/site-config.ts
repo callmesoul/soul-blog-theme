@@ -1,4 +1,5 @@
 import type { AboutPageConfig } from './about'
+import type { FriendsPageConfig } from './friends'
 
 // =====================================================================
 // 站点品牌配置 类型契约
@@ -81,5 +82,7 @@ export interface SiteConfig {
   theme: ThemeConfig
   social: SocialItem[]
   about: AboutPageConfig
+  /** 友链页面配置；未提供时由具体主题使用内置默认值 */
+  friends?: FriendsPageConfig
   giscus: GiscusConfig
 }

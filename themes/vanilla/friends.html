@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="h-full overflow-hidden">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>友链 - CallMeSoul</title>
+</head>
+<body class="relative flex h-full min-h-screen flex-col overflow-hidden bg-[#080808] font-sans text-[14px] leading-[1.6] tracking-[0.01em] text-white antialiased">
+  <site-background image="/images/extracted/home/081a7f1fa54d497bc3afcaa85c41528c@2x.png"></site-background>
+
+  <div class="relative z-10 flex min-h-0 flex-1 overflow-hidden">
+    <site-sidebar active-cat="friends"></site-sidebar>
+    <div class="flex min-w-0 flex-1 flex-col overflow-hidden">
+      <friends-page></friends-page>
+    </div>
+  </div>
+
+  <search-panel></search-panel>
+  <music-player></music-player>
+
+  <script type="module" src="/src/js/main.js"></script>
+</body>
+</html>

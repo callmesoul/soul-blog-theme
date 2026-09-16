@@ -13,12 +13,12 @@ interface Props {
   archiveUrl?: string
   /** 关于页地址（默认 /about），设为 '' 可隐藏关于导航 */
   aboutUrl?: string
-  /** 友链页地址（默认 /friends-demo），设为 '' 可隐藏友链导航 */
+  /** 友链页地址（默认 /friends），设为 '' 可隐藏友链导航 */
   friendsUrl?: string
   onNavigate?: (cat: string, tag?: string) => void
 }
 
-export default function SiteSidebar({ categories, tags, social, siteName, icp, activeCat, activeTag, archiveUrl = '/archives', aboutUrl = '/about', friendsUrl = '/friends-demo', onNavigate }: Props) {
+export default function SiteSidebar({ categories, tags, social, siteName, icp, activeCat, activeTag, archiveUrl = '/archives', aboutUrl = '/about', friendsUrl = '/friends', onNavigate }: Props) {
   const ref = useRef<HTMLElement>(null)
 
   useEffect(() => {

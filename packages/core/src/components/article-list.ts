@@ -560,7 +560,9 @@ class ArticleList extends WcBase {
     this.$$<HTMLElement>('.article-card').forEach(card => {
       const articleId = card.dataset.id || ''
       if (!articleId || this._remoteViews.has(articleId)) return
-      void readVercountArticleView(articleId).then(views => {
+      const article = this._articles.find(item => item.id === articleId)
+      const statsKey = article?.statsKey || articleId
+      void readVercountArticleView(statsKey).then(views => {
         // 打开文章的写入结果可能比较旧的列表 GET 先返回，不要用旧值覆盖。
         if (this._remoteViews.has(articleId)) return
         if (views !== null) this._applyRemoteViews(articleId, views)

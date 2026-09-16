@@ -1,13 +1,16 @@
 {
   "name": "soul-blog-theme",
   "private": true,
-  "version": "1.7.0",
+  "version": "1.8.0",
   "packageManager": "pnpm@11.13.1",
   "engines": {
     "node": ">=20"
   },
+  "hexo": {
+    "version": "7.3.0"
+  },
   "scripts": {
-    "dev:all": "pnpm --parallel --filter \"./themes/*\" dev",
+    "dev:all": "concurrently --kill-others --names themes,hexo \"pnpm --parallel --filter './themes/*' dev\" \"pnpm dev:hexo:server\"",
     "dev:core": "pnpm --filter @soul-blog/wc dev",
     "build:core": "pnpm --filter @soul-blog/wc build",
     "typecheck:core": "pnpm --filter @soul-blog/wc typecheck",
@@ -17,7 +20,18 @@
     "build:vue": "pnpm --filter @soul-blog/vue build",
     "dev:react": "pnpm --filter @soul-blog/react dev",
     "build:react": "pnpm --filter @soul-blog/react build",
-    "dev:hexo": "pnpm --filter @soul-blog/hexo dev",
+    "dev:hexo": "concurrently --kill-others --names assets,server \"pnpm dev:hexo:assets\" \"pnpm dev:hexo:server\"",
+    "dev:hexo:assets": "pnpm --filter @soul-blog/hexo dev",
+    "dev:hexo:server": "hexo server --config fixtures/hexo/_config.yml -p 4000",
     "build:hexo": "pnpm --filter @soul-blog/hexo build"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.4",
+    "hexo": "^7.3.0",
+    "hexo-generator-archive": "^2.0.0",
+    "hexo-generator-index": "^4.0.0",
+    "hexo-renderer-ejs": "^2.0.0",
+    "hexo-renderer-marked": "^7.0.1",
+    "hexo-server": "^3.0.0"
   }
 }

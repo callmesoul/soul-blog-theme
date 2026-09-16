@@ -10,6 +10,7 @@ declare global {
       'article-list': CustomElement<HTMLElement> & { 'active-cat'?: string }
       'archive-list': CustomElement<HTMLElement>
       'about-page': CustomElement<HTMLElement>
+      'friends-page': CustomElement<HTMLElement>
       'article-viewer': CustomElement<HTMLElement>
       'search-panel': CustomElement<HTMLElement>
       'search-results': CustomElement<HTMLElement>

@@ -55,14 +55,17 @@ const searchPanel = document.querySelector('search-panel')
 const searchResults = document.querySelector('search-results')
 const archiveList = document.querySelector('archive-list')
 const aboutPage = document.querySelector('about-page')
+const friendsPage = document.querySelector('friends-page')
 
 /** 独立页面内点击分类/标签时需跳回首页应用筛选。 */
 const isArchivePage = !!archiveList
 const isAboutPage = !!aboutPage
-const isStandalonePage = isArchivePage || isAboutPage
+const isFriendsPage = !!friendsPage
+const isStandalonePage = isArchivePage || isAboutPage || isFriendsPage
 const homePage = 'index.html'
 const archivePage = 'archives.html'
 const aboutPageUrl = 'about.html'
+const friendsPageUrl = 'friends.html'
 
 // 收集所有标签及计数
 function collectTags () {
@@ -88,6 +91,7 @@ if (sidebar) {
   sidebar.icp = config.site.icp
   sidebar.archiveUrl = archivePage
   sidebar.aboutUrl = aboutPageUrl
+  sidebar.friendsUrl = friendsPageUrl
   sidebar.addEventListener('navigate', e => {
     const hash = e.detail.tag
       ? '#tag=' + encodeURIComponent(e.detail.tag)
@@ -103,6 +107,11 @@ if (sidebar) {
 // 关于我页面由共享配置驱动，与 Hexo / Vue / React 复用同一核心组件。
 if (aboutPage) {
   aboutPage.config = getSiteConfig().about
+}
+
+// 友链人物画廊与其他主题复用同一配置和核心组件。
+if (friendsPage) {
+  friendsPage.config = getSiteConfig().friends
 }
 
 // 归档列表
@@ -255,9 +264,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     sidebar.siteName = siteName()
     sidebar.icp = config.site.icp
     sidebar.aboutUrl = aboutPageUrl
+    sidebar.friendsUrl = friendsPageUrl
   }
   if (aboutPage) {
     aboutPage.config = getSiteConfig().about
+  }
+  if (friendsPage) {
+    friendsPage.config = getSiteConfig().friends
   }
   if (viewer) {
     viewer.giscusConfig = getSiteConfig().giscus
@@ -271,6 +284,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
   if (isAboutPage && sidebar) {
     sidebar.setAttribute('active-cat', 'about')
+  }
+  if (isFriendsPage && sidebar) {
+    sidebar.setAttribute('active-cat', 'friends')
   }
 
   // 调试钩子

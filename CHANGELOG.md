@@ -4,7 +4,27 @@
 
 格式基于 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.0.0/)，版本号遵循 [语义化版本](https://semver.org/lang/zh-CN/)。
 
-## [Unreleased]
+## [1.8.0] - 2026-09-16
+
+### Added
+
+- 新增仓库内置的 `fixtures/hexo` 开发站点；`pnpm dev:all` 与 `pnpm dev:hexo` 现会在监听构建 Hexo 主题资源的同时直接启动 4000 端口预览，并统一管理并发子进程，解决原命令依赖易丢失的 `/tmp/hexo-test` 站点、首次运行即因目录不存在而终止全部服务的问题。
+- 友链人物画廊下沉为第 11 个核心 Web Component `<friends-page>`，并接入 Vanilla `friends.html`、Vue `#/friends`、React `/friends` 与 Hexo `/friends/`；前三端由 `site-config.json`、Hexo 由主题 `_config.yml` 的 `friends` 节点驱动，标题、说明和友链数组均可动态调整，友链支持独立地址、展示域名、介绍、字符标识、主题色与可选头像，解决原实现仅覆盖 React 且内容写死的问题。
+- README 截图预览补充友链页 `assets/screenshots/friends.png`（1424×749，与既有截图规格一致）。
+
+### Changed
+
+- 友链入口由 React 独有的 `/friends-demo` 统一为四端一致的 `/friends`：Vue 端 `<SiteSidebar>` 补齐此前缺失的 `friendsUrl` 属性与变更监听，React 端默认值同步指向 `/friends`，Vite 多页入口与自定义元素扫描配置放行 `friends`，解决四端友链入口命名分裂、Vue 侧无法配置友链地址的问题。
+- `pnpm-workspace.yaml` 放行 `hexo-util` 的构建脚本；`.gitignore` 补充忽略仓库根目录运行时生成的 `db.json` 与本地工具目录 `.workbuddy/`，避免内置 Hexo 预览站点产生的文件污染工作区。
+- 六个 `package.json` 的版本号统一升级为 `1.8.0`；AGENTS.md 修正 React 预览端口笔误（5176 → 5175），并给版本号替换的 `sed` 命令补上行首缩进锚定，修复原写法会连带改写根 `package.json` 中 `hexo.version` 的问题。
+
+### Removed
+
+- 移除 React 主题的 `FriendsDemoPage` 与 `friends-demo.css`；其「人物画廊」方案已由配置驱动的 `<friends-page>` 落地，仅用于方案对比的静态展台不再保留。
+
+### Fixed
+
+- Hexo 文章 ID 改为使用稳定的永久路径，并在核心 `Article` 契约中增加独立的 `statsKey`；Vercount 不再使用会随 Hexo `db.json` 重建而变化的内部 `_id`，修复每次全新部署后单篇文章访问量从新计数，以及首页、归档页与独立文章页计数键不一致的问题。
 
 ## [1.7.0] - 2026-09-14
 

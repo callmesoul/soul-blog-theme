@@ -110,12 +110,15 @@ function renderCounters (data: VercountData): void {
 }
 
 /** 为所有主题生成一致的、不会受 hash 路由影响的文章统计 URL。 */
-export function vercountArticleUrl (articleId: string): string {
-  return new URL(`/articles/${encodeURIComponent(articleId)}`, window.location.origin).href
+export function vercountArticleUrl (articleKey: string): string {
+  return new URL(`/articles/${encodeURIComponent(articleKey)}`, window.location.origin).href
 }
 
 /** 打开文章时记录一次 PV，并通知列表更新对应卡片。 */
-export async function recordVercountArticleView (articleId: string): Promise<number | null> {
+export async function recordVercountArticleView (
+  articleId: string,
+  statsKey: string = articleId
+): Promise<number | null> {
   articleWriteStarted = true
   const writeSequence = ++articleWriteSequence
   if (initialVisitTimer !== null) {
@@ -123,7 +126,7 @@ export async function recordVercountArticleView (articleId: string): Promise<num
     initialVisitTimer = null
   }
 
-  const url = vercountArticleUrl(articleId)
+  const url = vercountArticleUrl(statsKey)
   const data = await requestVercount(url, true)
   if (!data) {
     finishSiteCounterLoading()
@@ -141,8 +144,8 @@ export async function recordVercountArticleView (articleId: string): Promise<num
 }
 
 /** 首页文章卡片只读查询，不会增加页面或站点 PV。 */
-export function readVercountArticleView (articleId: string): Promise<number | null> {
-  const url = vercountArticleUrl(articleId)
+export function readVercountArticleView (articleKey: string): Promise<number | null> {
+  const url = vercountArticleUrl(articleKey)
   const cached = articleReadCache.get(url)
   if (cached) return cached
 

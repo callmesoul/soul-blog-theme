@@ -34,9 +34,11 @@ cd /home/callmesoul/code/soul-blog-theme
 for f in package.json packages/core/package.json \
          themes/vanilla/package.json themes/vue/package.json \
          themes/react/package.json themes/hexo/package.json; do
-  sed -i 's/"version": "[^"]*"/"version": "1.2.0"/' "$f"
+  sed -i 's/^  "version": "[^"]*"/  "version": "1.2.0"/' "$f"
 done
 ```
+
+> **必须用 `^  ` 锚定行首两个空格**。根 `package.json` 里还有一个 `"hexo": { "version": "7.3.0" }`，若不锚定缩进，`sed` 会把 Hexo 版本号一起改成主题版本号，导致 `pnpm dev:hexo` 拉取错误的 Hexo。改完务必 `git diff package.json` 复核。
 
 版本号遵循 [语义化版本](https://semver.org/lang/zh-CN/)：
 
@@ -57,7 +59,7 @@ done
 有新增或变更能力时，逐项核对以下位置是否与代码现状一致，不一致就改：
 
 - [ ] `## ✨ 特性` — 新增页面 / 能力是否补了条目
-- [ ] `## 📸 截图预览` — 是否要新增或重拍截图（规格 **1424×749**，统一从 React 端 `http://localhost:5176` 取图）
+- [ ] `## 📸 截图预览` — 是否要新增或重拍截图（规格 **1424×749**，统一从 React 端 `http://localhost:5175` 取图）
 - [ ] `## 🗂️ 项目架构` — `components/` 注释里的组件总数
 - [ ] `## 组件清单` — 表格是否覆盖全部 Web Components
 - [ ] `## 路由 & 页面` — 路由表是否覆盖全部页面
@@ -101,24 +103,16 @@ pnpm build
 ```
 构建输出到 `themes/hexo/source/` 目录。
 
-### 3. 同步到 Hexo 测试站点
-测试站点位于 `/tmp/hexo-test/`，需要同步构建好的主题：
-```bash
-rm -rf /tmp/hexo-test/themes/hexo/
-cp -r /home/callmesoul/code/soul-blog-theme/themes/hexo /tmp/hexo-test/themes/
-cd /tmp/hexo-test
-hexo clean
-hexo generate
-```
+### 3. 使用仓库内置 Hexo 测试站点
+测试配置和示例文章位于 `fixtures/hexo/`，会直接加载仓库中的 `themes/hexo`，无需复制主题目录。运行时生成文件写入 `/tmp/hexo-test/`。
 
 ### 4. 启动/重启 Hexo 服务
 ```bash
-# 杀掉旧进程，启动新服务
-fuser -k 4000/tcp 2>/dev/null
-sleep 2
-cd /tmp/hexo-test
-hexo server -p 4000
+cd /home/callmesoul/code/soul-blog-theme
+pnpm dev:hexo
 ```
+
+也可以运行 `pnpm dev:all`，同时启动 Vanilla、Vue、React 与 Hexo 的全部开发服务。
 
 ### 5. 浏览器验证
 打开 `http://localhost:4000/`，必须使用 **硬刷新** 加载最新文件：
@@ -127,17 +121,17 @@ hexo server -p 4000
 
 ## 常见坑点
 
-1. **忘记重新构建 `themes/hexo`**
-   - 修改 `packages/core` 后，`themes/hexo` 导入的是 npm 包链接，必须重新构建才能包含新代码
-   - 否则浏览器加载的还是旧 `main.js`，修改不生效
+1. **忘记重新构建 Core**
+   - 修改 `packages/core` 后必须先运行 `pnpm build:core`
+   - `pnpm dev:hexo` 会持续构建 Hexo 主题资源，但不会替代 Core 构建
 
 2. **浏览器缓存**
    - Hexo 生成后文件名不变，浏览器会缓存旧文件
    - 必须硬刷新才能看到修改
 
 3. **端口占用**
-   - 重启服务时需要先杀掉占用 4000 端口的旧进程
-   - 使用 `fuser -k 4000/tcp` 杀掉
+   - Hexo 固定使用 4000 端口；启动失败时先检查是否已有旧服务占用
+   - 可使用 `fuser -k 4000/tcp` 结束旧进程
 
 4. **图片/静态资源路径**
    - 所有图片放在 `themes/hexo/source/images/` 下
@@ -150,21 +144,9 @@ hexo server -p 4000
 cd /home/callmesoul/code/soul-blog-theme/packages/core
 pnpm build
 
-# 2. 构建 hexo 主题
-cd /home/callmesoul/code/soul-blog-theme/themes/hexo
-pnpm build
-
-# 3. 同步到测试站，重新生成
-rm -rf /tmp/hexo-test/themes/hexo/
-cp -r /home/callmesoul/code/soul-blog-theme/themes/hexo /tmp/hexo-test/themes/
-cd /tmp/hexo-test
-hexo clean
-hexo generate
-
-# 4. 重启服务
-fuser -k 4000/tcp 2>/dev/null
-sleep 2
-hexo server -p 4000 &
+# 2. 启动 Hexo 主题 watch 与内置预览站点
+cd /home/callmesoul/code/soul-blog-theme
+pnpm dev:hexo
 ```
 
 然后浏览器硬刷新 `http://localhost:4000/`。

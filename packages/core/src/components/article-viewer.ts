@@ -122,7 +122,7 @@ class ArticleViewer extends WcBase {
 
   /**
    * Vercount 的展示节点位于普通 DOM，通过 page-views slot 投影进 Shadow DOM。
-   * 文章统一映射为 /articles/{id}，避免 SPA hash 被统计服务忽略。
+   * 文章统一映射为 /articles/{statsKey}，避免 SPA hash 被统计服务忽略。
    */
   private _trackPageView (article: Article): void {
     if (this._trackedPageViewArticleId === article.id) return
@@ -151,7 +151,7 @@ class ArticleViewer extends WcBase {
       finish(Number(article.views) || 0)
     }, 5000)
 
-    void recordVercountArticleView(article.id).then(views => {
+    void recordVercountArticleView(article.id, article.statsKey || article.id).then(views => {
       finish(views ?? (Number(article.views) || 0))
     })
   }

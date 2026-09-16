@@ -19,6 +19,8 @@
 - 🗂 **归档时间线** — 按 年 → 月 → 文章 三级倒序归档，年份快捷导航、月份可折叠、滚动触底自动续载（IntersectionObserver）
 
 - 👤 **关于我页面** — 杂志式卡片布局的自我介绍页（Manifesto 卡片、Currently 状态、联系方式），内容由 `site-config.json` 的 `about` 字段驱动，改配置即改页面
+
+- 🤝 **动态友链画廊** — 人物画廊式非对称卡片，支持字符标识或头像；Vanilla、Vue、React 与 Hexo 共用核心组件，内容由站点配置驱动
 - 💬 **Giscus 文章评论** — 基于 GitHub Discussions，按稳定文章键隔离评论；支持 Vanilla、Vue、React 与 Hexo，切换阅读器文章时自动切换 Discussion
 
 - 📖 **沉浸式文章阅读** — 桌面端控制舒适行宽并强化标题、列表、引用、代码块与图片层级；移动端切换为完整单栏滚动，推荐内容自然衔接在正文之后
@@ -44,6 +46,8 @@
 | ![登录页](assets/screenshots/login.png) | ![搜索页](assets/screenshots/search.png) |
 |                   **归档页**                  |                 **关于我**                  |
 | ![归档页](assets/screenshots/archives.png) | ![关于我](assets/screenshots/about.png) |
+|                   **友链**                   |                                          |
+| ![友链](assets/screenshots/friends.png) |                                          |
 
 ## 🗂️ 项目架构
 
@@ -52,10 +56,10 @@ soul-blog-theme/
 ├── packages/
 │   └── core/                      # @soul-blog/wc — 框架无关的组件库（唯一 UI 真源）
 │       └── src/
-│           ├── components/        # 10 个 Web Components（Shadow DOM + 自包含样式）
+│           ├── components/        # 11 个 Web Components（Shadow DOM + 自包含样式）
 │           ├── helpers/           # 工具函数（wc-base、store、search、escape-html、format-time）
 │           ├── styles/            # Tailwind v4 主题变量与设计令牌
-│           └── types/             # TypeScript 类型契约（Article / Category / SocialItem）
+│           └── types/             # TypeScript 类型契约（Article / Category / FriendLink 等）
 │
 ├── themes/
 │   ├── vanilla/                   # 原生 JS 主题（Vite 多页应用）
@@ -68,6 +72,9 @@ soul-blog-theme/
 │   ├── screenshots/               # README 引用截图
 │   ├── images/                    # 站点图片资源
 │   └── audio/                     # 音乐播放器默认曲目
+│
+├── fixtures/
+│   └── hexo/                      # 仓库内置 Hexo 预览配置与示例文章
 │
 ├── design/                        # 原始设计稿（PSD / PNG）
 │
@@ -86,6 +93,7 @@ soul-blog-theme/
 | ArticleList    | `<article-list>`    | 文章卡片网格（分类筛选、标签筛选、入场动画、滚动续载）                 |
 | ArchiveList    | `<archive-list>`    | 归档时间线（年 → 月 → 文章、年份快捷导航、月份折叠、滚动续载）           |
 | AboutPage      | `<about-page>`      | 关于我页面（杂志式卡片布局，内容由 site-config 的 `about` 驱动）       |
+| FriendsPage    | `<friends-page>`    | 友链人物画廊（动态标题、链接、标识、颜色及可选头像）                    |
 | ArticleViewer  | `<article-viewer>`  | 响应式文章阅读器（FLIP 动画、富文本排版、Giscus 评论、相关推荐、tag 点击路由）  |
 | SearchPanel    | `<search-panel>`    | 搜索弹出层（模糊搜索、键盘导航；Ctrl/Cmd + Shift + F 唤起）      |
 | SearchResults  | `<search-results>`  | 搜索结果列表（独立 `/search` 路由，复用 ArticleList 渲染逻辑）     |
@@ -110,7 +118,7 @@ soul-blog-theme/
 | Vanilla  | 模块级变量   | Hash 路由        | —                          |
 | Vue 3    | Pinia   | Vue Router 4   | `@vitejs/plugin-vue`       |
 | React 18 | Zustand | React Router 6 | `@vitejs/plugin-react`     |
-| Hexo     | —       | —              | EJS 模板                     |
+| Hexo     | —       | Hexo 7 路由      | EJS 模板                     |
 
 ## 快速开始
 
@@ -156,7 +164,7 @@ pnpm build:hexo
 pnpm dev:all
 ```
 
-该命令会并行启动 Vanilla、Vue、React 的预览服务，并监听构建 Hexo 主题资源。Hexo 站点预览仍需使用下方的集成工作流。
+该命令会并行启动 Vanilla、Vue、React 的预览服务、Hexo 主题资源监听构建，以及使用 `fixtures/hexo` 内置开发站点的 `hexo server`。无需提前创建或同步 `/tmp/hexo-test`；需要生成静态产物时，输出目录已指向该路径。
 
 各主题默认端口：
 
@@ -165,7 +173,7 @@ pnpm dev:all
 | Vanilla  | 5173 | `pnpm dev:vanilla` |
 | Vue 3    | 5174 | `pnpm dev:vue`     |
 | React 18 | 5175 | `pnpm dev:react`   |
-| Hexo     | 4000 | 见下方 Hexo 集成工作流       |
+| Hexo     | 4000 | `pnpm dev:hexo`    |
 
 ```bash
 # 构建核心库（watch 模式）
@@ -180,7 +188,7 @@ pnpm dev:vue
 # React 18 主题
 pnpm dev:react
 
-# Hexo 主题资源（watch 模式；站点预览见下方 Hexo 集成工作流）
+# Hexo 主题资源（watch 模式）+ 内置预览站点
 pnpm dev:hexo
 ```
 
@@ -197,10 +205,10 @@ pnpm dev:hexo
 | `/search`    | 独立搜索结果页                  | `search-results`                       |
 | `/archives`  | 归档时间线（年 → 月 → 文章）        | `archive-list`                         |
 | `/about`     | 关于我（杂志式卡片自我介绍页）        | `about-page`                           |
-| `/friends-demo` | React 端友链页面设计提案（三种布局切换） | React 页面组件、`site-sidebar`            |
+| `/friends`    | 友链（人物画廊式卡片列表）          | `friends-page`、`site-sidebar`            |
 | `/login`     | 登录页                      | `login-panel`                          |
 
-> Hexo 版对应 `/archives/`（默认 `archive_dir`），正文页在归档 / 首页里通过 FLIP 翻转在原地弹出阅读器，无独立文章页 URL，便于静态托管 SEO。
+> Vanilla 版友链入口为 `friends.html`，Vue 版为 `#/friends`，React 与 Hexo 版为 `/friends`。Hexo 归档对应 `/archives/`（默认 `archive_dir`），正文页在归档 / 首页里通过 FLIP 翻转在原地弹出阅读器，无独立文章页 URL，便于静态托管 SEO。
 
 ## 站点配置
 
@@ -239,6 +247,23 @@ pnpm dev:hexo
       { "eyebrow": "04 · Contact", "text": "有好想法？\\nhello@example.com", "href": "mailto:hello@example.com" }
     ]
   },
+  "friends": {
+    "kicker": "Friends · Curated People",
+    "title": "一些值得",
+    "titleAccent": "反复拜访的人。",
+    "description": "友链页标题下方的介绍",
+    "links": [
+      {
+        "name": "朋友的站点",
+        "url": "https://example.com",
+        "domain": "example.com",
+        "note": "一句话介绍",
+        "mark": "E",
+        "color": "#6D8580",
+        "avatar": "/images/friends/example.png"
+      }
+    ]
+  },
   "giscus": {
     "enabled": true,
     "repo": "owner/repo",
@@ -267,6 +292,8 @@ Giscus 默认开启。必要字段未填写完整时，文章评论区会直接�
 
 > **关于我页**：`about.cards` 每项为一张卡片，`variant: "wide" | "accent"` 控制大卡/强调色卡，缺省为普通卡；`href` 存在时整卡可点击。
 
+> **友链页**：`friends.links` 按数组顺序渲染并整体替换默认列表；`url` 为实际跳转地址，`domain` 仅控制展示文案，`avatar` 可选，缺省时依次使用 `mark` 和站名首字符。Hexo 在主题 `_config.yml` 中配置同名 `friends` 节点，并使用 `title_accent` 等 snake_case 字段，另支持 `enabled: false` 关闭 `/friends/` 页面生成、`path` 自定义路由（默认 `friends`，对应 `page_title` 为页面标题）。
+
 ## 数据接入
 
 各端数据源通过 `TypeScript` 类型契约约束，字段结构一致即可无缝替换：
@@ -276,6 +303,8 @@ Giscus 默认开启。必要字段未填写完整时，文章评论区会直接�
 ```typescript
 interface Article {
   id: string
+  statsKey?: string    // 访问统计稳定键（缺省回退 id）
+  commentKey?: string  // 评论系统稳定键（缺省回退 id）
   cat: string          // 所属分类 id
   title: string
   cover: string
@@ -329,31 +358,15 @@ pnpm --filter @soul-blog/react build
 
 ### Hexo 主题集成开发工作流
 
-修改核心组件后需要重新构建主题并同步到测试站点：
+仓库内置 `fixtures/hexo` 预览配置与示例文章，并直接加载当前的 `themes/hexo`，因此不需要再复制主题目录。修改核心组件后先重新构建 Core，再启动 Hexo 开发任务：
 
 ```bash
-# 1. 构建 core
-cd /path/to/soul-blog-theme/packages/core
-pnpm build
-
-# 2. 构建 hexo 主题
-cd /path/to/soul-blog-theme/themes/hexo
-pnpm build
-
-# 3. 同步到测试站点，重新生成
-rm -rf /tmp/hexo-test/themes/hexo/
-cp -r /path/to/soul-blog-theme/themes/hexo /tmp/hexo-test/themes/
-cd /tmp/hexo-test
-hexo clean
-hexo generate
-
-# 4. 重启服务
-fuser -k 4000/tcp 2>/dev/null
-sleep 2
-hexo server -p 4000
+cd /path/to/soul-blog-theme
+pnpm build:core
+pnpm dev:hexo
 ```
 
-然后浏览器硬刷新 `http://localhost:4000/`。
+`pnpm dev:hexo` 会同时监听构建主题资源并启动 `http://localhost:4000/`。也可以用 `pnpm dev:all` 连同另外三套主题一起启动。
 
 ### 生产部署 Hexo
 

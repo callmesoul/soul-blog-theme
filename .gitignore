@@ -9,6 +9,10 @@ dist/
 vite.kanban-worktrees/
 .claude/
 .trae/
+.workbuddy/
 
 # Hexo theme build output
 themes/hexo/source/
+
+# Repository-local Hexo preview runtime
+/db.json

@@ -7,7 +7,7 @@ import LoginPage from './pages/LoginPage'
 import SearchPage from './pages/SearchPage'
 import ArchivesPage from './pages/ArchivesPage'
 import AboutPage from './pages/AboutPage'
-import FriendsDemoPage from './pages/FriendsDemoPage'
+import FriendsPage from './pages/FriendsPage'
 
 function AppLayout() {
   const location = useLocation()
@@ -29,8 +29,8 @@ function AppLayout() {
       document.title = `归档 - ${site}`
     } else if (p === '/about') {
       document.title = `关于我 - ${site}`
-    } else if (p === '/friends-demo') {
-      document.title = `友链设计 Demo - ${site}`
+    } else if (p === '/friends') {
+      document.title = `友链 - ${site}`
     } else if (p === '/search') {
       document.title = `搜索 - ${site}`
     } else {
@@ -62,7 +62,7 @@ function AppLayout() {
           <Route path="/search" element={<SearchPage />} />
           <Route path="/archives" element={<ArchivesPage />} />
           <Route path="/about" element={<AboutPage />} />
-          <Route path="/friends-demo" element={<FriendsDemoPage />} />
+          <Route path="/friends" element={<FriendsPage />} />
         </Routes>
       </div>
 

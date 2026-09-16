@@ -47,8 +47,10 @@ if (site.posts && site.posts.length) {
       });
     }
 
+    var articleKey = p.path || p.slug || p.title;
     arts.push({
-      id: p._id || p.slug || p.title,
+      id: articleKey,
+      statsKey: articleKey,
       commentKey: p.slug || p.path || p.title,
       cat: (function(){
         var catFromPath = null;
@@ -105,6 +107,9 @@ var siteData = {
   archiveUrl: url_for('/' + (config.archive_dir || 'archives') + '/'),
   aboutUrl: theme.about && theme.about.enabled !== false
     ? url_for('/' + String(theme.about.path || 'about').replace(/^\/+|\/+$/g, '') + '/')
+    : '',
+  friendsUrl: theme.friends && theme.friends.enabled !== false
+    ? url_for('/' + String(theme.friends.path || 'friends').replace(/^\/+|\/+$/g, '') + '/')
     : '',
   homeUrl: url_for('/'),
   giscus: theme.giscus ? {

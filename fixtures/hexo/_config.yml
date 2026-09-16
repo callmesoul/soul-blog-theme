@@ -1,0 +1,21 @@
+title: Soul Blog
+subtitle: Repository Preview
+description: Soul Blog Theme 的本地 Hexo 预览站点
+author: CallMeSoul
+language: zh-CN
+timezone: Asia/Shanghai
+
+url: http://localhost:4000
+root: /
+permalink: articles/:title/
+
+source_dir: fixtures/hexo/source
+public_dir: /tmp/hexo-test/public
+archive_dir: archives
+per_page: 10
+
+theme: hexo
+
+server:
+  cache: false
+  port: 4000

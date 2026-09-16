@@ -62,6 +62,22 @@ export const DEFAULT_SITE_CONFIG = {
     ]
   },
 
+  // 友链（人物画廊）
+  friends: {
+    kicker: 'Friends · Curated People',
+    title: '一些值得',
+    titleAccent: '反复拜访的人。',
+    description: '他们在各自的小世界里持续写作、创造，也让独立互联网保持温度。',
+    links: [
+      { name: '木木木木木', url: 'https://immmmm.com', domain: 'immmmm.com', note: '有趣的灵魂，持续记录设计、技术与生活。', mark: 'M', color: '#ED5A42' },
+      { name: '保罗的小宇宙', url: 'https://paugram.com', domain: 'paugram.com', note: '写代码，也写那些值得被好好记住的瞬间。', mark: 'P', color: '#CA8251' },
+      { name: '林木木', url: 'https://imlinmu.com', domain: 'imlinmu.com', note: '热爱开源和摄影，相信长期主义的独立开发者。', mark: 'L', color: '#6D8580' },
+      { name: '青山', url: 'https://qingshaner.com', domain: 'qingshaner.com', note: '在山野、胶片和文字之间，寻找缓慢的答案。', mark: 'Q', color: '#727A9A' },
+      { name: '旧梦与诗', url: 'https://dreamer.ink', domain: 'dreamer.ink', note: '写诗，做产品，收集互联网仍然温柔的证据。', mark: 'D', color: '#A56C76' },
+      { name: '未读消息', url: 'https://unread.one', domain: 'unread.one', note: '关于阅读、播客和偶尔抵达远方的信。', mark: 'U', color: '#8B7656' }
+    ]
+  },
+
   // Giscus（GitHub Discussions 评论；repoId/categoryId 由 https://giscus.app/zh-CN 生成）
   giscus: {
     enabled: true,
@@ -286,9 +302,11 @@ function applySiteMeta (site = {}) {
         ? `归档 - ${site.name}`
         : page.startsWith('about')
           ? `关于我 - ${site.name}`
-          : page.startsWith('search')
-            ? `搜索 - ${site.name}`
-            : `${site.name} - 首页`
+          : page.startsWith('friends')
+            ? `友链 - ${site.name}`
+            : page.startsWith('search')
+              ? `搜索 - ${site.name}`
+              : `${site.name} - 首页`
   }
 }
 

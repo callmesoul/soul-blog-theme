@@ -148,8 +148,10 @@ if (allPosts && allPosts.length) {
       if (c0) fromCat = typeof c0 === 'string' ? c0 : (c0.slug || c0.name || null);
       return (fromPath || fromCat || 'uncategorized').toLowerCase().replace(/\s+/g, '-');
     })();
+    var articleKey = p.path || p.slug || p.title;
     arts.push({
-      id: p.path || p._id || p.slug || p.title,
+      id: articleKey,
+      statsKey: articleKey,
       commentKey: p.slug || p.path || p.title,
       cat: artCat,
       title: p.title,
@@ -184,6 +186,9 @@ var siteData = {
   archiveUrl: archiveUrl,
   aboutUrl: theme.about && theme.about.enabled !== false
     ? url_for('/' + String(theme.about.path || 'about').replace(/^\/+|\/+$/g, '') + '/')
+    : '',
+  friendsUrl: theme.friends && theme.friends.enabled !== false
+    ? url_for('/' + String(theme.friends.path || 'friends').replace(/^\/+|\/+$/g, '') + '/')
     : '',
   homeUrl: homeUrl,
   giscus: theme.giscus ? {

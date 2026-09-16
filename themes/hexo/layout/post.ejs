@@ -32,6 +32,9 @@ var siteData = {
   aboutUrl: theme.about && theme.about.enabled !== false
     ? url_for('/' + String(theme.about.path || 'about').replace(/^\/+|\/+$/g, '') + '/')
     : '',
+  friendsUrl: theme.friends && theme.friends.enabled !== false
+    ? url_for('/' + String(theme.friends.path || 'friends').replace(/^\/+|\/+$/g, '') + '/')
+    : '',
   homeUrl: url_for('/'),
   giscus: theme.giscus ? {
     enabled: theme.giscus.enabled === true,
@@ -64,7 +67,8 @@ document.addEventListener('DOMContentLoaded', function() {
   var viewer = document.querySelector('article-viewer');
   if (viewer) {
     viewer.article = {
-      id: '<%= page._id || page.slug || page.title %>',
+      id: <%- JSON.stringify(page.path || page.slug || page.title) %>,
+      statsKey: <%- JSON.stringify(page.path || page.slug || page.title) %>,
       commentKey: <%- JSON.stringify(page.slug || page.path || page.title) %>,
       cat: '<%= cat %>',
       title: '<%- page.title %>',

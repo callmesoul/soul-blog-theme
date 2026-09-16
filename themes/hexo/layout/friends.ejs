@@ -46,18 +46,20 @@ var tags = Object.keys(tagCounts).sort().map(function (name) {
   return { name: name, count: tagCounts[name] }
 })
 
-var aboutConfig = {
-  kicker: aboutSource.kicker || 'About · Personal Manifesto',
-  title: aboutSource.title || '代码是工具，',
-  titleAccent: aboutSource.title_accent || '表达才是目的。',
-  description: aboutSource.description || '',
-  cards: (aboutSource.cards || []).map(function (card) {
+var friendsConfig = {
+  kicker: friendsSource.kicker || 'Friends · Curated People',
+  title: friendsSource.title || '一些值得',
+  titleAccent: friendsSource.title_accent || '反复拜访的人。',
+  description: friendsSource.description || '',
+  links: (friendsSource.links || []).map(function (friend) {
     return {
-      eyebrow: card.eyebrow || '',
-      title: card.title || '',
-      text: card.text || '',
-      variant: card.variant || 'default',
-      href: card.href || ''
+      name: friend.name || '',
+      url: friend.url || '',
+      domain: friend.domain || '',
+      note: friend.note || '',
+      mark: friend.mark || '',
+      color: friend.color || '',
+      avatar: friend.avatar || ''
     }
   })
 }
@@ -66,21 +68,21 @@ var siteData = {
   articles: [],
   categories: categories,
   tags: tags,
-  about: aboutConfig,
+  friends: friendsConfig,
   icons: {},
   siteName: config.title || 'CallMeSoul',
   icp: theme.icp || '',
   social: (theme.social || []).map(function (s) { return Object.assign({}, s, { href: s.href || s.url || '' }) }),
   archiveUrl: url_for('/' + archiveDir + '/'),
-  aboutUrl: url_for('/' + aboutPath + '/'),
-  friendsUrl: friendsSource.enabled !== false ? url_for('/' + friendsPath + '/') : '',
+  aboutUrl: aboutSource.enabled !== false ? url_for('/' + aboutPath + '/') : '',
+  friendsUrl: url_for('/' + friendsPath + '/'),
   homeUrl: url_for('/')
 }
 %>
 <script id="site-data" type="application/json"><%- JSON.stringify(siteData) %></script>
 
-<site-sidebar active-cat="about"></site-sidebar>
+<site-sidebar active-cat="friends"></site-sidebar>
 
 <div class="flex min-w-0 flex-1 flex-col overflow-hidden">
-  <about-page></about-page>
+  <friends-page></friends-page>
 </div>
