@@ -37,6 +37,8 @@ try {
     if (!existsSync(join(source, path))) throw new Error(`缺少运行文件 ${path}`)
     cpSync(join(source, path), join(theme, path), { recursive: true })
   }
+  cpSync(join(root, 'LICENSE'), join(theme, 'LICENSE'))
+  cpSync(join(source, 'README.md'), join(theme, 'README.md'))
   const metadata = { schema: 1, version, tag: `v${version}`, sha, dirty }
   writeFileSync(join(theme, 'theme.json'), JSON.stringify(metadata, null, 2) + '\n')
   // Hexo 的主题脚本是 CommonJS；运行包不携带 workspace 依赖及构建工具。

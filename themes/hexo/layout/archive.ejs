@@ -46,7 +46,7 @@ function catNameOf (p) {
     if (c) return typeof c === 'string' ? c : (c.name || '')
     if (p.source && typeof p.source === 'string') {
       var parts = p.source.split('/')
-      if (parts.length >= 2 && parts[0] === '_posts' && parts[1]) return parts[1]
+      if (parts.length >= 3 && parts[0] === '_posts' && parts[1]) return parts[1]
     }
   } catch (e) { /* noop */ }
   return ''
@@ -84,7 +84,7 @@ if (site.posts && site.posts.length) {
     var name = 'uncategorized';
     if (p.source && typeof p.source === 'string') {
       var parts = p.source.split('/');
-      if (parts.length >= 2 && parts[0] === '_posts' && parts[1]) {
+      if (parts.length >= 3 && parts[0] === '_posts' && parts[1]) {
         name = parts[1];
       }
     }
@@ -139,7 +139,7 @@ if (allPosts && allPosts.length) {
       var fromPath = null;
       if (p.source && typeof p.source === 'string') {
         var parts = p.source.split('/');
-        if (parts.length >= 2 && parts[0] === '_posts' && parts[1]) {
+        if (parts.length >= 3 && parts[0] === '_posts' && parts[1]) {
           fromPath = parts[1];
         }
       }
@@ -212,7 +212,7 @@ var totalMons = yearGroups.reduce(function (s, g) { return s + g.months.length }
 var INITIAL_YEARS = 4
 var LOAD_CHUNK = 2
 %>
-<script id="site-data" type="application/json"><%- JSON.stringify(siteData) %></script>
+<script id="site-data" type="application/json"><%- soul_json(siteData) %></script>
 
 <site-sidebar active-cat="archives"></site-sidebar>
 

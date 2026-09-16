@@ -24,7 +24,7 @@ var siteData = {
   homeUrl: url_for('/')
 };
 %>
-<script id="site-data" type="application/json"><%- JSON.stringify(siteData) %></script>
+<script id="site-data" type="application/json"><%- soul_json(siteData) %></script>
 
 <site-sidebar active-cat="all"></site-sidebar>
 

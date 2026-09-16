@@ -2,6 +2,8 @@
 
 基于 **Web Components** 的跨框架博客主题，一套 UI 同时适配原生 JS、Vue、React、Hexo。
 
+**在线预览：[https://callmesoul.github.io/](https://callmesoul.github.io/)**
+
 核心组件库 `@soul-blog/wc` 使用 Shadow DOM 封装，不依赖任何前端框架，各端通过 thin wrapper 按需集成。
 
 ## ✨ 特性
@@ -371,6 +373,8 @@ pnpm dev:hexo
 
 ### 生产部署 Hexo
 
+普通 Hexo 用户可直接按 [Hexo 安装与配置指南](themes/hexo/README.md) 下载、校验并安装运行包；其中说明了必需的 EJS 渲染器、站点独立配置、更新流程以及根路径部署限制。
+
 从 v1.9.0 开始，优先使用 GitHub Release 的 `soul-blog-hexo-vX.Y.Z.tar.gz`，它包含 EJS 模板、CommonJS 主题脚本、默认配置、JS/CSS 和完整默认图片/音频；无需在使用站点安装 pnpm 或构建 monorepo。Git tag 源码不包含运行产物，不能用源码压缩包代替运行包。
 
 主题维护者本地打包：
@@ -434,4 +438,4 @@ pnpm package:hexo
 
 ## 📝 许可
 
-MIT
+MIT，详见 [LICENSE](LICENSE)。运行包也包含许可证与 Hexo 安装指南。

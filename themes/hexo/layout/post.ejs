@@ -11,7 +11,7 @@ try {
 } catch (e) { /* noop */ }
 if (cat === 'uncategorized' && page.source && typeof page.source === 'string') {
   var sourceParts = page.source.split('/');
-  if (sourceParts.length >= 2 && sourceParts[0] === '_posts' && sourceParts[1]) cat = sourceParts[1];
+  if (sourceParts.length >= 3 && sourceParts[0] === '_posts' && sourceParts[1]) cat = sourceParts[1];
 }
 var siteData = {
   articles: [],
@@ -52,7 +52,7 @@ var siteData = {
   } : { enabled: true }
 };
 %>
-<script id="site-data" type="application/json"><%- JSON.stringify(siteData) %></script>
+<script id="site-data" type="application/json"><%- soul_json(siteData) %></script>
 
 <site-sidebar active-cat="all"></site-sidebar>
 
@@ -66,20 +66,20 @@ var siteData = {
 document.addEventListener('DOMContentLoaded', function() {
   var viewer = document.querySelector('article-viewer');
   if (viewer) {
-    viewer.article = {
-      id: <%- JSON.stringify(page.path || page.slug || page.title) %>,
-      statsKey: <%- JSON.stringify(page.path || page.slug || page.title) %>,
-      commentKey: <%- JSON.stringify(page.slug || page.path || page.title) %>,
-      cat: '<%= cat %>',
-      title: '<%- page.title %>',
-      cover: '<%= page.cover || page.thumbnail || "/images/extracted/home/图层_21@2x.png" %>',
-      summary: '<%- page.excerpt || page.description || "" %>',
-      date: '<%= page.date ? page.date.format("YYYY/MM/DD") : "" %>',
-      views: <%= page.views || 0 %>,
+    viewer.article = <%- soul_json({
+      id: page.path || page.slug || page.title,
+      statsKey: page.path || page.slug || page.title,
+      commentKey: page.slug || page.path || page.title,
+      cat: cat,
+      title: page.title || '',
+      cover: page.cover || page.thumbnail || '/images/extracted/home/图层_21@2x.png',
+      summary: page.excerpt || page.description || '',
+      date: page.date ? page.date.format('YYYY/MM/DD') : '',
+      views: page.views || 0,
       commentCount: 0,
-      paragraphs: [<%- page.content ? JSON.stringify(page.content) : '""' %>]
-    };
-    viewer.openWithFlip(null, '<%= config.title || "CallMeSoul" %>');
+      paragraphs: [page.content || '']
+    }) %>;
+    viewer.openWithFlip(null, <%- soul_json(config.title || 'CallMeSoul') %>);
   }
 });
 </script>

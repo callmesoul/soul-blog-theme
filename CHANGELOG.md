@@ -4,6 +4,18 @@
 
 格式基于 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.0.0/)，版本号遵循 [语义化版本](https://semver.org/lang/zh-CN/)。
 
+## [1.9.1] - 2026-09-16
+
+### Changed
+
+- 增加独立 MIT `LICENSE` 与面向普通 Hexo 用户的安装、校验、配置和更新指南，并将二者纳入运行包；修复原仓库只有 README 的 MIT 声明，且示例 `theme:update` 命令仅存在于作者博客、普通安装者缺少依赖与操作说明的问题。
+- 根 README 开头补充在线预览 `https://callmesoul.github.io/`，与 Hexo 目录投稿的预览地址保持一致，解决仓库入口缺少可直接访问演示站链接的问题。
+
+### Fixed
+
+- Hexo 模板统一使用安全 JSON 序列化，避免文章 HTML 中的 `</script>` 截断内嵌数据；独立文章页整对象序列化，修复标题引号、多行摘要或内容导致脚本语法错误、首页列表为空及阅读器无法打开的问题，已用官方主题测试集与特殊字符文章验证。
+- 路径分类只读取 `_posts/分类/文章.md` 的目录，修复直接位于 `_posts/` 的文章被错误地以 Markdown 文件名作为分类的问题。
+
 ## [1.9.0] - 2026-09-16
 
 ### Added

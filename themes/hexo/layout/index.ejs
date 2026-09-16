@@ -7,7 +7,7 @@ if (site.posts && site.posts.length) {
     var name = 'uncategorized';
     if (p.source && typeof p.source === 'string') {
       var parts = p.source.split('/');
-      if (parts.length >= 2 && parts[0] === '_posts' && parts[1]) {
+      if (parts.length >= 3 && parts[0] === '_posts' && parts[1]) {
         name = parts[1];
       }
     }
@@ -57,7 +57,7 @@ if (site.posts && site.posts.length) {
         // Try 1: from p.source (contains path like '_posts/diary/xxx.md')
         if (p.source && typeof p.source === 'string') {
           var parts = p.source.split('/');
-          if (parts.length >= 2 && parts[0] === '_posts' && parts[1]) {
+          if (parts.length >= 3 && parts[0] === '_posts' && parts[1]) {
             catFromPath = parts[1];
           }
         }
@@ -128,7 +128,7 @@ var siteData = {
   } : { enabled: true }
 };
 %>
-<script id="site-data" type="application/json"><%- JSON.stringify(siteData) %></script>
+<script id="site-data" type="application/json"><%- soul_json(siteData) %></script>
 
 <site-sidebar active-cat="all"></site-sidebar>
 
