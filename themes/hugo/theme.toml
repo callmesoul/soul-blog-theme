@@ -1,0 +1,11 @@
+name = "@soul-blog/hugo"
+license = "MIT"
+licenselink = "https://github.com/callmesoul/soul-blog-theme/blob/main/LICENSE"
+description = "Soul Blog Theme 的 Hugo 移植版：Web Components 渲染，数据归一化交给 @soul-blog/wc"
+homepage = "https://github.com/callmesoul/soul-blog-theme"
+tags = ["blog", "dark", "web-components", "personal"]
+features = ["blog", "archives", "about", "friends", "search", "music-player"]
+min_version = "0.146.0"
+
+[author]
+  name = "CallMeSoul"

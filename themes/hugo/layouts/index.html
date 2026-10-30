@@ -1,0 +1,13 @@
+{{ define "main" }}
+{{ partial "site-data.html" . }}
+
+<site-sidebar active-cat="all"></site-sidebar>
+
+<div class="relative flex min-w-0 flex-1 flex-col">
+  <article-list active-cat="all"></article-list>
+  <article-viewer>
+    <span slot="page-views" id="vercount_value_page_pv" aria-label="本文阅读量">—</span>
+  </article-viewer>
+  {{ partial "site-stat.html" . }}
+</div>
+{{ end }}

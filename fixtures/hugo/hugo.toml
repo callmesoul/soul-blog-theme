@@ -1,0 +1,153 @@
+# Soul Blog Theme — Hugo 本地预览站点
+# 与 fixtures/hexo 对齐：同一批文章、同一套主题配置语义。
+baseURL = 'http://localhost:1313/'
+languageCode = 'zh-CN'
+title = 'Soul Blog'
+theme = 'hugo'
+
+# 主题目录在仓库根，不在本站点目录内
+themesDir = '../../themes'
+
+# 关闭 Hugo 默认生成的 robots/sitemap 之外的杂项
+enableRobotsTXT = true
+
+[params]
+  icp = '@CallMeSoul 粤ICP备15053557'
+  # 只把 posts 区的内容当作文章；about/friends/archives 由 layout 排除
+  postsSection = 'posts'
+  archivesPath = 'archives'
+  aboutPath = 'about'
+  friendsPath = 'friends'
+  aboutEnabled = true
+  friendsEnabled = true
+
+  [[params.social]]
+    name = '微信'
+    icon = '/images/extracted/home/iconfont-weixin@2x.png'
+    qr = '/images/social/qr-weixin.svg'
+    hue = 74
+    width = 22
+    height = 18
+
+  [[params.social]]
+    name = 'QQ'
+    icon = '/images/extracted/home/iconfont-QQ@2x.png'
+    qr = '/images/social/qr-qq.svg'
+    hue = 178
+    width = 17
+    height = 18
+
+  [[params.social]]
+    name = 'GitHub'
+    icon = '/images/social/github.svg'
+    url = 'https://github.com/'
+    mono = true
+    hue = 0
+    width = 21
+    height = 18
+
+  [params.giscus]
+    enabled = true
+    repo = 'callmesoul/soul-blog-theme'
+    repo_id = 'R_kgDOUG1kRA'
+    category = 'Announcements'
+    category_id = ''
+    term_prefix = 'article:'
+    strict = true
+    reactions_enabled = true
+    input_position = 'top'
+    theme = 'dark_dimmed'
+    lang = 'zh-CN'
+    loading = 'lazy'
+
+  [params.about]
+    kicker = 'About · Personal Manifesto'
+    title = '代码是工具，'
+    title_accent = '表达才是目的。'
+    description = '我喜欢把复杂的问题，做成简单、可靠、耐看的东西。这里记录我的技术实践、设计思考，以及值得被保存下来的生活切片。'
+
+    [[params.about.cards]]
+      eyebrow = '01 · About'
+      title = """我喜欢把复杂的问题，
+做成简单、可靠、耐看的东西。"""
+      variant = 'wide'
+
+    [[params.about.cards]]
+      eyebrow = 'Currently'
+      title = """Build.
+Write.
+Repeat."""
+      variant = 'accent'
+
+    [[params.about.cards]]
+      eyebrow = '02 · Believe'
+      text = '好产品应该安静地工作，不要求用户先理解它。'
+
+    [[params.about.cards]]
+      eyebrow = '03 · Explore'
+      text = """Web / AI / Design
+Open Source / Life"""
+
+    [[params.about.cards]]
+      eyebrow = '04 · Contact'
+      text = """有好想法？
+hello@callmesoul.cn"""
+      href = 'mailto:hello@callmesoul.cn'
+
+  [params.friends]
+    kicker = 'Friends · Curated People'
+    title = '一些值得'
+    title_accent = '反复拜访的人。'
+    description = '他们在各自的小世界里持续写作、创造，也让独立互联网保持温度。'
+
+    [[params.friends.links]]
+      name = '木木木木木'
+      url = 'https://immmmm.com'
+      domain = 'immmmm.com'
+      note = '有趣的灵魂，持续记录设计、技术与生活。'
+      mark = 'M'
+      color = '#ED5A42'
+
+    [[params.friends.links]]
+      name = '保罗的小宇宙'
+      url = 'https://paugram.com'
+      domain = 'paugram.com'
+      note = '写代码，也写那些值得被好好记住的瞬间。'
+      mark = 'P'
+      color = '#CA8251'
+
+    [[params.friends.links]]
+      name = '林木木'
+      url = 'https://imlinmu.com'
+      domain = 'imlinmu.com'
+      note = '热爱开源和摄影，相信长期主义的独立开发者。'
+      mark = 'L'
+      color = '#6D8580'
+
+    [[params.friends.links]]
+      name = '青山'
+      url = 'https://qingshaner.com'
+      domain = 'qingshaner.com'
+      note = '在山野、胶片和文字之间，寻找缓慢的答案。'
+      mark = 'Q'
+      color = '#727A9A'
+
+    [[params.friends.links]]
+      name = '旧梦与诗'
+      url = 'https://dreamer.ink'
+      domain = 'dreamer.ink'
+      note = '写诗，做产品，收集互联网仍然温柔的证据。'
+      mark = 'D'
+      color = '#A56C76'
+
+    [[params.friends.links]]
+      name = '未读消息'
+      url = 'https://unread.one'
+      domain = 'unread.one'
+      note = '关于阅读、播客和偶尔抵达远方的信。'
+      mark = 'U'
+      color = '#8B7656'
+
+[markup]
+  [markup.highlight]
+    noClasses = false

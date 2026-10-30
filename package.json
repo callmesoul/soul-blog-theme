@@ -1,7 +1,7 @@
 {
   "name": "soul-blog-theme",
   "private": true,
-  "version": "1.9.1",
+  "version": "1.10.0",
   "packageManager": "pnpm@11.13.1",
   "engines": {
     "node": ">=20"
@@ -24,7 +24,11 @@
     "dev:hexo:assets": "pnpm --filter @soul-blog/hexo dev",
     "dev:hexo:server": "hexo server --config fixtures/hexo/_config.yml -p 4000",
     "build:hexo": "pnpm --filter @soul-blog/hexo build",
-    "package:hexo": "node tools/package-hexo.mjs"
+    "package:hexo": "node tools/package-hexo.mjs",
+    "dev:hugo": "concurrently --kill-others --names assets,server \"pnpm dev:hugo:assets\" \"pnpm dev:hugo:server\"",
+    "dev:hugo:assets": "pnpm --filter @soul-blog/hugo dev",
+    "dev:hugo:server": "hugo server --source fixtures/hugo -p 1313",
+    "build:hugo": "pnpm --filter @soul-blog/hugo build"
   },
   "devDependencies": {
     "concurrently": "^9.2.4",

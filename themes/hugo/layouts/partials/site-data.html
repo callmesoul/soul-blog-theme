@@ -1,0 +1,86 @@
+{{- /*
+  站点数据出口：把 Hugo 的页面集合压成 @soul-blog/wc 的 RawSiteData。
+
+  这里只做字段搬运，不做任何推导：
+  分类 slug、日期格式、摘要截断、标签统计、配置项的 snake_case → camelCase
+  映射，全部由前端 buildSiteData() 承担。
+
+  这是「主题壳保持薄」的关键——Go 模板不参与业务规则，
+  所以 Hexo / Hugo 两个主题的数据行为天然一致。
+*/ -}}
+{{- $site := site -}}
+{{- $section := $site.Params.postsSection | default "" -}}
+{{- $skip := slice "about" "friends" "archives" -}}
+
+{{- $pages := slice -}}
+{{- range $site.RegularPages -}}
+  {{- if and (not (in $skip .Layout)) (or (eq $section "") (eq .Section $section)) -}}
+    {{- $pages = $pages | append . -}}
+  {{- end -}}
+{{- end -}}
+
+{{- $posts := slice -}}
+{{- range $pages -}}
+  {{- $cat := "" -}}
+  {{- with .Params.category -}}{{- $cat = printf "%v" . -}}{{- end -}}
+  {{- if not $cat -}}
+    {{- with .Params.categories -}}
+      {{- $first := index . 0 -}}
+      {{- with $first -}}{{- $cat = printf "%v" . -}}{{- end -}}
+    {{- end -}}
+  {{- end -}}
+
+  {{- $tags := slice -}}
+  {{- with .Params.tags -}}
+    {{- range . -}}{{- $tags = $tags | append (printf "%v" .) -}}{{- end -}}
+  {{- end -}}
+
+  {{- $slug := "" -}}
+  {{- with .File -}}{{- $slug = .ContentBaseName -}}{{- end -}}
+
+  {{- $posts = $posts | append (dict
+    "id" .RelPermalink
+    "path" .RelPermalink
+    "slug" $slug
+    "title" .Title
+    "date" (.Date.Format "2006/01/02")
+    "content" .Content
+    "excerpt" (default "" .Params.description)
+    "cover" (default "" .Params.cover)
+    "category" $cat
+    "tags" $tags
+    "views" (default 0 .Params.views)
+  ) -}}
+{{- end -}}
+
+{{- /* 配置里没写的键一律不出现，缺失判定交给前端默认值 */ -}}
+{{- $social := slice -}}
+{{- if isset $site.Params "social" -}}{{- $social = $site.Params.social -}}{{- end -}}
+
+{{- $giscus := false -}}
+{{- if isset $site.Params "giscus" -}}{{- $giscus = $site.Params.giscus -}}{{- end -}}
+
+{{- $aboutPath := $site.Params.aboutPath | default "about" -}}
+{{- $friendsPath := $site.Params.friendsPath | default "friends" -}}
+{{- $archivesPath := $site.Params.archivesPath | default "archives" -}}
+{{- $aboutEnabled := ne $site.Params.aboutEnabled false -}}
+{{- $friendsEnabled := ne $site.Params.friendsEnabled false -}}
+
+{{- $urls := dict
+  "home" $site.Home.RelPermalink
+  "archive" (printf "%s/" $archivesPath | relURL)
+  "about" (cond $aboutEnabled (printf "%s/" $aboutPath | relURL) "")
+  "friends" (cond $friendsEnabled (printf "%s/" $friendsPath | relURL) "")
+-}}
+
+{{- $data := dict
+  "posts" $posts
+  "siteName" $site.Title
+  "icp" ($site.Params.icp | default "")
+  "social" $social
+  "urls" $urls
+  "about" (default (dict) $site.Params.about)
+  "friends" (default (dict) $site.Params.friends)
+  "giscus" $giscus
+-}}
+<script id="site-data" type="application/json">{{ $data | jsonify | safeJS }}</script>

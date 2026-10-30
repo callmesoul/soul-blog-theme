@@ -1,6 +1,6 @@
 # soul-blog-theme
 
-基于 **Web Components** 的跨框架博客主题，一套 UI 同时适配原生 JS、Vue、React、Hexo。
+基于 **Web Components** 的跨框架博客主题，一套 UI 同时适配原生 JS、Vue、React、Hexo 与 Hugo。
 
 **在线预览：[https://callmesoul.github.io/](https://callmesoul.github.io/)**
 
@@ -8,7 +8,7 @@
 
 ## ✨ 特性
 
-- 🎨 **跨框架一致体验** — 一套核心组件同时支持 Vanilla/Vue/React/Hexo
+- 🎨 **跨框架一致体验** — 一套核心组件同时支持 Vanilla/Vue/React/Hexo/Hugo
 
 - 🔍 **全文模糊搜索** — 支持标题、目录、正文关键词模糊搜索，支持键盘导航；既可热键唤起弹出层，也可访问独立 `/search` 结果页
 
@@ -24,6 +24,7 @@
 
 - 🤝 **动态友链画廊** — 人物画廊式非对称卡片，支持字符标识或头像；Vanilla、Vue、React 与 Hexo 共用核心组件，内容由站点配置驱动
 - 📦 **Hexo 独立运行包** — 发布包包含模板、脚本、JS/CSS、默认图片和音乐；个人配置与资源放在站点独立目录，主题可整体替换更新
+- 🧩 **Hugo 主题** — 与 Hexo 共用同一份数据归一化（`buildSiteData`）与组件装配（`mountSite`）；Go 模板只搬运原始字段，分类 slug、日期格式、摘要截断等规则零重复，两个主题行为天然一致
 - 💬 **Giscus 文章评论** — 基于 GitHub Discussions，按稳定文章键隔离评论；支持 Vanilla、Vue、React 与 Hexo，切换阅读器文章时自动切换 Discussion
 
 - 📖 **沉浸式文章阅读** — 桌面端控制舒适行宽并强化标题、列表、引用、代码块与图片层级；移动端切换为完整单栏滚动，推荐内容自然衔接在正文之后
@@ -68,7 +69,8 @@ soul-blog-theme/
 │   ├── vanilla/                   # 原生 JS 主题（Vite 多页应用）
 │   ├── vue/                       # Vue 3 主题（Pinia + Vue Router）
 │   ├── react/                     # React 18 主题（Zustand + React Router）
-│   └── hexo/                      # Hexo 博客主题（EJS 模板 + Vite 构建）
+│   ├── hexo/                      # Hexo 博客主题（EJS 模板 + Vite 构建）
+│   └── hugo/                      # Hugo 博客主题（Go template + Vite 构建）
 │
 ├── assets/
 │   ├── site-config.json           # 品牌信息 / 社交栏 / 主题色（运行时可热覆盖）
@@ -77,7 +79,8 @@ soul-blog-theme/
 │   └── audio/                     # 音乐播放器默认曲目
 │
 ├── fixtures/
-│   └── hexo/                      # 仓库内置 Hexo 预览配置与示例文章
+│   ├── hexo/                      # 仓库内置 Hexo 预览配置与示例文章
+│   └── hugo/                      # 仓库内置 Hugo 预览站点（content + hugo.toml）
 │
 ├── design/                        # 原始设计稿（PSD / PNG）
 │
@@ -157,6 +160,9 @@ pnpm build:react
 
 # Hexo 主题
 pnpm build:hexo
+
+# Hugo 主题
+pnpm build:hugo
 ```
 
 ### 本地开发
@@ -167,7 +173,7 @@ pnpm build:hexo
 pnpm dev:all
 ```
 
-该命令会并行启动 Vanilla、Vue、React 的预览服务、Hexo 主题资源监听构建，以及使用 `fixtures/hexo` 内置开发站点的 `hexo server`。无需提前创建或同步 `/tmp/hexo-test`；需要生成静态产物时，输出目录已指向该路径。
+该命令会并行启动 Vanilla、Vue、React 的预览服务、Hexo 与 Hugo 主题的资源监听构建，以及使用 `fixtures/hexo` 内置开发站点的 `hexo server`。无需提前创建或同步 `/tmp/hexo-test`；需要生成静态产物时，输出目录已指向该路径。Hugo 预览站点需单独启动（见下表），因为它依赖系统里已安装的 `hugo` 二进制。
 
 各主题默认端口：
 
@@ -177,6 +183,7 @@ pnpm dev:all
 | Vue 3    | 5174 | `pnpm dev:vue`     |
 | React 18 | 5175 | `pnpm dev:react`   |
 | Hexo     | 4000 | `pnpm dev:hexo`    |
+| Hugo     | 1313 | `pnpm dev:hugo`    |
 
 ```bash
 # 构建核心库（watch 模式）
@@ -193,6 +200,9 @@ pnpm dev:react
 
 # Hexo 主题资源（watch 模式）+ 内置预览站点
 pnpm dev:hexo
+
+# Hugo 主题资源（watch 模式）+ 内置预览站点（需要系统已装 hugo）
+pnpm dev:hugo
 ```
 
 > 端口被占用时 Vite 会自动顺延（+1），以启动时实际输出的地址为准。
@@ -391,6 +401,39 @@ pnpm package:hexo
 `callmesoul.github.io` 站点已采用此流程：`npm run theme:update -- vX.Y.Z` 安装并锁定版本及 SHA256，`npm run dev` / `npm run build` 自动同步；下载或配置解析失败保留旧主题。旧版 v1.8.0 无运行包，保留源码构建兼容路径，安装新版发布包后切换到直接下载。
 
 正式发布前按 AGENTS.md 完成统一版本、CHANGELOG、README 后提交，并推送对应 `vX.Y.Z` tag。`.github/workflows/release-hexo.yml` 会重新构建、验证 tag/版本/最新 CHANGELOG 和干净工作区，再创建或使用 GitHub Release 上传三个产物；不会覆盖已有同名资源。
+
+### Hugo 主题集成
+
+Hugo 主题位于 `themes/hugo`，要求 **Hugo ≥ 0.146**（本地用 0.169 extended 验证）。仓库自带 `fixtures/hugo` 预览站点，`themesDir` 指向仓库根的 `themes/`，因此同样不需要复制主题目录：
+
+```bash
+pnpm build:core
+pnpm build:hugo      # 构建 JS/CSS 并复制根 assets/ 到 themes/hugo/static/
+pnpm dev:hugo        # 资源监听 + hugo server（http://localhost:1313/）
+```
+
+接入自己的站点时，把 `themes/hugo` 放进站点的 `themes/`，并在 `hugo.toml` 设置 `theme = 'hugo'`。内容组织约定：
+
+```text
+content/
+├── posts/…          # 文章，front matter 用 categories / tags 标注分类与标签
+├── about.md         # front matter: layout: about
+├── friends.md       # front matter: layout: friends
+└── archives.md      # front matter: layout: archives
+```
+
+配置写在 `hugo.toml` 的 `[params]` 下，字段与 Hexo 主题 `_config.yml` 语义一致：`icp`、`social`（支持 `url` 或 `href`）、`giscus`、`about`、`friends`，以及 `postsSection` / `archivesPath` / `aboutPath` / `friendsPath` / `aboutEnabled` / `friendsEnabled`。`about` 与 `friends` 沿用 snake_case（`title_accent`）即可。
+
+数据流是这套移植的关键：
+
+```text
+Go 模板（layouts/partials/site-data.html）
+  → 只输出 RawSiteData（posts 原始字段 + 配置原样）
+  → buildSiteData() 前端归一化（分类 slug、日期、摘要、标签统计、snake_case 映射）
+  → mountSite() 装配组件并接管路由
+```
+
+因此两件事都不该在 Go 模板里做：**字段推导**和**组件装配**。它们分别只存在一份实现（`packages/core/src/helpers/build-site-data.ts`、`mount-site.ts`），Hexo 主题也调用同一个 `mountSite()`。归档页不再服务端拼时间线，改由 `<archive-list>` 渲染，避免出现两套分组逻辑。
 
 ### 添加新组件
 

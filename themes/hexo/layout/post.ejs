@@ -1,58 +1,4 @@
-<%
-var cat = 'uncategorized';
-try {
-  var pageCats = page.categories;
-  var c0 = pageCats && typeof pageCats.first === 'function'
-    ? pageCats.first()
-    : (pageCats && typeof pageCats.toArray === 'function'
-        ? pageCats.toArray()[0]
-        : (pageCats && pageCats.length ? pageCats[0] : null));
-  if (c0) cat = typeof c0 === 'string' ? c0 : (c0.name || c0.slug || cat);
-} catch (e) { /* noop */ }
-if (cat === 'uncategorized' && page.source && typeof page.source === 'string') {
-  var sourceParts = page.source.split('/');
-  if (sourceParts.length >= 3 && sourceParts[0] === '_posts' && sourceParts[1]) cat = sourceParts[1];
-}
-var siteData = {
-  articles: [],
-  categories: [],
-  icons: {
-    home: '/images/extracted/home/iconfont-shouye@2x.png',
-    eye: '/images/extracted/home/iconfont-icon01@2x.png',
-    comment: '/images/extracted/home/iconfont-icon27@2x.png',
-    calendar: '/images/extracted/home/iconfont-03(1)@2x.png',
-    zan: '/images/extracted/article/iconfont-zan@2x.png',
-    avatarA: '/images/extracted/article/4@2x.png',
-    avatarB: '/images/extracted/article/20160126052324@2x.png'
-  },
-  siteName: config.title || 'CallMeSoul',
-  icp: theme.icp || '',
-  social: theme.social || [],
-  archiveUrl: url_for('/' + (config.archive_dir || 'archives') + '/'),
-  aboutUrl: theme.about && theme.about.enabled !== false
-    ? url_for('/' + String(theme.about.path || 'about').replace(/^\/+|\/+$/g, '') + '/')
-    : '',
-  friendsUrl: theme.friends && theme.friends.enabled !== false
-    ? url_for('/' + String(theme.friends.path || 'friends').replace(/^\/+|\/+$/g, '') + '/')
-    : '',
-  homeUrl: url_for('/'),
-  giscus: theme.giscus ? {
-    enabled: theme.giscus.enabled === true,
-    repo: theme.giscus.repo || '',
-    repoId: theme.giscus.repo_id || '',
-    category: theme.giscus.category || '',
-    categoryId: theme.giscus.category_id || '',
-    termPrefix: theme.giscus.term_prefix || 'article:',
-    strict: theme.giscus.strict !== false,
-    reactionsEnabled: theme.giscus.reactions_enabled !== false,
-    inputPosition: theme.giscus.input_position || 'top',
-    theme: theme.giscus.theme || 'dark_dimmed',
-    lang: theme.giscus.lang || 'zh-CN',
-    loading: theme.giscus.loading || 'lazy'
-  } : { enabled: true }
-};
-%>
-<script id="site-data" type="application/json"><%- soul_json(siteData) %></script>
+<script id="site-data" type="application/json"><%- soul_site_data(site.posts) %></script>
 
 <site-sidebar active-cat="all"></site-sidebar>
 
@@ -62,24 +8,5 @@ var siteData = {
   </article-viewer>
 </div>
 
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-  var viewer = document.querySelector('article-viewer');
-  if (viewer) {
-    viewer.article = <%- soul_json({
-      id: page.path || page.slug || page.title,
-      statsKey: page.path || page.slug || page.title,
-      commentKey: page.slug || page.path || page.title,
-      cat: cat,
-      title: page.title || '',
-      cover: page.cover || page.thumbnail || '/images/extracted/home/图层_21@2x.png',
-      summary: page.excerpt || page.description || '',
-      date: page.date ? page.date.format('YYYY/MM/DD') : '',
-      views: page.views || 0,
-      commentCount: 0,
-      paragraphs: [page.content || '']
-    }) %>;
-    viewer.openWithFlip(null, <%- soul_json(config.title || 'CallMeSoul') %>);
-  }
-});
-</script>
+<%# 当前文章：mountSite 读取后直接打开阅读器 %>
+<script id="article-data" type="application/json"><%- soul_article_data(page) %></script>

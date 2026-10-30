@@ -1,30 +1,4 @@
-<%
-var siteData = {
-  articles: [],
-  categories: [],
-  icons: {
-    home: '/images/extracted/home/iconfont-shouye@2x.png',
-    eye: '/images/extracted/home/iconfont-icon01@2x.png',
-    comment: '/images/extracted/home/iconfont-icon27@2x.png',
-    calendar: '/images/extracted/home/iconfont-03(1)@2x.png',
-    zan: '/images/extracted/article/iconfont-zan@2x.png',
-    avatarA: '/images/extracted/article/4@2x.png',
-    avatarB: '/images/extracted/article/20160126052324@2x.png'
-  },
-  siteName: config.title || 'CallMeSoul',
-  icp: theme.icp || '',
-  social: theme.social || [],
-  archiveUrl: url_for('/' + (config.archive_dir || 'archives') + '/'),
-  aboutUrl: theme.about && theme.about.enabled !== false
-    ? url_for('/' + String(theme.about.path || 'about').replace(/^\/+|\/+$/g, '') + '/')
-    : '',
-  friendsUrl: theme.friends && theme.friends.enabled !== false
-    ? url_for('/' + String(theme.friends.path || 'friends').replace(/^\/+|\/+$/g, '') + '/')
-    : '',
-  homeUrl: url_for('/')
-};
-%>
-<script id="site-data" type="application/json"><%- soul_json(siteData) %></script>
+<script id="site-data" type="application/json"><%- soul_site_data(site.posts) %></script>
 
 <site-sidebar active-cat="all"></site-sidebar>
 

@@ -5,6 +5,7 @@
 项目使用 monorepo 结构：
 - `packages/core/` — Web Components 核心组件（`@soul-blog/wc` 包）
 - `themes/hexo/` — Hexo 主题（依赖 `@soul-blog/wc`）
+- `themes/hugo/` — Hugo 主题（Go template，依赖 `@soul-blog/wc`）
 - `themes/vanilla/` — 纯 HTML/CSS/JS 版本
 - `themes/vue/` — Vue 3 主题
 - `themes/react/` — React 18 主题
@@ -15,7 +16,7 @@
 
 ### 1. 更新版本号（全仓统一）
 
-下面 6 个 `package.json` 的 `version` 必须始终保持一致，并且与 `CHANGELOG.md` 的最新版本条目对应，**不允许出现 CHANGELOG 已到 1.2.0、package.json 还停在 1.0.0 的情况**：
+下面 7 个 `package.json` 的 `version` 必须始终保持一致，并且与 `CHANGELOG.md` 的最新版本条目对应，**不允许出现 CHANGELOG 已到 1.2.0、package.json 还停在 1.0.0 的情况**：
 
 | 文件 | 包名 |
 | --- | --- |
@@ -25,6 +26,7 @@
 | `themes/vue/package.json` | `@soul-blog/vue` |
 | `themes/react/package.json` | `@soul-blog/react` |
 | `themes/hexo/package.json` | `@soul-blog/hexo` |
+| `themes/hugo/package.json` | `@soul-blog/hugo` |
 
 一键统一（在 WSL 内执行；Git Bash 环境无 `perl`）：
 
@@ -33,7 +35,8 @@
 cd /home/callmesoul/code/soul-blog-theme
 for f in package.json packages/core/package.json \
          themes/vanilla/package.json themes/vue/package.json \
-         themes/react/package.json themes/hexo/package.json; do
+         themes/react/package.json themes/hexo/package.json \
+         themes/hugo/package.json; do
   sed -i 's/^  "version": "[^"]*"/  "version": "1.2.0"/' "$f"
 done
 ```
@@ -103,6 +106,19 @@ pnpm build
 ```
 构建输出到 `themes/hexo/source/` 目录。
 
+### 2b. 修改 Hugo 主题 (`themes/hugo/`)
+
+修改 Go 模板（`layouts/`）、CSS 或前端入口后，必须重新构建主题资源：
+
+```bash
+cd themes/hugo
+pnpm build
+```
+
+构建输出到 `themes/hugo/static/`（已 gitignore，由根 `assets/images`、`assets/audio` 复制而来）。
+
+**数据层约定（重要）**：Go 模板只允许输出 `RawSiteData`（`posts` 原始字段 + 配置原样），**不得在模板里做分类 slug、日期格式化、摘要截断、snake_case → camelCase 之类的推导**。这些规则统一由 `packages/core/src/helpers/build-site-data.ts` 承担；组件装配与路由统一由 `mount-site.ts` 的 `mountSite()` 承担。Hexo 主题调用的是同一套，改规则只改 core 一处。
+
 ### 3. 使用仓库内置 Hexo 测试站点
 测试配置和示例文章位于 `fixtures/hexo/`，会直接加载仓库中的 `themes/hexo`，无需复制主题目录。运行时生成文件写入 `/tmp/hexo-test/`。
 
@@ -138,6 +154,15 @@ pnpm dev:hexo
    - `themes/hexo/source/` 是会清理重建的生成目录，不要直接编辑；使用者个人资源应维护在站点的独立目录
    - CSS/JS 输出到 `themes/hexo/source/css/` 和 `js/`
 
+5. **Hugo 二进制不在 PATH**
+   - `pnpm dev:hugo` / `pnpm build:hugo` 中的 `hugo server` 依赖系统已安装的 `hugo`
+   - 免 sudo 安装：下载 release tarball 解压到 `~/.local/bin/hugo` 并 `chmod +x`；未加入 PATH 时先用绝对路径验证
+   - `themes/hugo/static/` 同样是生成目录（JS/CSS + 从根 `assets/` 复制的图片音频），已在 `.gitignore` 中排除
+
+6. **Hugo 的页面类型判定**
+   - `about.md` / `friends.md` / `archives.md` 必须写 `layout: about|friends|archives`，否则会落到 `_default/single.html`
+   - `site-data.html` 按 `postsSection` 与 layout 排除非文章页；调整内容目录结构时同步改 `hugo.toml` 的 `postsSection`
+
 ## 完整命令速查（一次修改完整流程）
 
 ```bash
@@ -152,10 +177,17 @@ pnpm dev:hexo
 
 然后浏览器硬刷新 `http://localhost:4000/`。
 
+Hugo 侧只需换第二条：
+
+```bash
+pnpm build:core
+pnpm dev:hugo      # http://localhost:1313/
+```
+
 ## Hexo 运行包发布
 
 - `pnpm package:hexo` 会重新构建 Core 和 Hexo，再输出 `dist/hexo/` 下的运行包、`hexo-release.json` 和 `SHA256SUMS`。
-- 正式发布仍必须先统一六个包的版本、整理 CHANGELOG 最新正式版本、核对 README，然后提交并创建对应 `vX.Y.Z` tag。
+- 正式发布仍必须先统一全部七个包的版本、整理 CHANGELOG 最新正式版本、核对 README，然后提交并创建对应 `vX.Y.Z` tag。
 - `.github/workflows/release-hexo.yml` 在 tag 推送时执行 `pnpm package:hexo --release` 并上传 Release；校验失败不发布。已存在的同名 Release 资源不会覆盖。
 - 运行包只含模板、主题脚本、默认配置和完整运行资源，不含 workspace 依赖或构建工具。
 - 使用站点把主题目录视为整体生成物，个人配置与资源放在主题目录外；升级不再逐文件比对。

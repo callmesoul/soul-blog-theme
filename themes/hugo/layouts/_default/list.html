@@ -1,0 +1,13 @@
+{{/* 通用列表页（分类 / 标签 taxonomy 与普通 section 复用归档时间线） */}}
+{{ define "main" }}
+{{ partial "site-data.html" . }}
+
+<site-sidebar active-cat="all"></site-sidebar>
+
+<div class="flex min-w-0 flex-1 flex-col overflow-hidden">
+  <archive-list></archive-list>
+  <article-viewer>
+    <span slot="page-views" id="vercount_value_page_pv" aria-label="本文阅读量">—</span>
+  </article-viewer>
+</div>
+{{ end }}

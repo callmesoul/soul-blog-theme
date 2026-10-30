@@ -1,0 +1,35 @@
+{{- /*
+  当前文章出口：供 mountSite 在文章页直接打开阅读器。
+  id/path 与 site-data 中的同名字段保持一致，保证「相关推荐」能命中。
+*/ -}}
+{{- $cat := "" -}}
+{{- with .Params.category -}}{{- $cat = printf "%v" . -}}{{- end -}}
+{{- if not $cat -}}
+  {{- with .Params.categories -}}
+    {{- $first := index . 0 -}}
+    {{- with $first -}}{{- $cat = printf "%v" . -}}{{- end -}}
+  {{- end -}}
+{{- end -}}
+
+{{- $tags := slice -}}
+{{- with .Params.tags -}}
+  {{- range . -}}{{- $tags = $tags | append (printf "%v" .) -}}{{- end -}}
+{{- end -}}
+
+{{- $slug := "" -}}
+{{- with .File -}}{{- $slug = .ContentBaseName -}}{{- end -}}
+
+{{- $article := dict
+  "id" .RelPermalink
+  "path" .RelPermalink
+  "slug" $slug
+  "title" .Title
+  "date" (.Date.Format "2006/01/02")
+  "content" .Content
+  "excerpt" (default "" .Params.description)
+  "cover" (default "" .Params.cover)
+  "category" $cat
+  "tags" $tags
+  "views" (default 0 .Params.views)
+-}}
+<script id="article-data" type="application/json">{{ $article | jsonify | safeJS }}</script>

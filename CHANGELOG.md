@@ -4,6 +4,27 @@
 
 格式基于 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.0.0/)，版本号遵循 [语义化版本](https://semver.org/lang/zh-CN/)。
 
+## [1.10.0] - 2026-10-30
+
+### Added
+
+- 新增 `themes/hugo` 主题（`@soul-blog/hugo`）：Go template 只输出原始数据，渲染与交互完全复用 `@soul-blog/wc`，与 Hexo 主题共享同一份实现。
+- `@soul-blog/wc` 新增 `buildSiteData()` / `resolveSiteData()` 与 `SiteData`、`RawSiteData` 类型契约：把原先分散在 `index.ejs`、`post.ejs`、`archive.ejs`、`about.ejs`、`friends.ejs` 五处的数据推导（分类 slug、`YYYY/MM/DD` 日期、摘要截断、标签统计、commentKey 回退）收敛成单一纯函数，解决同一规则存在五份副本、改一处漏四处的问题。
+- `@soul-blog/wc` 新增 `mountSite()` / `readSiteData()`：把 `themes/hexo/src/main.js` 的组件装配与 hash 路由（`#cat=` / `#tag=` / `#art=`）下沉到核心层，同时支持读取 `<script id="article-data">` 自动打开文章阅读器。Hexo 入口因此从 212 行降为 5 行。
+- Hexo 新增 `soul_site_data` / `soul_article_data` 模板 helper，模板改为输出 `RawSiteData`（`posts`），不再各自拼装最终结构。
+- 新增 `fixtures/hugo` 预览站点与 `dev:hugo` / `build:hugo` 脚本，Hugo 主题默认端口 1313。
+
+### Changed
+
+- Hexo 归档页由 573 行服务端渲染模板改为 `<archive-list>` 组件渲染（约 30 行）：原实现与 `archive-list.ts` 是两套并行的「年 → 月 → 文章」分组逻辑，样式和交互需要同步修改；下沉后归档、首页、文章页共用同一组件。仍保留 `hexo-generator-archive` 的 `/archives/YYYY(/MM)` 子页按年月过滤能力。
+- `buildSiteData()` 新增 `snake_case → camelCase` 配置适配（`title_accent`、`repo_id`、`reactions_enabled` 等），主题模板因此不需要写字段映射；`social` 同时接受 `url` 与 `href`。
+- 七个 `package.json` 的版本统一升级为 `1.10.0`（新增的 `@soul-blog/hugo` 纳入统一管理），Hugo 主题一并进入 pnpm workspace，`pnpm dev:all` 的资源监听范围随之覆盖两套博客主题。
+
+### Fixed
+
+- 文章摘要不再泄漏 HTML 标签：原实现直接对渲染后的正文 `substring(0, 120)`，首页卡片会把 `<p>`、`<code>` 当文本显示；现改为先去标签、压缩空白再截断。
+- 修复首页加载时向 `/undefined` 发起一次无效图片请求：`article-list` 与 `article-viewer` 的 `_icons` 初始为空对象，而 `mountSite()` 先赋 `articles` 后赋 `icons`，首次渲染把 `escapeHtml(undefined)` 拼成了 `src="undefined"`。现在两个组件预置 `DEFAULT_SITE_ICONS` 并在 setter 中合并，`mountSite()` 改为先注入 icons，`escapeHtml()` 对 `null`/`undefined` 返回空串。
+
 ## [1.9.1] - 2026-09-16
 
 ### Changed

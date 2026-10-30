@@ -1,5 +1,6 @@
 import { WcBase } from '../helpers/wc-base'
 import { escapeHtml } from '../helpers/escape-html'
+import { DEFAULT_SITE_ICONS } from '../helpers/site-icons'
 import { readVercountArticleView, VERCOUNT_PAGE_VIEW_EVENT } from '../helpers/vercount'
 import type { Article } from '../types'
 
@@ -24,7 +25,8 @@ class ArticleList extends WcBase {
   }
 
   private _articles: Article[] = []
-  private _icons: Record<string, string> = {}
+  // 预置默认图标：icons 通常在 articles 之后才赋值，避免首次渲染出 src="undefined"
+  private _icons: Record<string, string> = { ...DEFAULT_SITE_ICONS } as Record<string, string>
   private _pageSize = 6
   private _shown = 0
   private _done = false
@@ -43,7 +45,7 @@ class ArticleList extends WcBase {
     this._loadMore()
   }
   set icons (val: Record<string, string>) {
-    this._icons = val
+    this._icons = { ...DEFAULT_SITE_ICONS, ...val } as Record<string, string>
   }
   set catName (val: string) {
     this._catName = val

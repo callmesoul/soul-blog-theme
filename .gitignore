@@ -14,5 +14,13 @@ vite.kanban-worktrees/
 # Hexo theme build output
 themes/hexo/source/
 
+# Hugo theme build output
+themes/hugo/static/
+
 # Repository-local Hexo preview runtime
 /db.json
+
+# Repository-local Hugo preview output
+/fixtures/hugo/public/
+/fixtures/hugo/resources/
+.hugo_build.lock

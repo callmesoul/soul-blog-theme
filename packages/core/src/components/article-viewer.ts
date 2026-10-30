@@ -1,5 +1,6 @@
 import { WcBase } from '../helpers/wc-base'
 import { escapeHtml } from '../helpers/escape-html'
+import { DEFAULT_SITE_ICONS } from '../helpers/site-icons'
 import { recordVercountArticleView } from '../helpers/vercount'
 import type { Article, ArticleComment, GiscusConfig } from '../types'
 
@@ -32,7 +33,8 @@ class ArticleViewer extends WcBase {
 
   private _article: Article | null = null
   private _articles: Article[] = []
-  private _icons: Record<string, string> = {}
+  // 预置默认图标，避免宿主还没注入 icons 时渲染出 src="undefined"
+  private _icons: Record<string, string> = { ...DEFAULT_SITE_ICONS } as Record<string, string>
   private _catNames: Record<string, string> = {}
   private _giscusConfig: GiscusConfig | null = null
   private _viewerGen = 0
@@ -53,7 +55,7 @@ class ArticleViewer extends WcBase {
     this._articles = val
   }
   set icons (val: Record<string, string>) {
-    this._icons = val
+    this._icons = { ...DEFAULT_SITE_ICONS, ...val } as Record<string, string>
   }
   set catNames (val: Record<string, string>) {
     this._catNames = val
