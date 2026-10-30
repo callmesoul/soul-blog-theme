@@ -10,7 +10,7 @@ import { create } from 'tar'
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const source = join(root, 'themes/hexo')
 const output = join(root, 'dist/hexo')
-const packages = ['package.json', 'packages/core/package.json', ...['vanilla', 'vue', 'react', 'hexo'].map(name => `themes/${name}/package.json`)]
+const packages = ['package.json', 'packages/core/package.json', ...['vanilla', 'vue', 'react', 'hexo', 'hugo'].map(name => `themes/${name}/package.json`)]
 const version = JSON.parse(readFileSync(join(root, packages[0]))).version
 for (const file of packages) {
   if (JSON.parse(readFileSync(join(root, file))).version !== version) throw new Error(`${file} 版本不一致`)
